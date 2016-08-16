@@ -1,0 +1,100 @@
+\documentclass[tikz]{standalone}
+
+
+\begin{document}
+\begin{tikzpicture}[scale = 0.28] 
+
+		\draw (-6,23) node {\footnotesize Spectrum};		
+		\draw (-6,21) node {\footnotesize / \textcolor{blue}{Peak} List};		
+	
+		\draw (0,20) -- (30,20);
+		\draw (5,19.8) -- (5,20.2);		
+		\draw (10,19.8) -- (10,20.2);		
+		\draw (15,19.8) -- (15,20.2);		
+		\draw (20,19.8) -- (20,20.2);		
+		\draw (25,19.8) -- (25,20.2);		
+
+		\draw (15,19) node {\footnotesize \gls{mz}};		
+
+		\draw[blue,thick] (4,20) -- (4,25);
+		\draw[blue,thick] (8,20) -- (8,27);
+		\draw[blue,thick] (9,20) -- (9,27);
+		\draw[blue,thick] (11,20) -- (11,24);
+		\draw[blue,thick] (18,20) -- (18,22);
+		\draw[blue,thick] (21,20) -- (21,25);
+		\draw[blue,thick] (27,20) -- (27,23);
+
+		\draw (-6,17) node {\footnotesize \textcolor{red}{Bins}};		
+		\draw (-6,15) node {\footnotesize Bin Size $b$};		
+		
+		\draw (2.5,14.6) -- (2.5,15.4);
+		\draw (2.5,15) -- (4,15);
+		\draw (5,15) node {$b$};
+		\draw (6,15) -- (7.5,15);
+		\draw (7.5,14.6) -- (7.5,15.4);
+
+		\draw[red,thick] (0,17) -- (2.4,17);
+		\draw[red,thick] (2.4,17) -- (2.4,17.5);
+		\draw[red,thick] (2.6,17) -- (2.6,17.5);
+		\draw[red,thick] (2.6,17) -- (7.4,17);
+		\draw[red,thick] (7.4,17) -- (7.4,17.5);
+		\draw[red,thick] (7.6,17) -- (7.6,17.5);
+		\draw[red,thick] (7.6,17) -- (12.4,17);
+		\draw[red,thick] (12.4,17) -- (12.4,17.5);
+		\draw[red,thick] (12.6,17) -- (12.6,17.5);
+		\draw[red,thick] (12.6,17) -- (17.4,17);
+		\draw[red,thick] (17.4,17) -- (17.4,17.5);
+		\draw[red,thick] (17.6,17) -- (17.6,17.5);
+		\draw[red,thick] (17.6,17) -- (22.4,17);
+		\draw[red,thick] (22.4,17) -- (22.4,17.5);
+		\draw[red,thick] (22.6,17) -- (22.6,17.5);
+		\draw[red,thick] (22.6,17) -- (27.4,17);
+		\draw[red,thick] (27.4,17) -- (27.4,17.5);
+		\draw[red,thick] (27.6,17) -- (27.6,17.5);
+		\draw[red,thick] (27.6,17) -- (30,17);
+				
+		\draw (-6,11) node {\footnotesize Binary Data};		
+
+		\draw (1.25,11) node {$[$};
+		\draw (2.5,11) node {$\hdots$};		
+		\draw (5,11) node {\textcolor{blue}{$1$}};		
+		\draw (7.5,11) node {,};		
+		\draw (10,11) node {\textcolor{blue}{$1$}};		
+		\draw (12.5,11) node {,};		
+		\draw (15,11) node {$0$};		
+		\draw (17.5,11) node {,};		
+		\draw (20,11) node {\textcolor{blue}{$1$}};		
+		\draw (22.5,11) node {,};		
+		\draw (25,11) node {\textcolor{blue}{$1$}};		
+		\draw (27.5,11) node {$\hdots$};		
+		\draw (28.75,11) node {$]$};
+		
+		\draw (-6,9) node {\footnotesize Summed Binary Data};		
+
+		\draw (1.25,9) node {$[$};
+		\draw (2.5,9) node {$\hdots$};		
+		\draw (5,9) node {\textcolor{blue}{$1$}};		
+		\draw (7.5,9) node {,};		
+		\draw (10,9) node {\textcolor{blue}{$3$}};		
+		\draw (12.5,9) node {,};		
+		\draw (15,9) node {$0$};		
+		\draw (17.5,9) node {,};		
+		\draw (20,9) node {\textcolor{blue}{$2$}};		
+		\draw (22.5,9) node {,};		
+		\draw (25,9) node {\textcolor{blue}{$1$}};		
+		\draw (27.5,9) node {$\hdots$};		
+		\draw (28.75,9) node {$]$};
+		
+		\draw[->,very thick] (-14,25) -- (-14,8);
+
+		\draw[dashed,very thin,black!50!white] (2.5,8) -- (2.5,27);	
+		\draw[dashed,very thin,black!50!white] (7.5,8) -- (7.5,27);		
+		\draw[dashed,very thin,black!50!white] (12.5,8) -- (12.5,27);	
+		\draw[dashed,very thin,black!50!white] (17.5,8) -- (17.5,27);
+		\draw[dashed,very thin,black!50!white] (22.5,8) -- (22.5,27);	
+		\draw[dashed,very thin,black!50!white] (27.5,8) -- (27.5,27);		
+	  	
+\end{tikzpicture}
+\end{document}
+
+

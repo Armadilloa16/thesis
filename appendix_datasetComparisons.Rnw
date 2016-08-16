@@ -1,0 +1,761 @@
+<<appendix_datasetComparisons_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+In \refsec{datasetComparisons} we considered the 
+application of \gls{dipps}-based feature extraction 
+as introduced in \refchap{dipps} to the ovarian cancer
+data discussed in \refsec{ovarianDatasets}.
+This feature extraction method yields a set of 
+\gls{dipps}-features that are good positive indicators 
+for a subset of interest in the data.
+We use clustering to identify clusters subsets of the 
+data roughly corresponding to tissue types, and we 
+compare the sets of \gls{dipps}-features extracted on 
+the basis of these clusters to investigate within and 
+between patient variability, ultimately demonstrating
+that within patient variability can be sufficiently 
+compensated for in order to detect between patient 
+differences in these data.
+In the process of investigating these data in 
+\refsec{datasetComparisons} we focus on parts of the 
+data that we are particularly interested in --- namely 
+between-patient comparison of cancerous tumour regions.
+Due to this focus, we omitted details of the 
+comparisons within patients B and C, and comparisons of
+non-cancer regions between patients.
+Here we include these omitted results, including brief
+discussion for completeness.
+
+<<dipps_app_A1,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A1'
+DIPPS_A1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_A1,'V1','Bin')
+setnames(DIPPS_A1,'V2','C2')
+setnames(DIPPS_A1,'V3','C1')
+setnames(DIPPS_A1,'V4','C3')
+setnames(DIPPS_A1,'V5','C4')
+cutOFFs_A1 <- DIPPS_A1[nrow(DIPPS_A1),2:(K+1)]
+DIPPS_A1 <- DIPPS_A1[-nrow(DIPPS_A1),]
+@
+
+<<dipps_app_A2,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A2'
+DIPPS_A2 <- read.csv(paste('./matlab/output/',
+                           dataset_name,
+                           '_Bin',toString(100*binSize),
+                           '_binary_',
+                           toString(K),'means_DIPPS.csv',
+                           sep=""),
+                     header=FALSE)
+setnames(DIPPS_A2,'V1','Bin')
+setnames(DIPPS_A2,'V2','C2')
+setnames(DIPPS_A2,'V3','C1')
+setnames(DIPPS_A2,'V4','C3')
+setnames(DIPPS_A2,'V5','C4')
+cutOFFs_A2 <- DIPPS_A2[nrow(DIPPS_A2),2:(K+1)]
+DIPPS_A2 <- DIPPS_A2[-nrow(DIPPS_A2),]
+@
+
+<<dipps_app_A3,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A3'
+DIPPS_A3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_A3,'V1','Bin')
+setnames(DIPPS_A3,'V2','C1')
+setnames(DIPPS_A3,'V3','C2')
+setnames(DIPPS_A3,'V4','C3')
+setnames(DIPPS_A3,'V5','C4')
+cutOFFs_A3 <- DIPPS_A3[nrow(DIPPS_A3),2:(K+1)]
+DIPPS_A3 <- DIPPS_A3[-nrow(DIPPS_A3),]
+@
+
+<<dipps_app_A4,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A4'
+DIPPS_A4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_A4,'V1','Bin')
+setnames(DIPPS_A4,'V2','C2')
+setnames(DIPPS_A4,'V3','C1')
+setnames(DIPPS_A4,'V4','C3')
+setnames(DIPPS_A4,'V5','C4')
+cutOFFs_A4 <- DIPPS_A4[nrow(DIPPS_A4),2:(K+1)]
+DIPPS_A4 <- DIPPS_A4[-nrow(DIPPS_A4),]
+@
+
+<<compareDatasets_app_Jaccard_A, dependson=c("dipps_app_A1","dipps_app_A2","dipps_app_A3","dipps_app_A4")>>=
+bins_dipps <- as.list(1:48)
+for (X in 1:16){
+  clus_X <- paste("C",toString(((X-1) %% 4) + 1),sep="")
+  bins_dipps[[X]] <- switch(ceiling(X/4),
+                            DIPPS_A1[DIPPS_A1[,clus_X] > cutOFFs_A1[,clus_X],"Bin"],
+                            DIPPS_A2[DIPPS_A2[,clus_X] > cutOFFs_A2[,clus_X],"Bin"],
+                            DIPPS_A3[DIPPS_A3[,clus_X] > cutOFFs_A3[,clus_X],"Bin"],
+                            DIPPS_A4[DIPPS_A4[,clus_X] > cutOFFs_A4[,clus_X],"Bin"]
+  )
+}
+Jaccard_A <- data.frame(X = 1:16, Y = 1:16, Jaccard = 0)
+for (X in 1:15){
+  for (Y in (X+1):16){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X]],bins_dipps[[Y]]))/length(union(bins_dipps[[X]],bins_dipps[[Y]])))
+    Jaccard_A <- rbind(Jaccard_A,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_A <- rbind(Jaccard_A,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+
+
+\section{Detailed Jaccard Comparisons in Patient B}
+
+<<dipps_app_B1,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B1'
+DIPPS_B1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B1,'V1','Bin')
+setnames(DIPPS_B1,'V2','C2')
+setnames(DIPPS_B1,'V3','C1')
+setnames(DIPPS_B1,'V4','C3')
+setnames(DIPPS_B1,'V5','C4')
+cutOFFs_B1 <- DIPPS_B1[nrow(DIPPS_B1),2:(K+1)]
+DIPPS_B1 <- DIPPS_B1[-nrow(DIPPS_B1),]
+@
+
+<<dipps_app_B2,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B2'
+DIPPS_B2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B2,'V1','Bin')
+setnames(DIPPS_B2,'V2','C1')
+setnames(DIPPS_B2,'V3','C2')
+setnames(DIPPS_B2,'V4','C4')
+setnames(DIPPS_B2,'V5','C3')
+cutOFFs_B2 <- DIPPS_B2[nrow(DIPPS_B2),2:(K+1)]
+DIPPS_B2 <- DIPPS_B2[-nrow(DIPPS_B2),]
+@
+
+<<dipps_app_B3,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B3'
+DIPPS_B3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B3,'V1','Bin')
+setnames(DIPPS_B3,'V2','C1')
+setnames(DIPPS_B3,'V3','C4')
+setnames(DIPPS_B3,'V4','C2')
+setnames(DIPPS_B3,'V5','C3')
+cutOFFs_B3 <- DIPPS_B3[nrow(DIPPS_B3),2:(K+1)]
+DIPPS_B3 <- DIPPS_B3[-nrow(DIPPS_B3),]
+@
+
+<<dipps_app_B4,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B4'
+DIPPS_B4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B4,'V1','Bin')
+setnames(DIPPS_B4,'V2','C1')
+setnames(DIPPS_B4,'V3','C3')
+setnames(DIPPS_B4,'V4','C4')
+setnames(DIPPS_B4,'V5','C2')
+cutOFFs_B4 <- DIPPS_B4[nrow(DIPPS_B4),2:(K+1)]
+DIPPS_B4 <- DIPPS_B4[-nrow(DIPPS_B4),]
+@
+
+<<compareDatasets_app_Jaccard_B, dependson=c("dipps_app_B1","dipps_app_B2","dipps_app_B3","dipps_app_B4")>>=
+Jaccard_B <- data.frame(X = 1:16, Y = 1:16, Jaccard = 0)
+for (X in 1:16){
+  clus_X <- paste("C",toString(((X-1) %% 4) + 1),sep="")
+  bins_dipps[[X+16]] <- switch(ceiling(X/4),
+                               DIPPS_B1[DIPPS_B1[,clus_X] > cutOFFs_B1[,clus_X],"Bin"],
+                               DIPPS_B2[DIPPS_B2[,clus_X] > cutOFFs_B2[,clus_X],"Bin"],
+                               DIPPS_B3[DIPPS_B3[,clus_X] > cutOFFs_B3[,clus_X],"Bin"],
+                               DIPPS_B4[DIPPS_B4[,clus_X] > cutOFFs_B4[,clus_X],"Bin"]
+  )
+}
+for (X in 1:15){
+  for (Y in (X+1):16){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X+16]],bins_dipps[[Y+16]]))/length(union(bins_dipps[[X+16]],bins_dipps[[Y+16]])))
+    Jaccard_B <- rbind(Jaccard_B,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_B <- rbind(Jaccard_B,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+\draw (10,0) node {
+<<figure_Jaccard_B, dependson="compareDatasets_app_Jaccard_B", fig.width=8, out.width="0.9\\linewidth">>=
+frames <- data.frame(X=rep(c(2.5,6.5,10.5,14.5),4),Y=rep(c(2.5,6.5,10.5,14.5),c(4,4,4,4)))
+p <- (ggplot(Jaccard_B,aes(X,Y))
+      + geom_tile(data = Jaccard_B,aes(fill=Jaccard))
+      + geom_rect(data=frames,size=1,fill=NA,colour="black",aes(xmin=X-2,xmax=X+2,ymin=Y-2,ymax=Y+2))
+      + scale_y_reverse(breaks=c(4.5,8.5,12.5))
+      + scale_x_continuous(breaks=c(4.5,8.5,12.5))
+      + scale_fill_gradient(breaks=c(0.2,0.4,0.6,0.8))
+      + theme(axis.ticks = element_blank(), axis.text = element_blank())
+      + ylab("") + xlab("")
+      + coord_fixed()
+)
+print(p)
+@
+};
+% 2.5345
+\draw (5.652,  6.1) node {B1};
+\draw (8.1865, 6.1) node {B2};
+\draw (10.721, 6.1) node {B3};
+\draw (13.2555,6.1) node {B4};
+\draw (5.652,  5.778) -- (5.652,  5.878);
+\draw (8.1865, 5.778) -- (8.1865, 5.878);
+\draw (10.721, 5.778) -- (10.721, 5.878);
+\draw (13.2555,5.778) -- (13.2555,5.878);
+% 0.6336
+\draw[anchor=west] (15.17,4.9537) node {\colboxofftissue};
+\draw[anchor=west] (15.17,4.3201) node {\colboxstroma};
+\draw[anchor=west] (15.17,3.6864) node {\colboxadipose};
+\draw[anchor=west] (15.17,3.0528) node {\colboxcancer};
+\draw (15.03,4.9537) -- (15.13,4.9537);
+\draw (15.03,4.3201) -- (15.13,4.3201);
+\draw (15.03,3.6864) -- (15.13,3.6864);
+\draw (15.03,3.0528) -- (15.13,3.0528);
+\end{tikzpicture}
+\end{center}
+\vspace{-0.5cm}
+\caption{Image representing the Jaccard distance 
+comparisons of \refsec{JaccardDistance} of the cluster 
+memberships of \reffig{figure_binary_cosClus_B}. 
+A set of \gls{dipps}-features is found for each of the 
+$16$ clusters shown in \reffig{figure_binary_cosClus_B} 
+using the feature extraction approach discussed in 
+\refsec{dipps} and the heuristic cutoff of 
+\refdef{DIPPSthreshold}.
+The image shown above represents pairwise Jaccard 
+distances between these sets of \gls{dipps}-features.
+Black lines separate datasets, with the four pixels 
+within each black divisor corresponding to the four 
+clusters for that dataset.
+\label{fig:figure_Jaccard_B}}
+\end{figure}
+
+
+\reffig{figure_Jaccard_B} shows the Jaccard distance 
+based comparisons analogous to those of 
+\reffig{figure_Jaccard_A}, but for the clustering 
+results shown in \reffig{figure_binary_cosClus_B}.
+The discussion of the clustering results in 
+\refsec{withinPatient_B} leads to some natural 
+consequences in \reffig{figure_Jaccard_B}:
+\begin{itemize}
+  \item The \Ncolboxpurple{} clusters of B2, B3 and B4 
+  show similarity to both the \Ncolboxcancer{} and 
+  \Ncolboxstroma{} of B1.
+  This is expected as these \Ncolboxpurple{} clusters 
+  contain both cancer and stroma tissue regions.
+  \item The \Ncolboxgreen{} clusters of B2 and B4 show 
+  similarity to the \Ncolboxofftissue{} of B1.
+  This is similarly expected as these \Ncolboxgreen{} 
+  clusters correspond to off-tissue regions.
+  The \Ncolboxsalmon{} and \Ncolboxgreen{} clusters in 
+  datasets B2 and B4 show significant similarity, both 
+  within their datasets, and across datasets, and this
+  is expected for the same reason --- they correspond to 
+  off-tissue regions.
+  \item The \Ncolboxgreen{} cluster of B3 shows similarity 
+  to the \Ncolboxcancer{} cluster of B1.
+  Again, expected because this \Ncolboxgreen{} cluster 
+  corresponds to cancerous tissue.
+  It is particularly notable that although this 
+  \Ncolboxgreen{} cluster shows similarity to both the 
+  \Ncolboxcancer{} and \Ncolboxstroma{}, it shows stronger 
+  similarity to the \Ncolboxcancer{}.
+  The individual variables responsible for these 
+  similarities could potentially be of interest for 
+  further investigation into molecular markers of 
+  tumour heterogeneity, for example.
+	\item The \Ncolboxadipose{} clusters across all the 
+  datasets show good agreement.
+\end{itemize}
+
+Overall, the within-patient comparisons of 
+\reffig{figure_Jaccard_B} agree well with the 
+clustering results of \reffig{figure_binary_cosClus_B}.
+If the relationship between the clustering results and 
+the tissue types demonstrate is kept in mind, then the 
+within-patient comparisons of \reffig{figure_Jaccard_B}
+also exhibit a similar degree of reproducibility to the 
+comparisons of \reffig{figure_Jaccard_A} between 
+multiple datasets originating from sections of the 
+same tissue block.
+
+
+\section{Detailed Jaccard Comparisons in Patient C}
+
+<<dipps_app_C1,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C1'
+DIPPS_C1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C1,'V1','Bin')
+setnames(DIPPS_C1,'V2','C2')
+setnames(DIPPS_C1,'V3','C1')
+setnames(DIPPS_C1,'V4','C4')
+setnames(DIPPS_C1,'V5','C3')
+cutOFFs_C1 <- DIPPS_C1[nrow(DIPPS_C1),2:(K+1)]
+DIPPS_C1 <- DIPPS_C1[-nrow(DIPPS_C1),]
+@
+
+<<dipps_app_C2,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C2'
+DIPPS_C2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C2,'V1','Bin')
+setnames(DIPPS_C2,'V2','C2')
+setnames(DIPPS_C2,'V3','C1')
+setnames(DIPPS_C2,'V4','C3')
+setnames(DIPPS_C2,'V5','C4')
+cutOFFs_C2 <- DIPPS_C2[nrow(DIPPS_C2),2:(K+1)]
+DIPPS_C2 <- DIPPS_C2[-nrow(DIPPS_C2),]
+@
+
+<<dipps_app_C3,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C3'
+DIPPS_C3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C3,'V1','Bin')
+setnames(DIPPS_C3,'V2','C2')
+setnames(DIPPS_C3,'V3','C1')
+setnames(DIPPS_C3,'V4','C3')
+setnames(DIPPS_C3,'V5','C4')
+cutOFFs_C3 <- DIPPS_C3[nrow(DIPPS_C3),2:(K+1)]
+DIPPS_C3 <- DIPPS_C3[-nrow(DIPPS_C3),]
+@
+
+<<dipps_app_C4,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C4'
+DIPPS_C4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C4,'V1','Bin')
+setnames(DIPPS_C4,'V2','C2')
+setnames(DIPPS_C4,'V3','C1')
+setnames(DIPPS_C4,'V4','C3')
+setnames(DIPPS_C4,'V5','C4')
+cutOFFs_C4 <- DIPPS_C4[nrow(DIPPS_C4),2:(K+1)]
+DIPPS_C4 <- DIPPS_C4[-nrow(DIPPS_C4),]
+@
+
+<<compareDatasets_app_Jaccard_C, dependson=c("dipps_app_C1","dipps_app_C2","dipps_app_C3","dipps_app_C4")>>=
+Jaccard_C <- data.frame(X = 1:16, Y = 1:16, Jaccard = 0)
+for (X in 1:16){
+  clus_X <- paste("C",toString(((X-1) %% 4) + 1),sep="")
+  bins_dipps[[X+32]] <- switch(ceiling(X/4),
+                               DIPPS_C1[DIPPS_C1[,clus_X] > cutOFFs_C1[,clus_X],"Bin"],
+                               DIPPS_C2[DIPPS_C2[,clus_X] > cutOFFs_C2[,clus_X],"Bin"],
+                               DIPPS_C3[DIPPS_C3[,clus_X] > cutOFFs_C3[,clus_X],"Bin"],
+                               DIPPS_C4[DIPPS_C4[,clus_X] > cutOFFs_C4[,clus_X],"Bin"]
+  )
+}
+for (X in 1:15){
+  for (Y in (X+1):16){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X+32]],bins_dipps[[Y+32]]))/length(union(bins_dipps[[X+32]],bins_dipps[[Y+32]])))
+    Jaccard_C <- rbind(Jaccard_C,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_C <- rbind(Jaccard_C,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+\begin{figure}[ht]
+\begin{center}
+\begin{tikzpicture}
+\draw (10,0) node {
+<<figure_Jaccard_C, dependson="compareDatasets_app_Jaccard_C", fig.width=8, out.width="0.9\\linewidth">>=
+frames <- data.frame(X=rep(c(2.5,6.5,10.5,14.5),4),Y=rep(c(2.5,6.5,10.5,14.5),c(4,4,4,4)))
+p <- (ggplot(Jaccard_C,aes(X,Y))
+      + geom_tile(data = Jaccard_C,aes(fill=Jaccard))
+      + geom_rect(data=frames,size=1,fill=NA,colour="black",aes(xmin=X-2,xmax=X+2,ymin=Y-2,ymax=Y+2))
+      + scale_y_reverse(breaks=c(4.5,8.5,12.5))
+      + scale_x_continuous(breaks=c(4.5,8.5,12.5))
+      + scale_fill_gradient(breaks=c(0.2,0.4,0.6,0.8))
+      + theme(axis.ticks = element_blank(), axis.text = element_blank())
+      + ylab("") + xlab("")
+      + coord_fixed()
+)
+print(p)
+@
+};
+% 2.5345
+\draw (5.652,  6.1) node {C1};
+\draw (8.1865, 6.1) node {C2};
+\draw (10.721, 6.1) node {C3};
+\draw (13.2555,6.1) node {C4};
+\draw (5.652,  5.778) -- (5.652,  5.878);
+\draw (8.1865, 5.778) -- (8.1865, 5.878);
+\draw (10.721, 5.778) -- (10.721, 5.878);
+\draw (13.2555,5.778) -- (13.2555,5.878);
+% 0.6336
+\draw[anchor=west] (15.17,4.9537) node {\colboxofftissue};
+\draw[anchor=west] (15.17,4.3201) node {\colboxstroma};
+\draw[anchor=west] (15.17,3.6864) node {\colboxadipose};
+\draw[anchor=west] (15.17,3.0528) node {\colboxcancer};
+\draw (15.03,4.9537) -- (15.13,4.9537);
+\draw (15.03,4.3201) -- (15.13,4.3201);
+\draw (15.03,3.6864) -- (15.13,3.6864);
+\draw (15.03,3.0528) -- (15.13,3.0528);
+\end{tikzpicture}
+\end{center}
+\vspace{-0.5cm}
+\caption{Image representing the Jaccard distance 
+comparisons of \refsec{JaccardDistance} of the cluster 
+memberships of \reffig{figure_binary_cosClus_C}. 
+A set of \gls{dipps}-features is found for each of the 
+$16$ clusters shown in \reffig{figure_binary_cosClus_C} 
+using the feature extraction approach discussed in 
+\refsec{dipps} and the heuristic cutoff of 
+\refdef{DIPPSthreshold}.
+The image shown above represents pairwise Jaccard 
+distances between these sets of \gls{dipps}-features.
+Black lines separate datasets, with the four pixels 
+within each black divisor corresponding to the four 
+clusters for that dataset.
+\label{fig:figure_Jaccard_C}}
+\end{figure}
+
+
+\reffig{figure_Jaccard_C} shows the Jaccard distance 
+based comparisons analogous to those of 
+\ref{fig:figure_Jaccard_A} and 
+\ref{fig:figure_Jaccard_B}, but for the clustering 
+results shown in \reffig{figure_binary_cosClus_C}.
+In \reffig{figure_Jaccard_C}, apart from the expected 
+effects of the spreading of the \Ncolboxadipose{} area 
+into the \Ncolboxofftissue{} area in two of the 
+datasets, strong darkened diagonals are clearly 
+visible. 
+The only other thing to note in 
+\reffig{figure_Jaccard_C} is that some of the 
+\Ncolboxcancer{} clusters have a notable similarity to the 
+\Ncolboxstroma{} clusters, and this could be due to the 
+\Ncolboxpurple{} cluster in some of these datasets (C3, 
+for example) including some surrounding \Ncolboxstroma{} 
+tissue despite primarily corresponding to \Ncolboxcancer{}
+tissue.
+
+
+
+
+\section{Between Patient Comparisons}
+
+Before I discuss results and interpretations for the 
+between patient comparisons, I provide a quick summary 
+of the conclusions from the within patient comparisons 
+for all three patients: 
+\begin{itemize}
+  \item \textbf{Patient A} (\refsec{withinPatient_A}): 
+		All the clustering results for patient A agreed 
+    very well, the only notable deviation being the 
+    \Ncolboxpurple{} clusters of datasets A1 and A2 
+    included some of the thin connective \Ncolboxstroma{} 
+    tissue inbetween \Ncolboxadipose{} regions, which in 
+    datasets A3 and A4 are largely grouped into their
+    \Ncolboxadipose{} clusters.
+		It was also noted that the \Ncolboxadipose{} and 
+    \Ncolboxstroma{} clusters where the least well 
+    separated of the four, possibly because of this 
+    connective region that is clustered with the 
+    \Ncolboxcancer{} in A1 and A2 consisting of partly 
+    \Ncolboxstroma{} tissue, but being grouped with the 
+    \Ncolboxadipose{} in clusters A3 and A4.
+
+  \item \textbf{Patient B} (\refsec{withinPatient_B}): 
+		The clustering results for B1 separated four 
+    clusters that corresponded to tissue types 
+    reasonably well.
+		In the other three datasets however, the 
+    \Ncolboxgreen{} cluster did not correspond well to any
+    one tissue type, in B3 only corresponding to a 
+    small part of \Ncolboxstroma{} tissue, and in B2 and 
+    B4 corresponding to \Ncolboxofftissue{} regions.
+    The remaining \Ncolboxstroma{} regions in A2, A3 and 
+    A4 being included in the \Ncolboxpurple{} cluster for 
+    these three datasets.  
+	\item \textbf{Patient C} (\refsec{withinPatient_C}): 
+		The data for C2 and C4 showed a degree of speckling, 
+    suggesting the possibility of lower quality data.
+		The clustering results for all four datasets 
+    corresponded well to tissue types, with the only 
+    notable exception being that in C2 and C3 the 
+    \Ncolboxcyan{} cluster extended somewhat beyond the 
+    tissue and into the \Ncolboxofftissue{} region --- 
+    possibly suggesting delocalisation of some 
+    peptides. 
+\end{itemize}
+
+
+ 
+\reffig{figure_Jaccard_all} shows the Jaccard distance 
+based comparisons between the four clusters in each of 
+the twelve datasets introduced so far.
+This constitutes $\Sexpr{(48^2 + 48)/2}$ pairwise 
+comparisons and makes \reffig{figure_Jaccard_all} 
+difficult to interpret due to the large amount of 
+information it contains.
+To aid in the interpretation of 
+\reffig{figure_Jaccard_all} we break it up into 
+smaller block matrices.
+The three submatrices separated by black dividing lines 
+constituting a block diagonal in 
+\reffig{figure_Jaccard_all} are the same matrices shown 
+in \reffig{figure_Jaccard_A}, \reffig{figure_Jaccard_B} 
+and \reffig{figure_Jaccard_C} respectively --- 
+describing the comparisons within patients A, B, and C 
+respectively. 
+We are interested in the between patients comparisons, 
+contained in the triangular block matrix above (or 
+equivalently below, as the matrix is symmetric) the 
+aforementioned block diagonal.
+These between patient comparisons are split into 
+$3$ blocks, corresponding to pairwise comparisons 
+between the three patients: 
+\begin{itemize}
+  \item Patient A versus Patient B in the centre top (or left centre),
+	\item Patient A versus Patient C in the right top (or left bottom) and
+	\item Patient B versus Patient C in the right centre (or centre bottom)
+\end{itemize}
+of \reffig{figure_Jaccard_all}. 
+I will consider each of these pairwise comparison 
+blocks individually.
+
+
+
+
+
+
+
+<<compareDatasets_app_Jaccard_all, dependson=c("compareDatasets_app_Jaccard_A","compareDatasets_app_Jaccard_B","compareDatasets_app_Jaccard_C")>>=
+Jaccard_all <- data.frame(X = 1:48, Y = 1:48, Jaccard = 0)
+for (X in 1:47){
+  for (Y in (X+1):48){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X]],bins_dipps[[Y]]))/length(union(bins_dipps[[X]],bins_dipps[[Y]])))
+    Jaccard_all <- rbind(Jaccard_all,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_all <- rbind(Jaccard_all,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+
+
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\draw (10,0) node {
+<<figure_Jaccard_all, dependson="compareDatasets_app_Jaccard_all", fig.width=8, out.width="0.9\\linewidth">>=
+frames <- data.frame(X=rep(c(8.5,24.5,40.5),3),Y=rep(c(8.5,24.5,40.5),c(3,3,3)))
+p <- (ggplot(Jaccard_all,aes(X,Y))
+      + geom_tile(data = Jaccard_all,aes(fill=Jaccard))
+      + geom_rect(data=frames,size=1,fill=NA,colour="black",aes(xmin=X-8,xmax=X+8,ymin=Y-8,ymax=Y+8))
+      + scale_y_reverse(breaks=c(16.5,32.5))
+      + scale_x_continuous(breaks=c(16.5,32.5))
+      + scale_fill_gradient(breaks=c(0.2,0.4,0.6,0.8))
+      + theme(axis.ticks = element_blank(), axis.text = element_blank())
+      + ylab("") + xlab("")
+      + coord_fixed()
+)
+print(p)
+@
+};
+\end{tikzpicture}
+\end{center}
+\caption{Image representing the Jaccard distance comparisons of \refsec{JaccardDistance} of the cluster memberships of Figures~\ref{fig:figure_binary_cosClus_A}, \ref{fig:figure_binary_cosClus_B}, and \ref{fig:figure_binary_cosClus_C}. Black lines separate patients. \label{fig:figure_Jaccard_all}}
+\end{figure}
+
+\subsubsection{Patient A vs. patient B}
+
+\begin{itemize}
+	\item \NcolboxOfftissue{} areas agree well, which is not 
+  surprising and only notable because the \Ncolboxgreen{} 
+  clusters of B2 and B4 that also occur in 
+  \Ncolboxofftissue{} areas agree with this similarity --- 
+  supporting the hypothesis that the \Ncolboxgreen{} 
+  clusters extended into the \Ncolboxofftissue{} region is
+  only a minor phenomena and not a significant effect, 
+  as these regions are very similar to the 
+  \Ncolboxofftissue{} regions of not only the other 
+  patient B sections but also to the \Ncolboxofftissue{} 
+  regions of the patient A sections.
+  
+	\item \NcolboxAdipose{} clusters agree well overall. 
+  The \Ncolboxcyan{} clusters of patient B show a notable 
+  similarity to the \Ncolboxstroma{} clusters of patient A 
+  --- this likely reflects that they contain some 
+  \Ncolboxstroma{} tissue, perhaps due to the 
+  \Ncolboxstroma{} of patient B being difficult to 
+  differentiate from the \Ncolboxadipose{}. 
+  This is further supported by the fact that B1 (where 
+  the \Ncolboxadipose{} cluster does not include 
+  \Ncolboxstroma{}) does not show this similarity to the 
+  \Ncolboxstroma{} clusters of the patient A datasets, and 
+  similarly B4 (whose \Ncolboxadipose{} cluster contains 
+  the least \Ncolboxstroma{} of B2, B3, and B4 due to its 
+  \Ncolboxcancer{} cluster including more \Ncolboxstroma{} 
+  than B2 or B3) shows much less similarity to the 
+  \Ncolboxstroma{} clusters of the patient A datasets than 
+  B2 or B3.
+  
+	\item The similarity between \Ncolboxcancer{} clusters 
+  is visible, although notably weak. 
+  The \Ncolboxcancer{} clusters of patient B additionally 
+  show a notable similarity to the \Ncolboxstroma{} 
+  clusters of patient A (stronger than their similarity
+  to the \Ncolboxcancer{} clusters of patient A), most 
+  likely because the \Ncolboxcancer{} clusters in patient 
+  B are not well separated and contain a significant 
+  amount of \Ncolboxstroma{} tissue, but nonetheless this 
+  demonstrates that cross-patient similarities in 
+  \Ncolboxstroma{} tissue can be detected in this way. 
+  This is supported by the fact this similarity between 
+  \Ncolboxcancer{} of patient B and \Ncolboxstroma{} of 
+  patient A is much weaker in dataset B1, where the 
+  \Ncolboxcancer{} and \Ncolboxstroma{} are better separated.
+  Also of interest is the similarity between the 
+  \Ncolboxstroma{} cluster of dataset B3 and the 
+  \Ncolboxcancer{} clusters of patient A --- indicating
+  perhaps this small region is not just \Ncolboxstroma{}
+  as was believed, but shares many molecular markers of
+  not only the \Ncolboxcancer{} of patient B, but also of
+  patient A.
+\end{itemize}
+
+
+
+\subsubsection{Patient A vs. patient C}
+
+\begin{itemize}
+	\item Overall good similarity across all clusters, 
+  the only broad exception being the notable similarity 
+  between \Ncolboxadipose{} and \Ncolboxstroma{} clusters in 
+  both directions --- possibly simply due to the 
+  difficulty to separating these tissue types mentioned 
+  previously.
+  
+	\item The spreading of the \Ncolboxcyan{} clusters into 
+  \Ncolboxofftissue{} regions in C2 and C3 is also notable 
+  by the similarity of the \Ncolboxcyan{} clusters in 
+  these datasets to the \Ncolboxofftissue{} in patient A.
+\end{itemize}
+
+
+\subsubsection{Patient B vs. patient C}
+
+\begin{itemize}
+	\item The \Ncolboxcancer{} clusters of patient B show 
+  strong similarity to the \Ncolboxstroma{} of the patient 
+  C datasets, most likely due to how the \Ncolboxcancer{} 
+  clusters of patient B tend to include a significant 
+  amount of surrounding \Ncolboxstroma{} tissue. 
+  This similarity is least in B1, whose \Ncolboxcancer{} 
+  cluster is best separated from the \Ncolboxstroma{} of 
+  the patient B datasets.
+  
+  \item The \Ncolboxadipose{} clusters of datasets C2 and 
+  C3 show a similarity to the \Ncolboxofftissue{} clusters 
+  of the patient B datasets, which is expected as the 
+  \Ncolboxcyan{} clusters in datasets C2 and C3 extend 
+  into off-tissue regions. 
+  Otherwise, \Ncolboxadipose{} clusters match up 
+  remarkably well.
+  
+  \item Similarly, and unsurprisingly, the \Ncolboxstroma{} 
+  clusters of datasets B2 and B4 (which extend into 
+  off-tissue regions) show strong similarity to the 
+  \Ncolboxofftissue{} clusters of the patient C datasets.
+\end{itemize}
+
+
+
+
+
+
+
+

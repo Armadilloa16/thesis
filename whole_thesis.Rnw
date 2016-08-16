@@ -1,0 +1,168 @@
+\documentclass[twoside,12pt,a4paper]{report}
+
+% Default chunk options
+<<set_default_chunk_options,cache=FALSE,echo=FALSE>>=
+opts_chunk$set(echo=FALSE,
+               warning=TRUE,
+               error=TRUE,
+               message=TRUE,
+               include=TRUE,
+               cache=TRUE
+               )
+# knit_hooks$set(inline = function(x) {
+#   prettyNum(x, big.mark=",")
+# })
+opts_knit$set(self.contained=FALSE,
+              concordance=TRUE)
+@
+
+% PREAMBLE: LaTeX Packages, Macros, formatting, etc.
+<<formatting_preamble, child='formatting_preamble.Rnw',cache=FALSE>>=
+@
+
+% .R file with all my R functions in it.
+<<local_functions,cache=FALSE, include=FALSE>>=
+source('localFunctions.R')
+@
+
+% Additional R packages not loaded in localFunctions.R 
+<<additional_packages, cache=FALSE,include=FALSE>>=
+library(xtable)
+@
+
+
+
+
+
+\begin{document}
+
+% FRONTMATTER: 
+%   Titlepage, 
+%   Contents, 
+%   Acronyms,
+%   Abstract, 
+%   Publications and Presentations, 
+%   Declaration, 
+%   Acknowledgements, 
+%   Introduction, 
+<<formatting_frontmatter, child='formatting_frontmatter.Rnw'>>=
+@
+
+
+
+% MAIN BODY
+\glsresetall
+\cleardoublepage
+\chapter{Background and Data}
+\label{chap:intro}
+% Main Body LaTeX settings
+% \setlength{\parindent}{0pt}
+% \setlength{\parskip}{2ex plus 0.5ex minus 0.5ex}
+\pagenumbering{arabic}
+<<chapter_data, child='chapter_data.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{DIPPS and Exploratory Analyses}
+\label{chap:dipps}
+<<chapter_dippsMethod, child='chapter_dippsMethod.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{Applications of DIPPS-based Feature Extraction}
+\label{chap:dippsApplications}
+<<chapter_dippsApplications, child='chapter_dippsApplications.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{Methods for Classification}
+\label{chap:classificationMethods}
+<<chapter_classificationMethods, child='chapter_classificationMethods.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{Classification of Lymph Node Metastasis in Endometrial Cancer}
+\label{chap:classificationApplication}
+<<chapter_classificationApplication, child='chapter_classificationApplication.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter*{Concluding Remarks}
+\addcontentsline{toc}{chapter}{Concluding Remarks}
+<<formatting_conclusion, child='formatting_conclusion.Rnw'>>=
+@
+
+
+
+% APPENDICES
+\cleardoublepage
+\begin{appendices}
+
+\cleardoublepage
+\chapter{Binning}
+\label{appendix:binning}
+<<appendix_binning, child='appendix_binning.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{Detailed Consideration of Ovarian Datasets}
+\label{appendix:datasetComparisons}
+<<appendix_datasetComparisons, child='appendix_datasetComparisons.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{Matrix Inverse}
+\label{appendix:normalisation}
+<<appendix_normalisation, child='appendix_normalisation.Rnw'>>=
+@
+
+\cleardoublepage
+\chapter{Classification Results for Vulvar Cancer Data}
+\label{appendix:vulvar}
+<<appendix_vulvar, child='appendix_vulvar.Rnw'>>=
+@
+
+% \chapter{DIPPS Paper}
+% \label{appendix:dippsPaper}
+% \includepdf[pages=-]{./miscImages/dippsPaper.pdf}
+% 
+% \chapter{CCA Paper}
+% \label{appendix:ccaPaper}
+% \includepdf[pages=-]{./miscImages/ccaPaper.pdf}
+
+\end{appendices}
+
+
+
+% POSTAMBLE
+\cleardoublepage
+\bibliographystyle{plainnat}
+\bibliography{references}
+\addcontentsline{toc}{chapter}{Bibliography}
+
+% \chapter*{Document Compilation Details}
+% \addcontentsline{toc}{chapter}{Document Compilation Details}
+% 
+% In the interests of reproducibility, this work was 
+% compiled using \href{http://yihui.name/knitr/}{knitr},
+% in the following enviroment:
+% 
+% <<sessioninfo, echo=TRUE, results='markup',cache=FALSE>>=
+% sessionInfo()
+% @
+% 
+% <<pdflatex_version, echo=TRUE, message=TRUE, warning=TRUE,cache=FALSE>>=
+% system('pdflatex --version',intern=TRUE)
+% @
+% 
+% 
+% <<latex_packages, echo=TRUE, message=TRUE, warning=TRUE,cache=FALSE>>=
+% log_file = file("whole_thesis.log","r")
+% L = readLines(log_file)
+% L[grep("^Package:",L)]
+% close(log_file)
+% @
+% 
+
+
+\end{document}

@@ -1,0 +1,90 @@
+<<formatting_conclusion_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+\gls{maldi}-\gls{ims} has two strengths that we have 
+focussed on: preserving spatial information, and 
+facilitating the classification of clinically 
+relevant diagnostic and prognostic factors through the 
+use of \glspl{tma}.
+
+In Chapters~\ref{chap:dipps} and 
+\ref{chap:dippsApplications} we explored the spatial 
+aspect of \gls{maldi}-\gls{ims} data.
+In \refchap{dipps} we demonstrated that cancerous 
+tumour tissue could be seperated from its surrounding 
+non-tumour tissues by using an automated clustering 
+approach and that this seperation could be used to 
+implement a \gls{dipps}-feature selection scheme for 
+selecting a short-list of peptides that are more highly 
+expressed in tumour tissue than non-tumour tissue.
+In \refsec{datasetComparisons} we explored the use of 
+these short-lists in gaining information about the 
+within-patient and between-patient variability in 
+\gls{maldi}-\gls{ims} data, conluding that although 
+this variability was significant, considering 
+technical replicates can allow for biologically 
+significant differences between patients to be detected 
+reproducibly.
+In \refsec{dataDependant} we demonstrated that our 
+\gls{dipps}-feature selection approach can be applied
+in another way --- to find glycan signals 
+\citep{Gustafsson2015}.
+We published this \gls{dipps}-feature selection 
+approach as \citet{Winderbaum2015}.
+
+In Chapters~\ref{chap:classificationMethods} and 
+\ref{chap:classificationApplication} we consider the 
+classification of \gls{maldi}-\gls{ims} \gls{tma} data.
+In \refchap{classificationMethods} we introduced and 
+disucssed methods for the classification of such 
+\gls{maldi}-\gls{ims} \gls{tma} data.
+In \refchap{classificationApplication} we applied these
+methods to classify \gls{lnm} in the endometrial data 
+of \citet{Mittal2016}, and considered various options 
+for pre-processing, dimension-reduction, and 
+classification of these data --- comparing the 
+classification performance for each option.
+Ultimately we concluded that the most important factor 
+to classification performance overall was the approach
+taken to dimension reduction --- with \gls{cca}-based
+variable selection performing very well.
+Some options also seemed to have very strong 
+interaction effects with each other --- resulting in 
+particular combinations of choices having much 
+improved classification performance despite each of 
+the individual options not having big effects 
+in general.
+These interaction effects ultimately led to the 
+overall conclusion that the most consistent set of 
+options was using \gls{cca}-\gls{lda} on the 
+log-intensity data.
+In addition to these results from the endometrial data 
+we also replicated our analysis on a second dataset
+relating to vulvar cancer, as shown in \refapp{vulvar}.
+Many of the more minor results from the endometrial 
+data were not reproduced in the vulvar data.
+However the most obvious trends, including the 
+consistently good classification performance of 
+\gls{cca}-\gls{lda} on the log-intensity data, were the 
+same in the vulvar data, strengthening these results.
+We published our \gls{cca}-based variable selection 
+approach with these results as \citet{Winderbaum2016}.
+
+In addition to developing a framework for feature 
+selection and classification of \gls{maldi}-\gls{ims} 
+data, this thesis contains new mathematical and 
+statistical results, namely:
+\begin{itemize}
+  \item The spatial smooth of \refsec{spatialSmooth},
+  which applies not only to proteomics data 
+  analysis, but to binary data in general.
+  \item The analytic form for the matrix inverse 
+  derived in \refapp{normalisation}, which is of 
+  interest not only in linear regression, but is infact 
+  a result for a more general family of matrices.
+\end{itemize}
+
+
+
+

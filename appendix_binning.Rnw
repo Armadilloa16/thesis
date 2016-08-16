@@ -1,0 +1,514 @@
+<<appendix_binning_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+
+Here we introduce details on the binning algorithm 
+used, including notation and definitions.
+After introducing binning (\refsec{binningalg}) and 
+some directly related concepts 
+(\refsec{emptybinsequivalence} and 
+\refsec{matchingbins}), I go on to discuss the binary 
+/ summed binary data equivalence 
+(\refsec{binarysummedbinaryequivalence}) which is 
+related to choice of bin size, and important when 
+considering non-binary (such as intensity) data.
+Considering binning using alternative bin locations 
+will also be relevant, as choice of bin location is 
+arbitrary, and the discussion of (\refsec{binwiggling}) 
+provides a framework within which sensitivity of 
+results to bin location can be explored.
+
+
+\section{Binning Algorithm for Peaklist Data}
+\label{sec:binningalg}
+
+The binning method considered here could be used on any 
+functional data where `features' have been identified.
+To avoid ambiguity I define binning here explicitly in 
+the context of peaklist data, but all the concepts 
+involved are completely general.
+As mentioned in \refsec{data}, data we consider will be 
+in the pre-processed `peaklist' format --- meaning the 
+data can be represented as a list of peaks, each with 
+an associated \gls{mz} value and parent spectrum as well
+as other properties. 
+{\highlightTextAs{notation}
+If we denote the \gls{mz} value of the $i$th peak 
+associated to the $j$th spectrum $m_{ij}$, then we 
+introduce notation in \refeqn{massminmax} for the 
+maximum and minimum \gls{mz} values in a dataset, i.e.
+\begin{equation}
+  \mMin = \underset{i,\,j}{\min} \left \{ m_{ij} \right \}
+  \quad \text{ and } \quad 
+  \mMax = \underset{i,\,j}{\max} \left \{ m_{ij} \right \}.
+	\label{eqn:massminmax}
+\end{equation} 
+
+In \refeqn{massnminnmax} we introduce notation for 
+$\nFirst$ - the number of adjacent (non-overlapping) 
+bins of size $b$ that lie between $0$ and $\mMin$, and 
+$\nLast$ - the number of adjacent (non-overlapping) 
+bins of size $b$ needed to cover both $0$ and $\mMax$,
+specifically
+\begin{equation}
+  \nFirst = \left \lfloor \frac{\mMin}{b} \right \rfloor
+  \quad \text{ and } \quad 
+  \nLast = \left \lceil \frac{\mMax}{b} \right \rceil.
+\label{eqn:massnminnmax}
+\end{equation} 
+}
+
+The notation introduced in \refeqn{massminmax} and 
+\refeqn{massnminnmax} is sufficient to define 
+\refalg{binning}, which explicitly defines the process 
+of producing binned data and is illustrated in 
+\reffig{binningSchematic}.
+
+
+\begin{alg} \textbf{\emph{Binning:}} Given a bin size 
+$b>0$ and a dataset consisting of $n$ spectra in 
+peaklist format, using the notation introduced in 
+\refeqn{massminmax} and \refeqn{massnminnmax},
+\begin{enumerate}
+	\item Construct $\nLast - \nFirst + 1$ intervals (bins) 
+  with left endpoints open, right closed of width $b$ 
+  and with centres 
+	\begin{equation*}
+		\nFirst b, \; \, (\nFirst + 1)b, \; \, (\nFirst + 2)b, \; \, \hdots , \; \, \nLast b.
+	\end{equation*}
+	\item Use the bins from the previous step to produce 
+  a $(\nLast - \nFirst + 1) \times 1$ vector 
+  $\vDataCol{j}$ for each spectrum $j = 1,2,\hdots,n$ 
+  where the $\vDataCol{j}$ are one of either
+		\begin{itemize}
+			\item \textbf{Binary Data:} The $\vDataCol{j}$ 
+      are such that for each $j$, the $i^{th}$ entry of 
+      $\vDataCol{j}$ is zero if spectrum $j$ has no 
+      peaks in the the $i^{th}$ bin, or one if spectrum 
+      $j$ has at least one peak in the the $i^{th}$ 
+      bin.
+			\item \textbf{Summed Binary Data}: The 
+      $\vDataCol{j}$ are such that for each $j$, the 
+      $i^{th}$ entry of $\vDataCol{j}$ is $k$ if 
+      spectrum $j$ has exactly $k$ peaks in the the 
+      $i^{th}$ bin.
+		\end{itemize}
+	\item Construct a $d \times n$ data matrix $\mData$ 
+  (where $d = \nLast - \nFirst + 1$) whose columns are 
+  the $\vDataCol{j}$.
+\end{enumerate}
+
+\label{alg:binning}
+\end{alg}
+
+
+\begin{figure}[ht]
+  \begin{center}
+	\input{./figure_BinningSchematic}  
+  \end{center}
+  \caption{Schematic illustrating the binning process (\refalg{binning}). \textcolor{red}{Bins} are used to partition the continuous \gls{mz} range, and \textcolor{blue}{peaks} are identified by the \textcolor{red}{bin} within which they occur. Moving from the top of the figure down, peaklist data can then be converted into either binary, or summed binary data by constructing a vector whose entries are respectively either; \textcolor{blue}{indicators} for, or \textcolor{blue}{counts} of, the number of \textcolor{blue}{peaks} in the corresponding \textcolor{red}{bin}. In \refalg{binning} a vector is constructed for each spectra, and these are concatenated into a data matrix as columns. \label{fig:binningSchematic}}
+\end{figure}
+
+{\highlightTextAs{notation}
+When I write ``a $d \times n$ binary (binned) data matrix $\mData$'' or ``a $d \times n$ summed binary (binned) data matrix $\mData$'' I refer to a data matrix $\mData$ of either binary, or summed binary data respectively - as produced by \refalg{binning} above.
+}
+These binned data are used in the analysis of both the 
+ovarian and endometrial cancer datasets described in 
+\refsec{ovarianDatasets} and \refsec{endometrialDatasets}
+respectively.
+
+
+
+\section{Invariance Under Removal of Empty Bins}
+\label{sec:emptybinsequivalence}
+
+I will refer to bins that contain no peaks in any spectra as empty bins.
+\refalg{binning} can (particularly for small bin sizes) produce empty bins.
+In a data matrix $\mData$ produced by \refalg{binning}, each column corresponds to a spectrum, and each row corresponds to a bin.
+For reasons of computational speed it is often desirable to remove the rows of a data matrix $\mData$ corresponding to empty bins, but we need to know what effect this will have on analyses.
+
+
+%{\color{red}
+%Motivation?
+%\begin{enumerate}
+%	\item The covariance matrix $\left(\mData - \frac{1}{n}\mData \bm{1}_{n \times 1} \right )\left(\mData - \frac{1}{n}\mData \bm{1}_{n \times 1} \right )^T$ will be singular, which causes problems for any covariance matrix based method - eg. PCA. Note that the expression $\mData - \frac{1}{n}\mData \bm{1}_{n \times 1}$ indicates that the vector $\frac{1}{n}\mData\bm{1}_{n \times 1} $ is subtracted from every column of $\mData$. Methods to deal with/ get around this exist, but it is still preferable (and as it turns out often equivalent) to avoid the issue
+%	\item Dealing with the full matrix $\mData$ can be computationally difficult. This is because such datasets often consist of $10000 - 20000$ spectra, and for useful bin sizes ( I will discuss ``useful'' bin sizes later) the number of variables for such a binned dataset will usually be in the range $3500 - 14000$, and doing operations on $10000 \times 10000$ ($ \approx 100$ MB)  matrices is slow.
+%	% unless you have an AWESOME computer.
+%	\item As discussed above often the number of such variables will be in the range $3500 - 14000$, and so in some cases, the number of variables will be greater than the number of spectra, and you run into HDLSS (high dimension low sample size) problems - again, covariance matrix will be singular, but other things go wrong as well.
+%\end{enumerate}
+%}
+
+In many cases removing empty bins has no effect on the results of further analyses. In this section I briefly discuss under which conditions removing empty bins will have no effect on further analyses, and some common examples of distances that are invariant under removal of empty bins.
+
+{\highlightTextAs{notation}
+Consider a $d \times n$ data matrix $\mData$ whose 
+$j$th column is denoted
+% \begin{equation*}
+% 	\mData = 
+% 	\left[
+% %	\renewcommand{\arraystretch}{1.4}
+% 	\begin{matrix}
+% 		\Data_{11} & \Data_{12} & \hdots & \Data_{1n} \\
+% 		\Data_{21} & \Data_{22} & \hdots & \Data_{2n} \\
+% 		\vdots & \vdots & \ddots & \vdots \\
+% 		\Data_{d1} & \Data_{d2} & \hdots & \Data_{dn} \\
+% 	\end{matrix}
+% 	\right]
+% %	=  \left( x_{ij} \right )_{ij}
+% \end{equation*}
+$\vDataCol{j}$.
+Let $d_{empty}$ be the number of empty rows of 
+$\mData$ --- rows corresponding to empty bins across 
+all spectra. 
+We construct a new data matrix, $\mData^*$ by removing 
+the empty rows of $\mData$ and 
+% \begin{equation*}
+% 	\mData^* = 
+% 	\left[
+% %	\renewcommand{\arraystretch}{1.4}
+% 	\begin{matrix}
+% 		\Data^*_{11} & \Data^*_{12} & \hdots & \Data^*_{1n} \\
+% 		\Data^*_{21} & \Data^*_{22} & \hdots & \Data^*_{2n} \\
+% 		\vdots & \vdots & \ddots & \vdots \\
+% 		\Data^*_{(d-d_{empty})1} & \Data^*_{(d-d_{empty})2} & \hdots & \Data^*_{(d-d_{empty})n} \\
+% 	\end{matrix}
+% 	\right]
+% \end{equation*}
+let $\vDataCol{j}^*$ denote the $j^{th}$ column of $\mData^*$. 
+}
+
+\begin{defn}
+
+\textbf{\emph{Invariance under the removal of empty variables:}}
+We call a distance $D$ invariant to the removal of empty variables if 
+\begin{equation*}
+	D(\vDataCol{j},\vDataCol{k}) = D(\vDataCol{j}^*,\vDataCol{k}^*) \quad \forall \, j,k = 1,2,\hdots,n \quad \forall \, n,d \quad \text{and} \quad \forall \, 0 \leq d_{empty} \leq d
+\end{equation*}
+
+\label{def:emptybinsequivalence}
+\end{defn}
+
+
+\refdef{emptybinsequivalence} holds for some 
+pseudometrics, and not others.
+The Euclidean, cosine, and Hamming distances are 
+examples of pseudometrics that are invariant under the 
+removal of empty variables.
+In \refdef{Dham} we define the Hamming distance as
+\begin{equation*}
+D_{Ham} : \{0,1\}^d \times \{0,1\}^d \rightarrow [0,d], \quad \quad
+D_{Ham}(\bm{x},\bm{y}) = d - \bm{x} \cdot \bm{y} - (1-\bm{x}) \cdot (1-\bm{y})
+\end{equation*}
+which can be interpreted as the number of positions in
+which the vectors $\bm{x}$ and $\bm{y}$ differ.
+An alternate definition for the Hamming distance is 
+\begin{equation*}
+D_{Ham}^* : \{0,1\}^d \times \{0,1\}^d \rightarrow [0,1], \quad \quad
+D_{Ham}^*(\bm{x},\bm{y}) = \frac{d - \bm{x} \cdot \bm{y} - (1-\bm{x}) \cdot (1-\bm{y})}{d},
+\end{equation*}
+which can be interpreted as the proportion of positions
+that differ between the vectors $\bm{x}$ and $\bm{y}$.
+This alternate definition for the Hamming distance, 
+$D_{Ham}^*$, is the definition used in the MATLAB 
+function {\tt kmeans} via the {\tt pdist} function, and
+is an example of a pseudometric that is not invariant 
+under the removal of empty variables.
+When we use the term `Hamming distance', we refer to
+\refdef{Dham}.
+
+% I now consider some particular examples.
+%
+%\subsubsection{Euclidean Distance}
+%
+%The Euclidean distance,
+%
+%\begin{align*}
+%	D_{Euc}^2(\vDataCol{j},\vDataCol{k}) &= \sum_{i = 1}^d{(x_{ik} - x_{ij})^2} \\
+%%	&= \sum_{i = 1}^{d - d_{empty}}{(x^*_{ik} - x^*_{ij})^2} + \sum_{i = 1}^{d_{empty}}{(c_i - c_i)^2} \\
+%	&= \sum_{i = 1}^{d - d_{empty}}{(x^*_{ik} - x^*_{ij})^2} \\
+%	&= D_{Euc}^2(\vDataCol{j}^*,\vDataCol{k}^*)
+%\end{align*}
+%
+%So we have that the Euclidean distance is invariant under removal of empty variables (\refdef{emptybinsequivalence}).
+%
+%\qed
+%
+%{\color{red}
+%This clearly demonstrates that the squared Euclidean distance is also invariant under the removal of empty bins.
+%
+%It is interesting to note, a stronger result can be shown for Euclidean distance. It can (easily) be shown that the Euclidean distance is invariant under removal of constant rows, where the constant is not required to be zero.
+%}
+%
+%{\color{red} trivially extend this to any $L^p-norm$ induced distance? i.e. $\left ( \sum_{i = 1}^d{(x_{ik} - x_{ij})^p} \right )^{\frac{1}{p}}$
+%}
+%
+%\subsubsection{Cosine Distance}
+%
+%The cosine distance,
+%
+%\begin{align*}
+%	D_{Cos}(\vDataCol{j},\vDataCol{k}) &= 1 - \frac{\vDataCol{j}^T \vDataCol{k}}{\sqrt{\vDataCol{j}^T\vDataCol{j} \vDataCol{k}^T\vDataCol{k}}}
+%\\
+%%	&= 1 - \frac{\sum_{i = 1}^d{x_{ij}x_{ik}}}{\sqrt{\sum_{i = 1}^d{x_{ij}x_{ij}}\sum_{i = 1}^d{x_{ik}x_{ik}}}} \\
+%%	&= 1 - \frac{\sum_{i = 1}^{d-d_{empty}}{x_{ij}^*x_{ik}^*} + \sum_{i = 1}^{d_{empty}}{c_i^2}}{\sqrt{\left( \sum_{i = 1}^{d - d_{empty}}{x_{ij}^*x_{ij}^*} + \sum_{i = 1}^{d_{empty}}{c_{i}^2} \right ) \left ( \sum_{i = 1}^{d- d_{empty}}{x_{ik}^*x_{ik}^*} + \sum_{i = 1}^{d_{empty}}{c_{i}^2} \right )}} \\
+%%	&= 1 - \frac{\sum_{i = 1}^{d-d_{empty}}{x_{ij}^*x_{ik}^*}}{\sqrt{\left( \sum_{i = 1}^{d - d_{empty}}{x_{ij}^*x_{ij}^*} \right ) \left ( \sum_{i = 1}^{d- d_{empty}}{x_{ik}^*x_{ik}^*} \right )}} & \\ % \text{if} \quad c_1,c_2,\hdots,c_{d_{empty}} = 0 \\
+%	&= 1 - \frac{(\vDataCol{j}^*)^T \vDataCol{k}^*}{\sqrt{(\vDataCol{j}^*)^T\vDataCol{j}^* (\vDataCol{k}^*)^T\vDataCol{k}^*}}
+%\\
+%	&= D_{Cos}(\vDataCol{j}^*,\vDataCol{k}^*)
+%\end{align*}
+%
+%So we have that the cosine distance is invariant under removal of empty variables (\refdef{emptybinsequivalence}).
+%
+%\qed
+%
+%\subsubsection{Hamming Distance}
+%
+%When considering the Hamming distance I will only consider \emph{binary} data. In the case of binary data the Hamming distance,
+%
+%\begin{align*}
+%	D_{Ham}^2(\vDataCol{j},\vDataCol{k}) &= \vDataCol{j}^T\vDataCol{k} \\
+%%	&= \sum_{i = 1}^d{x_{ij}x_{ik}} \\
+%%	&= \sum_{i = 1}^{d-d_{empty}}{x_{ij}^*x_{ik}^*} + \sum_{i = 1}^{d_{empty}}{c_i^2} \\
+%%	&= \vDataCol{j}^*)^T \vDataCol{k}^* + \sum_{i = 1}^{d_{empty}}{c_i^2} \\
+%%	&= D_{Ham}^2(\vDataCol{j}^*,\vDataCol{k}^*) + \sum_{i = 1}^{d_{empty}}{c_i^2} \\
+%	&= {\vDataCol{j}^*}^T \vDataCol{k}^*\\
+%	&= D_{Ham}^2(\vDataCol{j}^*,\vDataCol{k}^*) \\
+%\end{align*}
+%
+%So we have that the Hamming distance is invariant under removal of empty bins (\refdef{emptybinsequivalence}).
+%%Firstly, notice that this proof holds only for \emph{binary} data, which is the only context in which we will consider the Hamming distance. Then notice that, under the condition that we are dealing with binary data, we have proven the same result as for the cosine distance i.e. invariance under removal of empty bins, but also under the {\color{red}looser} condition $\sum_{i = 1}^{d_{empty}}{c_i^2}$. Furthermore, if no restriction is placed on the values of  $c_1, c_2, \hdots , c_{d_{empty}}$ $D_{Ham}^2(\vDataCol{j},\vDataCol{k})$ is still just $D_{Ham}^2(\vDataCol{j}^*,\vDataCol{k}^*)$ plus a constant{\color{red}, which is nice}.
+%
+%\qed
+%
+%{\color{red}
+%It is interesting to note, a stronger result can be shown for Hamming distance. It can (easily) be shown that under removal of constant rows, the Hamming distance only changes by addition of a constant.
+%}
+%
+%{\color{red}
+%\subsubsection{In general?}
+%
+%For any psuedometric $D$ that satisfies invariance under permutations, 
+%
+%
+%}
+
+
+\section{Matching Bins Between Datasets}
+\label{sec:matchingbins}
+
+I mentioned in the introduction to \refsec{binning}, an
+advantage of binning over data-driven methods such as 
+those described in \refsec{dataDependant}, is that 
+comparisons of spectra within a single dataset can be 
+extended to comparisons between multiple datasets in a 
+natural and computationally efficient way.
+In this section I will explicitly define this natural 
+extension of binning to comparisons between multiple 
+datasets in \refalg{matchbins}, and briefly discuss the 
+significance of invariance under the removal of empty 
+variables (\refdef{emptybinsequivalence}) to these 
+comparisons.
+
+{\highlightTextAs{notation}
+Let $\mData^{(1)}$ and $\mData^{(2)}$ be 
+$d_1 \times n_1$ and $d_2 \times n_2$ binned data 
+matrices produced by \refalg{binning} with some bin 
+size $b$ from two different peaklist datasets, which I 
+will refer to as dataset $(1)$ and dataset $(2)$ 
+respectively.
+If we wish to compare the two datasets, we would like 
+their rows to correspond to the same \gls{mz} bins, which 
+would allow a natural comparison of spectra from one 
+dataset to spectra in the other.
+\refalg{matchbins} describes how to modify these data 
+matrices so that their rows correspond to the same 
+\gls{mz} bins. 
+I extend the notation introduced earlier by adding a 
+superscript to denote dataset; Let $m_{ij}^{(\nu)}$ be 
+the \gls{mz} location of the $i^{th}$ peak in the $j$th 
+spectrum of dataset ${(\nu)}$ for $\nu = 1,2$. 
+Similarly, I extend the notation of 
+\refeqn{massminmax} to get
+\begin{equation}
+  \mMin^{(\nu)} = \underset{i,\,j}{\min} \left \{ m_{ij}^{(\nu)} \right \}
+  \quad \text{ and } \quad 
+  \mMax^{(\nu)} = \underset{i,\,j}{\max} \left \{ m_{ij}^{(\nu)} \right \}
+  \quad \text{ for } \nu = 1, 2, 
+  \label{eqn:massminmax12}
+\end{equation} 
+and the notation of \refeqn{massnminnmax} to get 
+\begin{equation}
+  \nFirst^{(\nu)} = \left \lfloor \frac{\mMin^{(\nu)}}{b} \right \rfloor
+  \quad \text{ and } \quad 
+  \nLast^{(\nu)} = \left \lceil \frac{\mMax^{(\nu)}}{b} \right \rceil \\
+  \quad \text{ for } \nu = 1, 2 
+	\label{eqn:massnminnmax12}
+\end{equation} 
+similarly.
+}
+\refalg{matchbins} modifies $\mData^{(1)}$ and $\mData^{(2)}$ by adding empty rows such that the rows of the modified matrices correspond to the same bins.
+
+\begin{alg} \textbf{\emph{Matching bins between two datasets:}} Using the notation introduced in \refeqn{massminmax12} and \refeqn{massnminnmax12}, and without loss of generality letting $\mMin^{(1)} \leq \mMin^{(2)}$ and $\mMax^{(1)} \leq \mMax^{(2)}$,
+
+\begin{enumerate}
+	\item Modify $\mData^{(2)}$ by adding $\nFirst^{(2)} - \nFirst^{(1)}$ empty rows to produce 
+		$
+			\left [
+			\begin{matrix}
+				\bm{0}_{(\nFirst^{(2)} - \nFirst^{(1)}) \times d_1} \\
+				\mData^{(2)}
+			\end{matrix}
+			\right ].
+		$
+	\item Modify $\mData^{(1)}$ by adding $\nLast^{(2)} - \nLast^{(1)}$ empty rows to produce
+		$
+			\left [
+			\begin{matrix}
+				\mData^{(1)} \\
+				\bm{0}_{(\nLast^{(2)} - \nLast^{(1)}) \times d_1}
+			\end{matrix}
+			\right ].
+		$
+\end{enumerate} 
+
+If $\left ( \nFirst^{(2)} - \nFirst^{(1)} \right )$ or $\left ( \nLast^{(2)} - \nLast^{(1)} \right )$ are zero, do not modify the data matrix in ($1$.) or ($2$.) respectively. 
+
+\label{alg:matchbins}
+\end{alg}
+
+The modified data matrices produced by 
+\refalg{matchbins} are comparable, as their rows 
+correspond to the same \gls{mz} intervals.
+Comparisons between an arbitrary number of datasets is 
+possible either by iterative use of \refalg{matchbins} 
+or a simple modification of \refalg{matchbins} that 
+involves the maximum and minimum \gls{mz} values across 
+all the datasets considered.
+
+Note that invariance under removal of constant/empty 
+variables (\refdef{emptybinsequivalence}) is equivalent 
+to invariance under the addition of finitely many empty 
+variables. 
+What this invariance means is that when using a 
+distance that is invariant under the removal of empty 
+bins comparisons within a dataset do not change when 
+the data is modified by \refalg{matchbins}. 
+The fact that comparisons within a dataset remain the 
+same when the data is modified in order to compare it 
+with other datasets is a property of binning not shared 
+by most data-driven methods.
+
+
+
+\section{The Binary / Summed Binary Data Equivalence}
+\label{sec:binarysummedbinaryequivalence}
+
+For sufficiently small bin size the binary binned data and the summed binary binned data as produced by \refalg{binning} become the same. {\highlightTextAs{notation} For a given dataset, let $\mData^{(binary)}$ be the binary binned data matrix and $\mData^{(summed)}$ be the summed binary binned data matrix produced by \refalg{binning} with some fixed bin size $b$. }
+
+\begin{defn} \textbf{\emph{Binary / summed binary data equivalence:}} The binary / summed binary data equivalence is said to hold (for a particular dataset) for a given bin size $b$ when,
+
+\begin{equation*}
+	\mData^{(binary)} = \mData^{(summed)}
+\end{equation*}
+
+\label{def:binarysummedbinaryequivalence}  
+\end{defn}
+
+Using bin sizes for which either the binary / summed 
+binary data equivalence holds, is important in the 
+context of \gls{maldi}-\gls{ims} data for a number of
+reasons, including:
+\begin{itemize}
+	\item When the binary / summed binary data equivalence holds, there is no spectra with more than one peak in any bin. Having multiple peaks in a single bin can confuse interpretations as, at least in principle (disregarding measurement errors, which are small), each \gls{mz} value should correspond to a different molecular species and as such it does not make sense to treat them as `the same' at this level.
+	\item The point above allows for the unambiguous use 
+  of non-binary values by substituting these values
+  for the non-zero entries in the binned matrix 
+  produced by \refalg{binning}.
+  We discuss this in more detail below.
+  We use this to compare the use of these non-binary 
+  data types to the binary data in 
+  \refsec{p44kmeansResults}, and consider non-binary 
+  data types for classification in 
+  \refchap{classificationApplication}.
+\end{itemize}
+
+
+{\highlightTextAs{notation}
+Let $m_{(1)j},m_{(2)j},\hdots,m_{(N_j)j}$ be the sorted 
+(increasing) \gls{mz} locations of the $N_j$ peaks in the 
+$j^{th}$ spectrum of a given dataset in peaklist form. 
+}
+\begin{defn}
+\textbf{\emph{Bound on the binary / summed binary data equivalence:}} The binary / summed binary data equivalence (\refdef{binarysummedbinaryequivalence}) holds for all bin sizes $b < b^*$ where
+
+\begin{equation*}
+	b^* = \underset{j,\,i \in [2,N_j]}{\min} \left \{ m_{(i)j} - m_{(i-1) j} \right \} 
+	%\label{eqn:bthreshold}
+\end{equation*}
+\label{def:bthreshold}
+\end{defn}
+
+
+%{\color{red}The equivalence can hold for larger $b$, but then it becomes sensitive to choice of bin-centres. }
+
+%{\color{red}
+%Does this require proof?
+%
+%I can also bound this equivalence from above (i.e. for bin sizes larger than ... it will NOT hold), but its not particularly pretty or interesting, and does not seem like it would be relevant
+%}
+
+When the binary / summed binary data equivalence holds, a bijection exists between peaks in the  dataset and non-zero entries of $\mData = \mData^{(binary)} = \mData^{(summed)}$. This bijection allows us to replace the non-zero entries of $\mData$ with some other measure of the presence of the peak they are associated to without any ambiguity as to how this should be done. Up to now we have only considered the binary ``peak exists, peak does not exist'' indicator for peak presence. Some properties that could be used as a measure of peak presence include:
+
+\begin{itemize}
+	\item Intensity: the maximum height of the peak.
+	\item Area: the integrated area under the peak.
+	\item \gls{snr}: the \acrlong{snr} for the peak.
+\end{itemize}
+
+In \refsec{binningalg} we considered only the \gls{mz} location of peaks for \refalg{binning}, and discarded the other properties recorded on each peak. The binary / summed binary data equivalence (\refdef{binarysummedbinaryequivalence}) provides us with a method to consider the other peak properties discarded in \refsec{binningalg} in a systematic manner.
+We further explore the idea underpinning 
+\refdef{bthreshold} in \refsec{binSizeChoice}, where we 
+show how these ideas can be used to identify an 
+appropriate range for the bin size parameter $b$ used 
+in the binning (\refalg{binning}).
+In \refsec{p44kmeansResults} and 
+\refsec{DApreprocessing} we then make use of 
+\refdef{binarysummedbinaryequivalence} in order to 
+consider alternative indicators for peak presence such 
+as intensity, area, and \gls{snr} in the 
+ovarian and endometrial cancer datasets respectively.
+
+
+\section{Binning with Shifted Bin Locations}
+\label{sec:binwiggling}
+
+As mentioned briefly in \refsec{binarysummedbinaryequivalence}, in some circumstances binning can be sensitive to choice of bin locations.
+\refalg{wiggle} is a modification of \refalg{binning} that produces binned data with bin centres shifted by some constant $c$ $\left ( \frac{-b}{2} \leq c \leq \frac{b}{2} \right )$ relative to those produced by \refalg{binning}.
+
+\begin{alg}
+\textbf{\emph{ Binning with shifted bins:}} For a given bin size $b>0$ and $c$ $\left ( \frac{-b}{2} \leq c \leq \frac{b}{2} \right )$ follow \refalg{binning} except replace step 1. with
+
+	\begin{enumerate}
+\item Construct $(\nLast - n_1)$ intervals (bins) of width $b$ and with centres 
+	\begin{equation*}
+		\nFirst b + c, \, (\nFirst + 1)b + c, \, (\nFirst + 2)b + c, \, \hdots , \, \nLast b + c
+	\end{equation*}
+  (left endpoint open, right closed)
+	\end{enumerate}
+
+\label{alg:wiggle}
+\end{alg} 
+
+In \refsec{dipps} we consider combined two shifted-bin
+analyses in order to ensure we do not miss any features
+of interest due to binning artefacts.
+Similarly in \refsec{DApreprocessingVars}, we try to 
+leverage all the information in the endometrial cancer 
+data by using shifted-bin analyses in parallel to 
+construct meta-classification rules based on a majority 
+of the shifted-bin analyses, thereby addressing any 
+sensitivity the classification may have to choice of 
+bin locations.
+
+

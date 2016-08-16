@@ -1,0 +1,536 @@
+<<appendix_vulvar_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+In \refchap{classificationApplication} we consider 
+various approaches to the classification of 
+\gls{maldi}-\gls{ims} \gls{tma} data.
+Specifically, we investigate the effect variations in 
+pre-processing and classification method have on 
+\gls{loo} misclassification in the endometrial cancer 
+data of \refsec{endometrialDatasets}.
+Ultimately, we concluded that \gls{cca} variable 
+ranking, and in particular \gls{cca}-\gls{lda}, 
+outperformed \gls{pca} dimension reduction and that 
+choice of dimension reduction approach was the factor 
+having the biggest consistant effect on classification 
+perfomance.
+Secondarily, we also demonstrated that choice of data 
+type also had an consistant effect on classification 
+performance -- the choice to use log-intensity data
+correlating with better classification performance.
+Also of interest was that the choice of classification
+method seemed to have strong interactions with other 
+factors, such as choice of dimension reduction approach
+and choice of data type. 
+Specifically, when paired with \gls{cca}-based variable
+selection on the log-intensity data, \gls{lda} achieved 
+the best classification performance of the methods we
+considered.
+
+Here we replicate the analysis presented in 
+\refchap{classificationApplication} on a different 
+dataset -- the vulvar cancer dataset also described
+breifly in \refsec{endometrialDatasets}.
+Figures~\ref{fig:VTMAappendix_initial_results}--\ref{fig:VTMAappendix_normalisation_not_including_absent_peaks_opt_results} 
+mirror the results of 
+Figures~\ref{fig:classification_initial_results}--\ref{fig:classification_normalisation_not_including_absent_peaks_opt_results} 
+exactly, relating to the vulvar data instead of the 
+endometrial data.
+
+We discussed and compared these results with the 
+conclusions drawn from the analysis of the endometrial 
+data in \refsec{DAconclusions}.
+
+
+<<VTMAappendix_results>>=
+clas_mr <- read.csv('./matlab/output/Vtma_majority_classification.txt')
+clas_mr <- subset(clas_mr,nComponents <= 30)
+
+# Cleaning
+clas_mr$Dataset <- NULL
+clas_mr = subset(clas_mr,!is.na(Mloo))
+clas_mr = subset(clas_mr,minNcal == 0 & minNspecPerCore == 1 & minNspecPerBin == 1)
+clas_mr$minNcal <- NULL
+clas_mr$minNspecPerCore <- NULL
+clas_mr$minNspecPerBin <- NULL
+
+# Optimimum variable reduction choices
+clas_opt <- ddply(clas_mr, 
+                  .(VRmethod, DAmethod, DataType, 
+                    Normalisation, includeEmptyValues, 
+                    Smooth, CancerAnnotation), 
+                  summarise,
+                  n = which.min(Me),
+                  nloo = which.min(Mloo),
+                  Me = min(Me),
+                  Mloo = min(Mloo),
+                  N = unique(N))
+@
+
+<<VTMAappendix_initial_results, dependson="VTMAappendix_results", fig.cap="\\textbf{Classification Without Dimension Reduction.} \\gls{loo} misclassification on the $y$-axis using \\gls{dwd} or \\gls{nb} vs. data type on the $x$-axis.", fig.width=5, fig.height=5, fig.align='center', out.width="0.7\\linewidth">>=
+tab_temp <- subset(clas_opt,VRmethod == "None" & 
+                     Normalisation == 0 & includeEmptyValues == 1 & 
+                     Smooth == 0 & CancerAnnotation == 0)[,c("DAmethod","DataType","N","Me","Mloo")]
+
+# print(xtable(tab_temp, digits=0, caption="Initial Classification Results", label="tab:clas_initial_results"),
+#              size="footnotesize",
+#              include.rownames=FALSE,
+#              include.colnames=FALSE,
+#              caption.placement="top",
+#              hline.after=NULL,
+#              add.to.row = list(pos=list(-1,5,
+#                                         nrow(tab_temp)),
+#                                command = c(paste("\\toprule \n",
+#                                                  "Classification Method & Data Type & \\# Patients & Misclassification & LOO Misclassification \\\\ \n",
+#                                                  "\\midrule \n"),
+#                                            "\\midrule \n",
+#                                            "\\bottomrule \n")
+#                                )
+#       )
+
+p = ggplot(tab_temp,aes(x=DataType,y=Mloo,group=DAmethod,colour=DAmethod))
+p = p + geom_line(size=3)
+p = p + guides(size = FALSE,
+               color=guide_legend(title="Clas. Method"))
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(6,10,2))
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+print(p)
+@
+
+
+
+<<VTMAappendix_vr, dependson="VTMAappendix_results", fig.align='center', fig.cap="\\textbf{Classification of Dimension Reduced Data.} \\gls{loo} misclassification on the $y$-axis vs. the number of principal components on the $x$-axis for the \\gls{pca} dimension reduced data, or the number of variables retained for the \\gls{cca} variable reduced data. The results from using each classification method (\\gls{nb}, \\gls{lda}, and \\gls{dwd}) are shown in seperate panels. Within each panel, results from using each data type are identified by colour. The \\gls{loo} misclassification refers to the number of incorrectly classified patients out of $28$.", out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_mr,(VRmethod == "PCA" | VRmethod == "CCA") & 
+                            Normalisation == 0 & includeEmptyValues == 1 & 
+                            Smooth == 0 & CancerAnnotation == 0)[,c("DAmethod","DataType","N","Me","Mloo","nComponents","VRmethod")])
+
+p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=interaction(DataType,VRmethod),colour=DataType,linetype=VRmethod))
+p = p + geom_line(size=0.9,alpha=0.5)
+p = p + guides(size = FALSE, 
+               alpha = FALSE,
+               linetype=guide_legend(title="Dim. Reduction"), 
+               color=guide_legend(title="Data Type"))
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(3,23,10))
+p = p + scale_x_continuous(breaks=seq(0,30,10))
+p = p + facet_wrap(~DAmethod,ncol=1)
+print(p)
+@
+
+
+
+<<VTMAappendix_annot_opt_results, fig.cap="\\textbf{Classification With/ Without Restricting to only Cancer Annotated Spectra.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method used on the $x$-axis. The results from using all spectra and using only annotated tumour spectra are identified by use of solid and dashed lines respectively. The results from using each data type are identified by a single colour. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="VTMAappendix_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" & 
+                            Normalisation == 0 & includeEmptyValues == 1 & 
+                            Smooth == 0)[,c("VRmethod","DAmethod","DataType","CancerAnnotation","N","Me","Mloo")])
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,
+                        group=interaction(VRmethod,CancerAnnotation,DataType),
+                        colour=DataType,
+                        linetype=CancerAnnotation))
+p = p + geom_line(size=1.3,alpha=0.7)
+p = p + guides(size = FALSE,
+               alpha = FALSE,
+               color=guide_legend(title="Data Type"),
+               linetype=guide_legend(title="Spectra"))
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(2,10,4))
+print(p)
+@
+
+
+
+<<VTMAappendix_smooth_opt_results, fig.cap="\\textbf{Classification of Binary Data With/ Without Spatial Smoothing.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method selected on the $x$-axis. The results from using all spectra and using only annotated tumour spectra are identified by use of solid and dashed lines respectively. The results from using no smoothing ($\\tau = 0$), weak smoothing ($\\tau = 0.15$), or medium smoothing ($\\tau = 0.25$) are identified with colours. The smoothing is described in \\refsec{spatialSmooth}. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="VTMAappendix_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" & DataType == "Binary" & 
+                            Normalisation == 0 & includeEmptyValues == 1)[,c("VRmethod","DAmethod","DataType","Smooth","CancerAnnotation","N","Me","Mloo")])
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+tab_temp$Smooth = factor(tab_temp$Smooth)
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,group=interaction(VRmethod,CancerAnnotation,Smooth),
+                        linetype=CancerAnnotation,colour=Smooth))
+p = p + geom_line(size=1.3, alpha = 0.7)
+p = p + guides(size = FALSE,
+               alpha = FALSE,
+               linetype=guide_legend(title="Spectra"))
+p = p + xlab("") + ylab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + scale_y_continuous(breaks=seq(2,11,3))
+print(p)
+@
+
+
+
+
+
+<<VTMAappendix_normalisation_opt_results, fig.cap="\\textbf{Classification of Non-Binary Data With/ Without Normalisation --- Part 1: Including Zeroes for Missing Values.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method selected on the $x$-axis. The results from using each data type are shown in seperate panels. The results from using all spectra and using only annotated tumour spectra are identified by two colours respectively accross panels. The results from not using/ using normalisation are identified by use of solid and dashed lines respectively. All results shown include zeros for absent peaks when averaging. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="VTMAappendix_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" 
+                          & DataType != "Binary" & includeEmptyValues==1)[,c("VRmethod","DAmethod","DataType","Normalisation","CancerAnnotation","N","Me","Mloo")])
+
+tab_temp$Normalisation = factor(tab_temp$Normalisation)
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="0"] = "Without"
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="1"] = "With"
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+
+# tab_temp$includeEmptyValues = factor(tab_temp$includeEmptyValues)
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="0"] = "Ignore"
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="1"] = "Include"
+
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,
+                        group=interaction(Normalisation,CancerAnnotation,VRmethod),
+                        colour=CancerAnnotation,
+                        linetype=Normalisation))
+p = p + geom_line(size=1,alpha=0.7)
+p = p + guides(size = FALSE, 
+               alpha = FALSE,
+               colour=guide_legend(title="Spectra")
+               )
+p = p + xlab("") + ylab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + scale_y_continuous(breaks=seq(3,10,7))
+p = p + facet_wrap(~DataType,ncol=1)
+print(p)
+@
+
+
+
+
+<<VTMAappendix_normalisation_not_including_absent_peaks_opt_results, fig.cap="\\textbf{Classification of Non-Binary Data With/ Without Normalisation --- Part 2: Not Including Missing Values.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method selected on the $x$-axis. The results from using each data type are shown in seperate panels. The results from using all spectra and using only annotated tumour spectra are identified by two colours respectively accross panels. The results from not using/ using normalisation are identified by use of solid and dashed lines respectively. All results shown do not include zeros for absent peaks when averaging. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="VTMAappendix_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(clas_opt,VRmethod != "altCCA" 
+                          & DataType != "Binary" & includeEmptyValues==0)[,c("VRmethod","DAmethod","DataType","Normalisation","CancerAnnotation","N","Me","Mloo")]
+
+tab_temp$Normalisation = factor(tab_temp$Normalisation)
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="0"] = "Without"
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="1"] = "With"
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+
+# tab_temp$includeEmptyValues = factor(tab_temp$includeEmptyValues)
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="0"] = "Ignore"
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="1"] = "Include"
+
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,
+                        group=interaction(Normalisation,CancerAnnotation,VRmethod),
+                        colour=CancerAnnotation,
+                        linetype=Normalisation))
+p = p + geom_line(size=1, alpha=0.7)
+p = p + guides(size = FALSE,
+               alpha = FALSE,
+               colour = guide_legend(title="Spectra"))
+p = p + xlab("") + ylab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + scale_y_continuous(breaks=seq(3,10,7))
+p = p + facet_wrap(~DataType,ncol=1)
+print(p)
+@
+% 
+% <<VTMAappendix_includeEmptyValues, fig.cap="Histogram of difference in \\gls{loo}-misclassification between including zeros for absent peaks when averaging and ignoring absent peaks for each of the $128$ cases shown in Figures~\\ref{fig:classification_normalisation_opt_results} and \\ref{fig:classification_normalisation_not_including_absent_peaks_opt_results} respectively. A positive value of this difference indicates that ignoring absent peaks achieves a worse \\gls{loo}-misclassification than the corresponding case but including zeros for absent peaks when averaging spectra.", out.width="0.6\\linewidth", fig.width=5, fig.height=5, fig.align='center', dependson="VTMAappendix_results">>=
+% Hmm <- subset(clas_opt,
+%                    VRmethod != "altCCA" 
+% #                    VRmethod == "CCA" 
+%                    & DataType != "Binary")[,c("VRmethod","DAmethod","DataType","Normalisation","CancerAnnotation","includeEmptyValues","N","Me","Mloo")]
+% 
+% if(sum(subset(Hmm,includeEmptyValues==0)[,-c(6,7,8,9)] != subset(Hmm,includeEmptyValues==1)[,-c(6,7,8,9)]) > 0){
+%   print("HELP")
+% }
+% 
+% tab_temp = subset(Hmm,includeEmptyValues==0)[,-c(6,7,8,9)]
+% tab_temp$Mloo = subset(Hmm,includeEmptyValues==0)$Mloo - subset(Hmm,includeEmptyValues==1)$Mloo
+% 
+% o = -1*max(abs(min(tab_temp$Mloo)),abs(max(tab_temp$Mloo)))
+% 
+% p = ggplot(tab_temp,aes(x=Mloo, fill = VRmethod))
+% p = p + geom_histogram(binwidth=1,
+%                        origin=o-0.5)
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% print(p)
+% @
+
+
+% 
+% <<opt_opt, results="asis", dependson="classification_results">>=
+% opt_subset = subset(clas_opt,VRmethod != 'altCCA' & Mloo < 2)
+% opt_subset$ID = 1:nrow(opt_subset)
+% 
+% opt_opt = opt_subset
+% opt_opt$DataType = levels(opt_opt$DataType)[as.numeric(opt_opt$DataType)]
+% opt_opt[opt_opt$DataType == "LogIntensity","DataType"] = "Log-Intensity"
+% 
+% temp = rep("All",nrow(opt_opt))
+% temp[opt_opt$CancerAnnotation == 1] = "Annot"
+% opt_opt$CancerAnnotation = temp
+% 
+% opt_opt[opt_opt$Smooth == 0,"Smooth"] = NA
+% 
+% temp = rep("Without",nrow(opt_opt))
+% temp[opt_opt$Normalisation == 1] = "With"
+% opt_opt$Normalisation = temp
+% opt_opt[opt_opt$DataType == "Binary","Normalisation"] = NA
+% 
+% temp = rep("Ignore",nrow(opt_opt))
+% temp[opt_opt$includeEmptyValues == 1] = "Include"
+% opt_opt$includeEmptyValues = temp
+% opt_opt[opt_opt$DataType == "Binary","includeEmptyValues"] = NA
+% 
+% print(xtable(opt_opt[,c("DAmethod","CancerAnnotation","DataType","Smooth","Normalisation","includeEmptyValues","Mloo","nloo","ID")], 
+%              digits=c(0,0,0,0,2,0,0,0,0,0),
+%              align=c('l','r','l','l','c','l','l','c','c','c'),
+%              caption="Classification results that achieve a \\gls{loo}-misclassification of zero or one. All results shown resulted from the use of \\gls{cca}-based variable selection for dimension reduction, the number of variables selected in order to achieve this \\gls{loo}-misclassification minimum, $k$, is included. The `ID' column is used to identify these results with those shown in \\reffig{opt_opt_vr}.", 
+%              label="tab:opt_opt"),
+%       size="footnotesize",
+%       include.rownames=FALSE,
+%       include.colnames=FALSE,
+%       caption.placement="top",
+%       hline.after=NULL,
+%       add.to.row = list(pos=list(-1,
+%                                  nrow(opt_opt)),
+%                         command = c(paste("\\toprule \n",
+%                                           "Classification & & Data & & & Absent & & & \\\\ \n",
+%                                           "Method & Spectra & Type & $\\tau$ & Normalisation & Peaks & \\gls{loo} & $k$ & ID\\\\ \n",
+%                                           "\\midrule \n"),
+%                                     "\\bottomrule \n")
+%       )
+% )
+% @
+% 
+% 
+% 
+% <<opt_opt_vr, dependson="classification_results", fig.cap="\\gls{loo}-misclassification on the $y$-axis for each of the decisions of processing listed in \\reftab{opt_opt}, separated by classification method vs. the number of variables retained by the \\gls{cca} variable reduced data, $k$, on the $x$-axis.", fig.align='center', out.width="0.9\\linewidth">>=
+% tab_temp <- merge(clas_mr,opt_subset[c("VRmethod",
+%                                        "DAmethod",
+%                                        "DataType",
+%                                        "Normalisation",
+%                                        "includeEmptyValues",
+%                                        "Smooth",
+%                                        "CancerAnnotation",
+%                                        "ID")])
+% tab_temp$ID = factor(tab_temp$ID)
+% 
+% p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=ID,colour=ID))
+% p = p + geom_line(size=0.9,alpha=0.5)
+% p = p + guides(size = FALSE, 
+%                alpha = FALSE)
+% p = p + xlab("") + ylab("")
+% p = p + scale_y_continuous(breaks=seq(5,20,5))
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% print(p)
+% @
+% 
+% 
+% <<Etma_LC>>=
+% snames = c('F020216','F020252','F020257')
+% LCdf = data.frame()
+% for(sname in snames){
+%   temp = read.csv(paste('./data/Etma_LC/',sname,'.csv',sep=""),skip=67)
+%   temp = temp[,c("prot_acc",
+%                  "pep_calc_mr",
+%                  "pep_expect",
+%                  "pep_seq",
+%                  "pep_var_mod",
+%                  "pep_var_mod_pos")]
+% #   temp$Search = sname
+%   LCdf = rbind(LCdf,temp)
+% }
+% LCdf = ddply(LCdf,
+%              c("prot_acc",
+%                "pep_calc_mr",
+%                "pep_seq",
+%                "pep_var_mod",
+%                "pep_var_mod_pos"),
+%              summarise,
+%              pep_expect = min(pep_expect)
+%              )
+% LCdf = subset(LCdf,pep_expect < 0.05)
+% @
+% 
+% 
+% <<cca_ranked_variables>>=
+% cca_vars <- read.csv('./matlab/output/Etma_cca_ranked_variables.txt')
+% 
+% # Cleaning
+% cca_vars = subset(cca_vars,VRmethod=='CCA' & minNcal == 0 & minNspecPerCore == 1 & minNspecPerBin == 1)
+% cca_vars$minNcal <- NULL
+% cca_vars$minNspecPerCore <- NULL
+% cca_vars$minNspecPerBin <- NULL
+% cca_vars$VRmethod <- NULL
+% 
+% # Add ID col
+% cca_vars = cca_vars[order(cca_vars$Wiggle),]
+% cca_vars$ID = rep(1:(nrow(cca_vars)/3),3)
+% @
+% 
+% <<opt_cca_vars, dependson='cca_ranked_variables'>>=
+% opt_vars <- subset(cca_vars,(DataType=="Binary" & CancerAnnotation == 1 & Smooth != 0) | (DataType == "LogIntensity" & Normalisation == 0 & includeEmptyValues == 0) | (DataType == "LogIntensity" & Normalisation == 1 & CancerAnnotation == 0)) 
+% # print(opt_vars[,c(1:6,length(names(cca_vars)))])
+% # cca_group <- opt_vars[,6:length(names(cca_vars))]
+% cca_group <- opt_vars[,c(6:36,52)]
+% cca_group = melt(cca_group,
+%                  id.vars=c("ID","Wiggle"),
+%                  value.name="m.z",
+%                  variable.name="rank")
+% cca_group$rank = levels(cca_group$rank)[as.numeric(cca_group$rank)]
+% cca_group$rank = as.numeric(substring(cca_group$rank,2))
+% cca_group <- groupPeaks(cca_group,tol=0.2)
+% group_sum <- ddply(cca_group,
+%                    "PeakGroup",
+%                    summarise,
+% #                    cent = mean(min(m.z),max(m.z)),
+% #                    margin = (0.25 + max(m.z) - min(m.z))/2,
+%                    minMZ = min(m.z)-0.125,
+%                    maxMZ = max(m.z)+0.125,
+%                    N = length(m.z),
+%                    minRank = min(rank),
+%                    maxRank = max(rank))
+% @
+% 
+% <<LCmatching, dependson=c("opt_cca_vars","Etma_LC","data_tmas_readin")>>=
+% peaklist_all = data.frame()
+% for(dataset_name in c("EA1", "EA2","EB1", "EB2")){
+%   tmp <- load_peaklist(dataset_name)
+%   peaklist_all = rbind(peaklist_all,tmp)
+% }
+% group_sum$AWM = 0
+% for(i in 1:nrow(group_sum)){
+%   tmp = which((peaklist_all$m.z >= group_sum[i,"minMZ"]) & (peaklist_all$m.z <= group_sum[i,"maxMZ"]))
+%   group_sum[i,"AWM"] = weighted.mean(peaklist_all[tmp,"m.z"],peaklist_all[tmp,"SN"])
+% }
+% LCdf$PeakGroup = 0
+% for(i in 1:nrow(LCdf)){
+%   idx = which((LCdf[i,"pep_calc_mr"]+1.0078 > group_sum$minMZ) & (LCdf[i,"pep_calc_mr"]+1.0078 < group_sum$maxMZ))
+%   if(length(idx) == 1){
+%     LCdf[i,"PeakGroup"] = group_sum[idx,"PeakGroup"]    
+%   }
+% }
+% LCmatches = merge(group_sum,subset(LCdf,PeakGroup != 0))
+% LCmatches$D = LCmatches$AWM - (LCmatches$pep_calc_mr + 1.0078)
+% LCmatches$Dppm = LCmatches$D*1000000/(LCmatches$pep_calc_mr + 1.0078)
+% @
+% 
+% 
+% <<LCactin, results="asis", dependson="LCmatching">>=
+% tab_temp = rbind(subset(LCmatches,(PeakGroup==254)),
+%                  subset(LCmatches,(PeakGroup==235)),
+%                  subset(LCmatches,(PeakGroup==314)))
+% tab_temp[c(2:7,9:13,15:19),"AWM"] = NA
+% 
+% print(xtable(tab_temp[,c("AWM","prot_acc","pep_seq","pep_var_mod","pep_var_mod_pos","pep_expect","D","Dppm")], 
+% #              digits=c(0,0,0,0,2,0,0,0,0,0),
+%              align=c('l','l','r','l','c','c','r','r','r'),
+%              caption="LC matching to Actin peptides", 
+%              label="tab:LCactin"),
+%       size="footnotesize",
+%       include.rownames=FALSE,
+%       include.colnames=FALSE,
+%       caption.placement="top",
+%       hline.after=NULL,
+%       add.to.row = list(pos=list(-1,7,13,nrow(tab_temp)),
+%                         command = c(paste("\\toprule \n",
+%                                           "\\gls{maldi} & UniProtKB & Peptide & & & MASCOT & error & error \\\\ \n",
+%                                           "\gls{mz} & Entry Name & Sequence &  & & expect & (\gls{mz}) & (ppm) \\\\ \n",
+%                                           "\\midrule \n"),
+%                                     "\\midrule \n",
+%                                     "\\midrule \n",
+%                                     "\\bottomrule \n")
+%       )
+% )
+% @
+% 
+
+
+
+
+<<VTMAappendix_stab>>=
+stab_df <- read.csv('./matlab/output/Vtma_detailed_LOOclassification_results.txt')
+
+# Cleaning
+stab_df = subset(stab_df,VRmethod != 'altCCA' & minNcal == 0 & minNspecPerCore == 1 & minNspecPerBin == 1)
+stab_df$minNcal <- NULL
+stab_df$minNspecPerCore <- NULL
+stab_df$minNspecPerBin <- NULL
+@
+
+
+% <<VTMAappendix_stab_opt, dependson=c("VTMAappendix_stab","opt_opt")>>=
+% temp = opt_subset[,c("VRmethod","DAmethod","DataType","Normalisation","includeEmptyValues","Smooth","CancerAnnotation","nloo")]
+% names(temp)[names(temp)=='nloo'] = 'nComponents'
+% 
+% opt_stab = merge(temp,stab_df)
+% opt_stab_long = opt_stab
+% opt_stab_long = melt(opt_stab_long,id.vars=names(opt_stab)[1:9],variable.name='Patient',value.name='Stab')
+% @
+% 
+% <<stab_da, dependson="stab_opt", fig.cap="Frequency histogram of stability heuristic values from the 9 results shown in \\reftab{opt_opt}, separated by classification method", fig.align='center', out.width="0.9\\linewidth">>=
+% opt_stab_long$w = 1
+% # opt_stab_long[opt_stab_long$DAmethod == 'DWD','w'] = 1/(2*3*43)
+% # opt_stab_long[opt_stab_long$DAmethod == 'LDA','w'] = 1/(4*3*43)
+% # opt_stab_long[opt_stab_long$DAmethod == 'NB','w'] = 1/(3*3*43)
+% 
+% opt_stab_long = merge(opt_stab_long,opt_subset[,-c(8,9,10,11,12)])
+% 
+% p = ggplot(opt_stab_long,aes(x=acos(Stab)))
+% p = p + geom_histogram(binwidth=0.025,aes(weight = w))
+% # p = p + facet_wrap(~DAmethod,ncol=1)
+% p = p + facet_wrap(~ID,ncol=3)
+% p = p + scale_y_continuous(breaks=seq(0.1,0.4,0.1))
+% p = p + xlab("") + ylab("")
+% print(p)
+% @
+%  
+
+% 
+% <<VTMAappendix_stab_da, dependson="VTMAappendix_stab", fig.cap="Frequency histograms of stability heuristic values from the $9$ \\gls{cca} variable selection cases shown in \\reftab{opt_opt}. Each case is presented in a seperate panel labeled $1$-$9$ corresponding to the ID column of \\reftab{opt_opt}. Each case consists of $129$ stability heuristic values -- one for each of the $43$ patients for each of the three shifted-bin analyses.", fig.align='center', out.width="0.9\\linewidth">>=
+% 
+% 
+% # opt_stab_long$w = 1
+% # opt_stab_long[opt_stab_long$DAmethod == 'DWD','w'] = 1/(2*3*43)
+% # opt_stab_long[opt_stab_long$DAmethod == 'LDA','w'] = 1/(4*3*43)
+% # opt_stab_long[opt_stab_long$DAmethod == 'NB','w'] = 1/(3*3*43)
+% 
+% stab_long = melt(stab_df[,-c(1:5)],id.vars=names(stab_df)[6:14],variable.name='Patient',value.name='Stab')
+% 
+% # opt_stab_long = merge(opt_stab_long,opt_subset[,-c(8,9,10,11,12)])
+% 
+% p = ggplot(stab_long,aes(x=acos(Stab)))
+% # p = p + geom_histogram(binwidth=0.025)
+% p = p + geom_histogram(binwidth=pi/128)
+% # p = p + geom_histogram(binwidth=0.025,aes(weight = w))
+% # p = p + facet_wrap(~DAmethod,ncol=1)
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% # p = p + scale_y_continuous(breaks=seq(10,60,25))
+% # p = p + scale_y_continuous(breaks=seq(0.1,0.4,0.1))
+% # p = p + scale_x_continuous(breaks=seq(0.1,0.7,0.2),limits=c(0,0.75))
+% # p = p + scale_x_continuous(breaks=seq(pi/16,3*pi/16,pi/16),limits=c(0,0.75),labels=parse(text=c("pi /16","2 * pi /16","3 * pi /16")))
+% p = p + xlab("") + ylab("")
+% print(p)
+% @
+%  
+
+
+% 
+% \pagebreak
+% %\bibliographystyle{abbrv}
+% \bibliographystyle{plainnat}
+% %\bibliographystyle{harvard}
+% \bibliography{references}
+% \pagebreak

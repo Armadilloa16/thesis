@@ -1,0 +1,579 @@
+<<formatting_frontmatter_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+
+%-----beginning of title page -----------------------------
+\begin{titlepage}
+\begin{flushleft}
+\null
+\vspace{2 cm}
+\hrule
+\vspace{1 cm}
+
+{\huge{\bf Statistical Treatment of Proteomic \\[15pt]
+Imaging Mass Spectrometry Data}}
+\vspace*{2cm}
+
+\vspace{5.5 cm}
+
+{\large by Lyron Juan Winderbaum}
+
+\vspace{1 cm}
+
+{\large Primary Supervisor: Associate Professor Inge Koch}
+
+\vspace{0.5 cm}
+
+{\large Co - Supervisor: Professor Peter Hoffmann}
+
+\vspace{2 cm}
+
+{ Thesis submitted for the degree of Doctor of Philosophy }
+
+\vspace{0.5 cm}
+
+
+
+\begin{flushright}
+{\monthyeardate\today }
+\end{flushright}
+
+\vspace{0.5 cm}
+
+\hrule
+
+\vspace{0.65cm}
+
+\end{flushleft}
+\begin{flushleft}
+\textsf{DISCIPLINE OF STATISTICS} \\
+\textbf{\textsf{SCHOOL OF MATHEMATICAL SCIENCES}}
+\end{flushleft}
+
+\vspace{-2.5cm}
+
+% University of Adelaide Crest
+\begin{flushright}
+\includegraphics[scale=0.75]{./miscImages/UoA_logo_col_vert.png}
+\end{flushright}
+\vspace{-2 cm}
+
+% \setcounter{page}{0}
+\end{titlepage}
+%---------- end of title page -------------------------------
+\title{\null}
+\date{\null}
+\maketitle
+% \begin{titlepage}
+% \null
+% \thispagestyle{empty}
+% \setcounter{page}{0}
+% \end{titlepage}
+
+
+\pagenumbering{roman}
+
+
+%---------------- table of contents -------------------------
+\null
+\pagestyle{empty}
+\cleardoublepage
+\setcounter{page}{1}
+\pagestyle{plain}
+\tableofcontents
+
+%---------------- Glossary ----------------------------------
+% \setglossarystyle{mcolindex}
+\glsaddall
+\printglossaries
+%---------------- end of Glossary ---------------------------
+
+% --------------- Abstract ----------------------------------
+\glsresetall
+\cleardoublepage
+\null
+\cleardoublepage
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+% % First Draft 
+% Proteomic imaging mass spectrometry is an emerging 
+% field, and produces data with a uniquely complicated 
+% structure that warrants the development of new 
+% approaches to data analysis. We suggest a framework 
+% within which existing methods can be used to analyse 
+% such data. We also suggest some new approaches to the 
+% analysis of such data, including an approach to feature 
+% selection we call the `\gls{dipps} approach’ and a 
+% \gls{cca} based approach to dimension reduction prior 
+% to classification.
+
+Proteomic imaging mass spectrometry is an emerging 
+field, and produces large amounts of high-dimensional 
+data. 
+We propose approaches to extracting useful 
+information from these data --- two of particular note.
+The \gls{dipps} applies to binary data and leads to 
+easily interpretable maps useful for exploratory 
+analyses and automated generation of feature lists that
+can be used to standardise comparisons between 
+datasets.
+The second approach, based on \gls{cca}, reduces the 
+high-dimensional data to features strongly related to 
+classes and leads to good classification.  
+Applications to cancer data show the success of these 
+approaches.
+% --------------- end of abstract ---------------------------
+
+
+
+%---------- publications page -------------------------------
+% \cleardoublepage
+% \chapter*{Publications and Presentations}
+% \addcontentsline{toc}{chapter}{Publications and Presentations}
+% 
+% \lipsum[1-3]
+%---------- end of publications -----------------------------
+
+
+
+%---------- declaration page --------------------------------
+\cleardoublepage
+\chapter*{Declaration}
+\addcontentsline{toc}{chapter}{Declaration}
+
+I certify that this work contains no material which has 
+been accepted for the award of any other degree or 
+diploma in my name in any university or other tertiary 
+institution and, to the best of my knowledge and 
+belief, contains no material previously published or 
+written by another person, except where due reference 
+has been made in the text. 
+In addition, I certify that no part of this work will, 
+in the future, be used in a submission in my name for 
+any other degree or diploma in any university or other 
+tertiary institution without the prior approval of the 
+University of Adelaide and where applicable, any 
+partner institution responsible for the joint award of 
+this degree.
+
+I give consent to this copy of my thesis, when 
+deposited in the University Library, being made 
+available for loan and photocopying, subject to the 
+provisions of the Copyright Act 1968.
+
+I also give permission for the digital version of my 
+thesis to be made available on the web, via the 
+University's digital research repository, the Library 
+Search and also through web search engines, unless 
+permission has been granted by the University to 
+restrict access for a period of time.
+
+% Except where stated this thesis is, to  the best of my knowledge,  my own work and my supervisor has approved its submission.
+
+\vspace{2cm}
+
+\begin{flushleft}
+Signed:  \\[15 pt]
+Date:
+\end{flushleft}
+
+% \vspace{20 pt}
+% \begin{flushleft}
+% Signed  by supervisor:\\[15 pt]
+% Date:
+% \end{flushleft}
+%---------- end of declaration page -------------------------
+
+
+
+%---------- acknowledgements page ---------------------------
+\cleardoublepage
+\chapter*{Acknowledgements}
+\addcontentsline{toc}{chapter}{Acknowledgements}
+
+First, my thanks go to my primary supervisor,
+Associate Professor Inge Koch. 
+Inge has consistently challenged me when I needed to be 
+challenged, and been helpful when I needed help.
+As well as offering valuable expertise, she has also 
+provided guidance and without her occasional 
+course-correcting nudges I certainly would have 
+meandered.
+In particular, I must commend Inge for her patience 
+during my painfully slow progress towards becoming a 
+better writer and for her immense efforts proof reading 
+my thesis for mathematics, overall structure, and more.
+Her consistency over the years it took me to complete 
+this work has been incredible.
+Even when she moved interstate I barely noticed the 
+difference in her availability --- if ever I needed to 
+discuss something, she would always have time for me, 
+and for that I am greatly appreciative.
+I could not have asked for a better supervisor.
+
+My thanks also extend to my co-supervisor Professor 
+Peter Hoffmann.
+In each case when I needed something from Peter 
+--- whether it be an opinion, a signature, or anything 
+else --- he was always right there to support me and 
+provide whatever I needed.
+Peter introduced me into the proteomics community, 
+a field that I had no previous experience in.
+His experience and comprehensive knowledge of the 
+significant contributors to the field have been 
+invaluable resources.
+Also, this project has been a collaborative effort with 
+Peter's group, the \gls{apc}, and would never have been 
+possible without their combined help. 
+So I would like to extend my thanks to everyone from 
+the \gls{apc}. 
+
+For the first couple of years I worked closely with 
+Dr. Johan Gustafsson and Dr. Stephan Meding, whose 
+insightful explanations and very high standards of 
+technical expertise were impressive, and 
+extremely helpful during the course of this work.
+Johan and Stephan, with the help of James Eddes,
+helped introduce me to some of the foundational 
+ideas in the field, and this solid foundation allowed 
+me to build the rest of this work upon it.
+In the later years of this work, Dr. Florian Weiland
+and Dr. Dan Kortschak both helped to keep my waning 
+motivation high by sharing an interest in some of the 
+more technical aspects of my work.
+Dan helped, and continues to help, introduce me to 
+software engineering, and was a friend during some of 
+the hardest periods of my thesis.
+I extend my sincere appreciation to each of these 
+people, for all the reasons mentioned above, and more.
+
+For proof reading and correcting this thesis from the 
+biology and mass spectrometry perspectives my thanks 
+also go once again to Peter and Johan. 
+Johan's comments in particular were very thorough, 
+insightful, and helpful in improving this thesis.
+Additionally, for proof reading this thesis for 
+grammar, Melanie F\"{o}ll, Mark Witham, Imants Cielens, 
+Gordon Wellman and
+Peter Cassidy % and Allan Binney 
+should be commended on 
+their efforts and each have my deep gratitude.
+
+During this work I also rediscovered my love of the 
+outdoors --- both hiking and rock climbing --- and this 
+helped me maintain a life outside of university.
+For their contributions to this discovery and their 
+and shared enthusiasm for it, I would like to thank 
+Alex Mackay, Joshua Trestrail, Elisa Chaplin, Peter 
+Arcidiaco, Jason Morton, Garth Wimbush, and the rest of 
+the beautiful Adelaide rock climbing community.
+Many more friends deserve my thanks, but I want to 
+thank Stephen Wade and Alison Langsford specifically, 
+both of whom have been particularly good friends during 
+the past few years.
+Stephen provided a voice of reason, 
+a sympathetic ear, and has remained a good friend long 
+after leaving the university. 
+Along with Josephine Varney, Wei Xian Lim, 
+Paul Tune, and others, he also made the post-graduate 
+room a more enjoyable space to spend time within.
+For many years, Alison has been a close friend and 
+a person I could always confide in, bounce thoughts 
+against, and I feel I leaned on her far more than 
+could be expected of any ordinary friend. % these past years
+For these things and more, you each have my deep 
+appreciation.
+
+
+Finally, the one constant in my life --- my family:
+My parents, Saul and Tamar; my brother, Orr, and his 
+more recent additions to our family Aviv and Tevelle. 
+You have all provided me with a source of calm and a 
+sense of home, and for that there are no words. 
+% Finally, my grandparents, Moshe and Ahuva Sherman, you 
+% have both inspired me my whole life, thank you.
+
+% To conclude, I thought it would be nice to write 
+% something in Hebrew, so I'll thank my grandparents, who 
+% I have always seen as truly inspirational:
+
+% \begin{flushright}
+% % haaaaaaaack
+% \cjRL{kl '.hd}
+% % To my grandfather Moshe and grandmother Ahuva
+% ,\cjRL{lsb' m/sh wsbt' 'hwbh
+% % I want to thank you for being so incredible,
+% 'ny rw.sh lhwdwt lkM `l /s'tM 'n/syM mr/symyM kl kK}
+% % Thank you for all the inspiration you have given me all my life .
+% .\cjRL{twdh lkM m`wmq lyby `l hh/sr'h /sn.t`tM by kl .hyy}
+% %each in your own special way .
+% .\cjRL{bdrkw hmyw.hdt}
+% \end{flushright}
+
+
+% \begin{cjhebrew}
+% % To my grandfather Moshe and grandmother Ahuva Sherman
+% lsb' m/sh wsbt' 'hwbh
+% % I want to thank you for being so incredible
+% 'ny rw.sh lhwdwt lkM `l /s'tM 'n/syM mr/symyM kl kK
+% % , each in your own special way .
+% kl '.hd bdrkw hmyw.hdt
+% % Thank you for all the inspiration you have given me all my life .
+% twdh lkM m`wmq lybi `l hh/sr'h /sn.t`tM by kl .hyy
+% % % And to my grandparents Moshe and Ahuva Sherman,
+% % wlsbyM /sly m/sh w'hwbh /srmN 
+% % % thank you from the depths of my heart
+% % twdh rbh m`wmq lby
+% % % for being incredibly impressive human beings 
+% % b/sbyl lhywt bny 'dM mr/symyM m'wd 
+% % % in their own ways 
+% % bdrkyM m/slhM 
+% % % and for inspiring me for my whole life
+% % w`bwr h/sr'h ly bmhlK kl .hyy
+% \end{cjhebrew}
+% \hspace{-0.3cm}.
+
+
+%---------- end of acknowledgments page ---------------------
+
+
+% --------------- Introduction ------------------------------
+\glsresetall
+\cleardoublepage
+\chapter*{Introduction}
+\addcontentsline{toc}{chapter}{Introduction}
+
+It should be emphasised that although this project is 
+primarily based in the discipline of statistics, or 
+perhaps more accurately bioinformatics, a large 
+component of the work is cross-disciplinary with 
+proteomics, and as such I aspire to represent 
+both points of view to some degree.
+Proteomics is a rapidly growing area which deals with 
+the identification and characterisation of proteins, 
+most commonly by a so-called `bottom-up' approach that
+uses peptides resulting from proteolytic cleavage of 
+the proteins with an enzyme. 
+There are also `top-down' proteomics approaches that 
+use intact proteins, but I will exclusively consider 
+bottom-up approaches.
+Many different proteomics methods include \gls{ms} 
+based identification steps.
+\refchap{intro} includes a brief introduction to some 
+of these methods.
+The focus of this thesis is on one particular, 
+relatively new, application of \gls{ms} called 
+\gls{maldi}-\gls{ims}.
+In contrast to many other more established methods in 
+proteomics, \gls{maldi}-\gls{ims} has 
+not yet attracted as much attention in the statistics/ 
+bioinformatics literature, although some approaches to 
+the analysis of \gls{maldi}-\gls{ims} data have
+been covered in proteomics/ mass spectrometry journals 
+--- see \cite{Norris2007,Jones2012,Gessel2014,Stone2012,
+Alexandrov2010,Alexandrov2011,Alexandrov2013} 
+and references therein.
+\gls{maldi}-\gls{ims} can produce large datasets with 
+complicated structure and as such requires the 
+development of novel statistical tools in order to 
+analyse and interpret.
+The goal of this work is to develop methods that can 
+help in the analysis and interpretation of 
+\gls{maldi}-\gls{ims} data.
+
+There are two strengths of \gls{maldi}-\gls{ims} that 
+we will focus on, and these two foci split the work in 
+this thesis into two parts:
+\begin{itemize} 
+  \item \gls{maldi}-\gls{ims} can preserve spatial 
+  information in the data that would otherwise be lost.
+  Taking advantage of this spatial information is the 
+  focus of Chapters~\ref{chap:dipps} and
+  \ref{chap:dippsApplications}, where we introduce 
+  clustering as an approach to separate spatially 
+  distinct regions in an automated fashion.
+  We then also suggest the \gls{dipps} which we use in 
+  a feature extraction approach to characterising the 
+  regions separated by clustering.
+  This \gls{dipps}-feature extraction provides a quick
+  and easy way to identify potentially interesting 
+  targets for follow-up experiments.
+  Such an automated approach to identifying targets
+  is useful as the standard approach is to manually 
+  consider each feature and this can be time consuming 
+  and even biased, particularly when considering 
+  multiple large \gls{maldi}-\gls{ims} datasets.
+  
+  \item Data can be collected from large cohorts of 
+  patients through the use of \glspl{tma} combined with  
+  \gls{maldi}-\gls{ims}.
+  Having access to data from many patients allows for 
+  classification problems of diagnostic relevance to 
+  be addressed.
+  Taking advantage of the ability to collect data from 
+  large patient cohorts is the focus of 
+  Chapters~\ref{chap:classificationMethods} and 
+  \ref{chap:classificationApplication}, where we 
+  consider different approaches to the classification 
+  of \gls{maldi}-\gls{ims} data from \glspl{tma}.
+  One of the more promising approaches we discuss is
+  that of \gls{cca}-based variable selection, which 
+  not only seems to perform well in the classification
+  context, but as a by-product also identifies key
+  peptides which can be further investigated in 
+  follow-up biomarker validation studies.
+  
+\end{itemize}
+In each of these two parts, we first introduce and 
+discuss the methods we propose to use (in 
+Chapters~\ref{chap:dipps} and 
+\ref{chap:classificationMethods} respectively), and 
+then demonstrate
+the use of these methods on real data in more detail 
+and discuss the biological relevance of the results 
+(in Chapters~\ref{chap:dippsApplications} and
+\ref{chap:classificationApplication} respectively).
+
+The research carried out for this thesis has been 
+published in four papers.
+Two papers, \citet{Winderbaum2015} and 
+\citet{Winderbaum2016}, are method-focused 
+publications and correspond to the two foci above.
+The discussion in Chapters~\ref{chap:dipps} and 
+\ref{chap:dippsApplications} overlap with the ideas 
+of \citet{Winderbaum2015} and explores these ideas in 
+more detail.
+Similarly, the main conclusions of the discussion in
+Chapters~\ref{chap:classificationMethods} and 
+\ref{chap:classificationApplication} are summarised in 
+\citet{Winderbaum2016}.
+The other two papers, \citet{Gustafsson2015} and 
+\citet{Mittal2016}, are application-focused and 
+correspond to the glycan and endometrial cancer 
+applications introduced in 
+Sections~\ref{sec:endometrialDatasets} and 
+\ref{sec:NglycansDatasets} respectively.
+Application-specific results are presented in 
+\refsec{Nglycans} and 
+\refchap{classificationApplication}, overlapping with 
+results discussed in each of these two 
+application-focused papers.
+I have also presented the work, now published as 
+\citet{Winderbaum2015} at several conferences, 
+specifically giving a talk at the Statistical Society 
+of Australia Inc. Young Statisticians Conference in 
+$2013$, a talk as an invited speaker to the Statistical 
+Society of Australia Inc. Austrian Statistical 
+Conference in $2014$, and presenting a poster at the 
+Australasian Proteomics Society Annual Lorne 
+Proteomics Symposium in $2015$.
+
+
+We have access to several high quality applications of 
+\gls{maldi}-\gls{ims} data through our collaborative 
+work with the \gls{apc}\footnote{{\tt http://www.adelaide.edu.au/mbs/proteomics/} \\ Level 1, Molecular Life Sciences \\ The University of Adelaide \\ SA 5005 Australia}.
+Our collaboration with the \gls{apc} on several of 
+these applications has also produced a number of 
+tangential publications of which I am not the main 
+author --- including \citet{Gustafsson2015} and 
+\citet{Mittal2016}.
+In total we consider three such applications of 
+\gls{maldi}-\gls{ims} in this thesis:
+\begin{itemize}
+  \item Ovarian Cancer --- We consider approaches to the
+  exploratory analyses of \gls{maldi}-\gls{ims} data in 
+  depth, and make extensive use of the ovarian cancer 
+  data of \citet{Gustafsson2012thesis} to illustrate 
+  these methods.
+  In \refchap{dipps} we demonstrate the separation of 
+  cancerous tumour tissue from its surrounding 
+  non-tumour tissues by using an automated clustering 
+  approach. 
+  We then suggest a \gls{dipps}-feature selection 
+  scheme for selecting a short-list of peptides that 
+  are more highly expressed in tumour tissue than 
+  non-tumour tissue. 
+  We published this \gls{dipps}-feature selection 
+  approach as \citet{Winderbaum2015}.
+  In \refsec{datasetComparisons} we consider the 
+  results of applying this combined feature extraction 
+  approach to many sections from the same and different 
+  patients, and comparing the results to explore within
+  and between patient variability in 
+  \gls{maldi}-\gls{ims} data.
+  
+  \item Murine Glycans --- It would be of interest to 
+  detect glycans with \gls{maldi}-\gls{ims}, rather 
+  than just peptides and proteins.
+  In \refsec{dataDependant} we demonstrate that the 
+  \gls{dipps}-based feature extraction step developed 
+  with the ovarian cancer data in mind can also be used 
+  to quickly and easily produce a short-list of 
+  potential glycans for validation in the 
+  \gls{maldi}-\gls{ims} data. 
+  This experiment successfully demonstrated that 
+  glycans can in fact be detected using 
+  \gls{maldi}-\gls{ims} \citep{Gustafsson2015}, and 
+  this opens up new applications in cancer research.
+
+  \item Endometrial Cancer --- Taking advantage of the
+  second strength of \gls{maldi}-\gls{ims} noted above,
+  \citet{Mittal2016} collected data from the primary 
+  tumours of a cohort of endometrial cancer patients 
+  using two \glspl{tma}.
+  If it is possible to predict these patients' \gls{lnm}
+  status from these primary tumour data, this would 
+  give the surgeon a diagnostic tool to decide
+  if the lymph nodes need to be removed. 
+  Removing the lymph nodes is associated with serious 
+  complications for the patient, and \gls{lnm} is 
+  highly relevant to survival and treatment, so this 
+  decision is important for producing positive patient 
+  outcomes. 
+  
+  We introduce some classification and variable 
+  reduction methods, as well as our novel approach to 
+  pre-processing and normalisation of these data in 
+  \refchap{classificationMethods}.
+  In \refchap{classificationApplication} we consider 
+  the results of applying these methods to the 
+  endometrial cancer \gls{maldi}-\gls{ims} data, 
+  concluding that \gls{lnm} can be predicted from these
+  data to a significant degree, and therefore 
+  warranting further studies applying this method as a 
+  diagnostic tool for \gls{lnm} status in the clinic. 
+  We published these results and our approach to this 
+  classification problem as \citet{Winderbaum2016}.
+\end{itemize}
+Each of these applications of \gls{maldi}-\gls{ims} are
+introduced in more detail in \refsec{data}.
+Note that throughout this thesis we introduce many 
+established ideas from a number of fields, including 
+proteomics, mass spectrometry, and statistics.
+Where possible we include specific references to these
+ideas, but some of the ideas we discuss are commonly 
+known in a particular field. 
+For any such background knowledge without a specific 
+reference included, please see \citet{Lovric2011} for 
+proteomics and mass spectrometry background, 
+\citet{Koch2013} for multivariate statistics, or 
+
+It should also be noted that a significant 
+proportion of the work that went into this project 
+involved writing software tools to handle large 
+\gls{maldi}-\gls{ims} datasets.
+Although not explicitly discussed in this thesis, all
+associated code is available from 
+GitHub\footnote{URL: \url{https://github.com/armadilloa16}}, 
+or at request from the 
+author\footnote{email: {\tt lyron.winderbaum@student.adelaide.edu.au}}.
+
+%---------------- end of introduction -----------------------
+
+
+
+
+
+

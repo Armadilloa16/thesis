@@ -1,0 +1,2733 @@
+<<chapter_classificationMethods_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+
+
+
+In this chapter we will introduce methods for the 
+classification of \gls{maldi}-\gls{ims} data.
+In \refchap{classificationApplication} we will apply 
+these classification methods to the \gls{tma} data 
+introduced in \refsec{data}.
+Classification involves the construction of a 
+`classification rule', which is used to assign an 
+observation to a class.
+In \refsec{DAmethods} we introduce three methods from 
+the literature as well as introducing the concept of 
+\gls{cv} as an approach for judging the performance of 
+a classification rule.
+One of the challenges to classifying 
+\gls{maldi}-\gls{ims} data is their high-dimensional 
+nature, and one approach to addressing this challenge 
+is to use some form of variable reduction prior to 
+classification. 
+In \refsec{VR} we introduce two approaches to variable 
+reduction.
+
+In \refsec{DAmethods} and \refsec{VR} we introduce 
+some existing methods from the literature.
+In contrast, in \refsec{DApreprocessing} and 
+\refsec{normalisation} we introduce original 
+contributions.
+In \refsec{DApreprocessing} we discuss some of the
+challenges to classifying \gls{maldi}-\gls{ims} data, 
+including the conflicting advantages of data-dependent 
+vs. data-independent discretisation of the \gls{mz} 
+domain, as discussed in \refsec{dataDependant}.
+Ultimately, we discuss our approach to preprocessing 
+\gls{maldi}-\gls{ims} data prior to classification.
+In \refsec{normalisation} we introduce a new way to 
+reduce unwanted variability in \gls{maldi}-\gls{ims} 
+data, which although initially computationally 
+difficult is made tractable by the derivation of an 
+analytic form for the inverse of a particular class of 
+matrices.
+The derivation of the analytic form for this matrix 
+inverse is included in \refapp{normalisation}.
+These sections discuss very different aspects of the 
+same problem --- classification of \gls{maldi}-\gls{ims}
+data. In \refsec{DAmethodsSummary} we summarise how 
+these different aspects connect and allow for such 
+classification to be performed and improved, before 
+moving on to \refchap{classificationApplication} where 
+we apply these ideas to the \gls{tma} data of 
+\refsec{endometrialDatasets}.
+
+
+
+\section{Classification and Cross Validation}
+\label{sec:DAmethods}
+
+Classification, sometimes called discriminant analysis, 
+can be subdivided into two steps: 
+\begin{itemize}
+  \item Constructing a classification rule capable of 
+  assigning a class label to an observation.
+  The construction of the rule is done on the basis of 
+  data with known class membership, sometimes 
+  called `training' data.
+  This construction step is often referred to as the 
+  `training' or `learning' step.
+  \item Applying a rule to assign a class label to 
+an observation (or observations). This step can be
+further subdivided into one of two cases: 
+  \begin{itemize}
+    \item Applying the rule to observations of known 
+    class membership in order to assess the performance 
+    of the rule --- sometimes called `testing'.
+		\item Applying the rule to observations of unknown 
+    class membership for which a real-world decision 
+    needs to be made --- i.e. prediction. 
+	\end{itemize}
+\end{itemize}
+
+In \refsec{CV} we consider the `testing' case, in which 
+the performance of a classification rule is assessed by
+applying it to data with known class membership.
+In Sections~\ref{sec:LDA}, \ref{sec:NB}, and 
+\ref{sec:DWD} we consider the first step above --- 
+constructing a classification rule on the basis of 
+data with known class membership.
+In Sections~\ref{sec:LDA} and \ref{sec:NB} we introduce 
+two classical approaches that originate with
+\cite{Fisher1936} and remain canonical in the current 
+classification literature.
+Finally, in \refsec{DWD} we introduce a more modern 
+approach to classification specifically developed by
+\citet{Marron2007} to address challenges encountered in
+the classification of high-dimensional data.
+
+% Popular approaches to classification not represented 
+% here include random forests (see \citet{Breiman2001} 
+% and references therein) and support vector machines 
+% (see \citet{Scholkopf1998} and references therein).
+% Special consideration of the analysis of binary data 
+% has dated back as far as \citet{Cox1972}, and although
+% we consider classification of binary data, we do not 
+% consider classification approaches specifically 
+% developed for binary data, although such approaches do
+% exist (see \citet{Lee2011} and references therein). 
+% Comparison of a broader selection of classification 
+% approaches for binary data, such as that of
+% \citet{Asparoukhov2001} is needed, but is beyond the 
+% scope of this work.
+% Comparisons of a broader range of classification 
+% approaches (without restricting to binary data) have 
+% been made on \gls{maldi}-\gls{ms} data by 
+% \citet{Wu2003} and on cDNA/mRNA microarray data by 
+% \citet{Dudoit2002} but an extensive comparison of 
+% classification approaches on \gls{maldi}-\gls{ims} data 
+% specifically is lacking.
+% There has been growing interest in the classification 
+% of \gls{maldi}-\gls{ims} data, see 
+% \citet{Casadonte2011,Mascini2015,Rauser2010,Groseclose2008,Djidja2010} 
+% for example. 
+% We consider the application of a variety of approaches,
+% comparing the results of applying these approaches to 
+% the endometrial cancer data of 
+% \refsec{endometrialDatasets}.
+% We aim to identify trends in these results and make 
+% reccomendations on which approaches seem most promising
+% in the classification of \gls{maldi}-\gls{ims} data.
+% We identified the \gls{cca}-based variable ranking 
+% of \refsec{cca} as one such approach, and published it 
+% as \citet{Winderbaum2016}.
+% Considering a broader range of approaches would be of 
+% interest, and could be pursued using the results in 
+% \refchap{classificationApplication} as a starting 
+% point.
+
+% More specifically:
+% \begin{itemize}
+%   \item \citet{Mascini2015} suggest using 
+%   \gls{pca}-\gls{lda} for the classification of 
+%   \gls{maldi}-\gls{ims} data, and this is one of the 
+%   options we will consider.
+%   
+%   \item \citet{Rauser2010} consider \gls{svm} and 
+%   \gls{ann} approaches to the classification of 
+%   top-down (protein level) \gls{maldi}-\gls{ims} data 
+%   of flash frozen tissue.
+%   
+%   \item \citet{Casadonte2011} discuss the importance of 
+%   classification applied to \gls{maldi}-\gls{ims} data 
+%   acquired on \glspl{tma} contructed from \gls{ffpe}
+%   tissue. The endometrial cancer data we consider falls 
+%   in this category, as do the data considered by 
+%   \citet{Groseclose2008} and \citet{Djidja2010}, who
+%   apply univariate dimension reduction approaches 
+%   followed by \gls{svm} classification and \gls{pca} 
+%   based classification respectively.
+% \end{itemize}
+
+% Although there is need for a comparison of a broader 
+% range of classification approaches for 
+% \gls{maldi}-\gls{ims} data, this is beyond the scope of 
+% this work -- we aim to fulfil a similar role to the 
+% work of \citet{Djidja2010}, \citet{Mascini2015} and 
+% \citet{Groseclose2008} on the classification of 
+% \gls{tma} \gls{maldi}-\gls{ims} data, considering the 
+% application of a slightly wider variety of approaches, 
+% comparing the results of applying these approaches to 
+% one particular dataset (the endometrial cancer data of 
+% \refsec{endometrialDatasets}) and suggesting approaches 
+% that seem to be promising on the basis of these 
+% results.
+
+It should be noted that there are a plethora of 
+approaches to classification, as discussed in more 
+detail in \refsec{statsBackgroundClas}, and here we 
+consider only a very limited selection.
+We will restrict attention to linear classification 
+approaches, but it should be noted that many more 
+non-linear alternatives exist.
+In general, linear methods are easier to interpret,
+particularly in the context of high-dimensional data.
+Therefore the simpler linear methods are often favoured 
+over non-linear alternatives in \gls{hdlss} contexts.
+We will also be restricting attention to two-class 
+classification, as in the endometrial data the interest 
+is to discriminate between patients with positive and 
+negative \acrfull{lnm} status.
+It should be noted that many of these classification 
+methods have natural generalisations to classification 
+problems involving more than two classes.
+Some of our notation will hint at these generalisations
+but we focus on the two-class case as this is the case 
+relevant to the data we consider.
+As we restrict attention to the linear two-class case
+for classification, we introduce some notation here 
+specific to this case. 
+We use this general notation to compare between the 
+classification approaches we consider in 
+Sections~\ref{sec:LDA}, \ref{sec:NB}, and 
+\ref{sec:DWD}.
+Let $\mData$ be a $d \times n$ data matrix of $n$
+observations with known class labels coded as $-1$ or 
+$+1$. 
+All the rules we will consider use the data $\mData$ 
+and the associated class labels to `train' a rule by 
+finding a $d \times 1$ vector $\bm{d}$ and a scalar
+$\beta$. This rule then assigns class label 
+$\tau(\bm{x})$ to a $d \times 1$ observation $\bm{x}$,
+which can be either a column of $\mData$ or a new 
+observation, in the following way:
+\begin{equation}
+\tau(\bm{x}) = \left \{ \begin{array}{lcl}
++1 & \text{ if } & \bm{d}^T\bm{x} + \beta > 0 \\
+-1 & \text{ if } & \bm{d}^T\bm{x} + \beta < 0
+\end{array} \right . .
+\label{eqn:linearDA}
+\end{equation}
+Note that \refeqn{linearDA} does not address the case
+when $\bm{d}^T\bm{x} + \beta = 0$, and in this unlikely 
+case we do not assign a class label to $\bm{x}$.
+The different classification approaches we discuss in 
+Sections~\ref{sec:LDA}, \ref{sec:NB} and \ref{sec:DWD} 
+each essentially constitute different choices for
+$\bm{d}$ and $\beta$.
+
+To illustrate the intuition behind the notation of 
+\refeqn{linearDA}, we present a short example 
+application here.
+In this example we will apply \gls{lda}, as introduced 
+in \refsec{LDA}, to a subset of Anderson's iris data.
+\citet{Fisher1936} introduced the canonical \gls{lda}, 
+and demonstrated its usefulness by applying it to 
+Anderson's iris data. 
+The role of \gls{lda} became so fundamental in the 
+field of classification that the iris data presented in 
+the original paper has come to be known famously as 
+`Fisher's iris data'.
+Although Fisher is justifiably credited with the 
+development of the canonical \gls{lda} method, 
+`Fisher's iris data' on the other hand should perhaps 
+more accurately be known as `Anderson's iris data' due 
+to the contribution of \citet{Anderson1935} towards 
+quantification of the morphological variation amongst 
+the iris species of the Gasp\'{e} peninsula, as 
+\citet{Fisher1936} himself acknowledged.
+Anderson's iris data consist of 4 measurements on $50$ 
+iris flowers from each of three different species. 
+We will consider two of the measurements, petal 
+length and petal width, from observations of two 
+species, Versicolor and Virginica.
+\reffig{iris_example} shows these data, plotting the 
+two measurements against each other and using colour to 
+distinguish the two species.
+When applied to these data, the training step of 
+\gls{lda} results in $\bm{d}=\bm{d}_{\LDA}$ and 
+$\beta = \beta_{\LDA}$, 
+which are visually represented in \reffig{iris_example}
+with solid and dashed black lines respectively.
+$\bm{d}_{\LDA}$ can be thought of as a direction or 
+line which `best separates' the two classes, as 
+determined by \gls{lda}.
+$\beta_{\LDA}$ can then be though of as the point 
+(or perpendicular hyperplane --- in this case a line) 
+along the line/ direction defined by $\bm{d}_{\LDA}$ 
+that best separates the two classes --- again, with 
+`best' being determined by \gls{lda}.
+The differences between linear classification methods
+can be thought of as different approaches to 
+determining the meaning of the word `best' in this
+context.
+As we can see from \reffig{iris_example}, if we were 
+to train and test the \gls{lda} classification rule on 
+these data we would misclassify $5$ irises --- three 
+Virginica would be misclassified as Versicolor(two dots 
+are overlapped close to the dashed black line) and two
+Versicolor would be misclassified as Virginica.
+
+
+
+
+<<iris_example, fig.cap="Petal width vs. petal length, both measured in cm, for a subset of Fisher's iris data, specifically the Versicolor and Virginica irises. The discriminating direction, $\\bm{d}_{\\LDA}$, as found by \\gls{lda} is shown as a solid black line. The separating hyperplane is shown as a dashed black line, and represents the cutoff value, $\\beta_{\\LDA}$, such that observations on one side of the hyperplane (on one side of $\\beta_{\\LDA}$ on the `$\\bm{d}_{\\LDA}$ axis') will be classified as one class and observations on the other side will be classified as the other class.", fig.height=3.6>>=
+iris_subset = subset(iris,Species != 'setosa')
+iris_subset$Species = levels(iris_subset$Species)[as.numeric(iris_subset$Species)]
+iris_subset$Species = factor(iris_subset$Species)
+levels(iris_subset$Species) = c("Versicolor","Virginica")
+
+library(MASS)
+lda.f = lda(Species~Petal.Length+Petal.Width,iris_subset)
+mean_global = c(mean(lda.f$means[,1]),mean(lda.f$means[,2]))
+
+p = ggplot(iris_subset,
+           aes(x=Petal.Length,
+               y=Petal.Width,
+               colour=Species))
+# p = p + geom_jitter(width=0.16,height=0.08,alpha=0.5)
+p = p + geom_point(alpha=0.5)
+p = p + coord_fixed()
+p = p + annotate("segment",
+                 x =    mean_global[1]-0.8*lda.f$scaling[2],
+                 xend = mean_global[1]+0.8*lda.f$scaling[2],
+                 y =    mean_global[2]-0.8*lda.f$scaling[1],
+                 yend = mean_global[2]+0.8*lda.f$scaling[1])
+p = p + annotate("segment",
+                 x =    mean_global[1]-0.4*lda.f$scaling[1],
+                 xend = mean_global[1]+0.4*lda.f$scaling[1],
+                 y =    mean_global[2]+0.4*lda.f$scaling[2],
+                 yend = mean_global[2]-0.4*lda.f$scaling[2],
+                 linetype="dashed")
+# p = p + annotate("point",
+#                  x = lda.f$means)
+print(p)
+@
+
+
+
+
+
+\subsection{Misclassification and Cross Validation}
+\label{sec:CV}
+
+Once a classification rule has been constructed on the 
+basis of some $d \times n$ data $\mData$ with known 
+class membership, it is of interest to assess its 
+performance.
+One method for assessing its performance is to use the 
+rule to assign a class label to each of the 
+observations of $\mData$, whose class membership are 
+known, and count how many have been assigned the 
+incorrect class label. 
+I will use the term `misclassification' to refer 
+to this count, but in the literature it is sometimes 
+referred to as `classification error' or 
+`misclassification rate'. 
+
+When attempting to assess the performance of a 
+classification rule, particularly in a situation where 
+$n < d$, the misclassification rate can be misleading 
+due to over-fitting effects.
+An effective approach to addressing the issue of 
+over-fitting is to use two separate datasets --- a 
+`training' set, and a `testing' set. 
+In practice, data collection can often be prohibitively 
+expensive and access to large sample sizes is often 
+not possible, particularly for rare diseases.
+Due to these limitations, we are motivated to find
+a compromise somewhere inbetween using separate 
+`training' and `testing' datasets and using 
+misclassification rate. 
+Such a compromise would `make the most' of a small 
+dataset better than splitting it into two separate 
+datasets, and would be less prone to over-fitting 
+effects as compared to simple misclassification.
+
+For $N \leq n$, $N$-fold \gls{cv} is an approach to 
+finding such a compromise.
+$N$-fold \gls{cv} can be thought of as a sequence of 
+steps:
+\begin{itemize}
+  \item Construct $N$ non-empty $n$-index subsets
+  $\sColSubset_1,\sColSubset_2,\hdots,\sColSubset_N$ 
+  such that they partition $\{1,2,\hdots,n\}$.
+  These $n$-index subsets represent a partition of the 
+  observations in the data, See \refdef{IndexSubset} 
+  on $n$-index subset notation.
+%   Let us denote their binary vector duals as
+%   $\vColSubset_1,\vColSubset_2,\hdots,\vColSubset_N$
+%   respectively.
+  Usually, 
+  $\sColSubset_1,\sColSubset_2,\hdots,\sColSubset_N$ 
+  are constructed to be as close to equal size as 
+  possible.
+  \item Construct $N$ classification rules $\tau_i$ for
+  $i = 1,\,2,\,\hdots,N$ where $\tau_i$ is constructed
+  or `trained' on the basis of the subset 
+  \begin{equation*}
+    \bigcup_{j \neq i}{\sColSubset_j}
+  \end{equation*}
+  of the data and the associated known class labels.
+  \item Assign a class label to each observation, using
+  $\tau_i$ to assign a class label to observations in 
+  $\sColSubset_i$ for each $i$.
+  As the $\sColSubset_i$ partition the data, this 
+  process will assign each observation a unique class 
+  label.
+  These assigned class labels can then be compared with 
+  the known (assumed to be true) class labels, and the 
+  number of observations whose true class labels 
+  disagree with their assigned class labels is called 
+  the $N$-fold misclassification.
+\end{itemize}
+The largest possible $N$ is the number of observations 
+$n$, and this special $N = n$ case is called 
+\gls{loo} \gls{cv} because in this case the above steps
+amount to each observation being left-out and a rule 
+trained on the basis of the remaining data, and tested 
+on the left-out observation.
+Although the most computationally intensive, \gls{loo} 
+\gls{cv} is appropriate for small sample sizes as it 
+maximises the number of observations used in the 
+construction of each rule, while still `testing' each 
+rule on an observation not used in its construction.
+\gls{loo} misclassification ($n$-fold 
+misclassification) will be the main statistic by which 
+we compare the performance of the various 
+classification approaches we consider.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Fisher's Linear Discrimination Analysis}
+\label{sec:LDA}
+
+Although there are other linear classification methods, 
+I will use the relatively generic term \gls{lda} to 
+refer specifically to Fisher's \gls{lda} as described in 
+this section. 
+\gls{lda} is described in detail by
+\citet[Section 4.3]{Koch2013}.
+The motivation behind \gls{lda} is intuitive --- in 
+order to separate our classes, \citet{Fisher1936} 
+suggests we aim to maximise the between-class 
+variability, and minimise the within-class variability. 
+
+Let $\mData$ be a $d \times n$ data matrix whose 
+columns correspond to observations of known class 
+membership.
+Let $\bar{X}$ denote the mean of the columns 
+of $\mathbb{X}$, and let $\mathbb{X}^{[\nu]}$ to denote 
+the submatrix of $\mathbb{X}$ consisting of the columns 
+in class $\nu$.
+Let $\bar{X}^{[\nu]}$ to denote the mean of 
+the columns of $\mathbb{X}^{[\nu]}$ and let $n_\nu$ 
+denote the number of observations in class $\nu$ (i.e.
+the number of columns of $\mathbb{X}^{[\nu]}$). 
+Let $\bar{\bar{X}}$ denote the mean of the 
+$\bar{X}^{[\nu]}$s and let $S^{[\nu]}$ denote the 
+sample covariance matrix of $\mathbb{X}^{[\nu]}$. 
+
+We define the two matrices $\hat{B}$ and $\hat{W}$ as
+\begin{equation}
+  \hat{B} = \sum_{\nu} \left ( \bar{X}^{[\nu]} - \bar{\bar{X}} \right ) \left ( \bar{X}^{[\nu]} - \bar{\bar{X}} \right )^T
+	\label{eqn:fishersB}
+\end{equation}
+and
+\begin{equation}
+	\hat{W} = \sum_{\nu} S^{[\nu]} 
+% 	\quad \quad \text{where} \quad \quad
+% 	S^{[\nu]} = \frac{1}{n_\nu - 1} (\mathbb{X}^{[\nu]} - \bar{X}^{[\nu]})(\mathbb{X}^{[\nu]} - \bar{X}^{[\nu]})^T
+	\label{eqn:fishersW}
+\end{equation}
+respectively. 
+$\hat{B}$ of \refeqn{fishersB} is the sample covariance 
+matrix of the class means, representing between-class 
+variability. 
+$\hat{W}$ of \refeqn{fishersW} is the sum of 
+within-class covariance matrices, and represents the 
+within-class variability.
+
+% Note that although the definintions of 
+% Equations~\ref{eqn:fishersB} and \ref{eqn:fishersW} 
+% are introduced in terms of a general numer of classes, 
+% in this context we are particularly interested in the 
+% two-class case as we will be classifying lymph node 
+% metastasis status -- a binary variable (with/ without).
+% The methods can be easily extended to more than two 
+% classes, thus the general notation, but we will only
+% consider the two-class case.
+% The original \cite{Fisher1936} infact demonstrated this 
+% in a $4$-class case, and \citet{Koch2013} discusses the
+% application of \gls{lda} to multi-class cases in more 
+% detail.
+
+\gls{lda} solves the optimisation problem of finding 
+the direction (unit length) vector that maximises the 
+between-class variance while minimising the 
+within-class variance of the projected data (projected
+into that direction).
+It turns out that the optimal direction vector $\bm{v}$ 
+is the eigenvector $\bm{d}_{\LDA}$ associated to the 
+largest eigenvalue of the matrix:
+\begin{equation}
+	\hat{W}^{-1}\hat{B}.
+	\label{eqn:dLDA}
+\end{equation}
+\citet[Section~4.3]{Koch2013} includes a proof that
+the eigenvector $\bm{d}_{\LDA}$ is the solution to this
+optimisation problem.
+
+It is important to note that calculating 
+$\bm{d}_{\LDA}$ requires that $\hat{W}$ be invertible 
+and in \gls{hdlss} cases, i.e. $n < d$, this is not 
+possible.
+I present a more precise discussion of the conditions 
+when $\hat{W}$ cannot be invertible in \refsec{NB}.
+
+Also, note that $\bm{d}_{\LDA}$ is only unique up to 
+sign, so if we use the symbols `$+$' and `$-$' to 
+denote the two classes $+1$ and $-1$ respectively, we 
+choose the sign of $\bm{d}_{\LDA}$ such that 
+\begin{equation*}
+\bm{d}_{\LDA}^T \bar{X}^{[+]} > \bm{d}_{\LDA}^T \bar{X}^{[-]}.
+\end{equation*}
+The \gls{lda} classification rule $\tau_{\LDA}$,
+constructed from $\mData$ and associated class labels,
+is of the general form of \refeqn{linearDA} and assigns 
+the class label to a $d \times 1$ observation $\bm{x}$
+\begin{equation}
+\tau_{\LDA}(\bm{x}) = \left \{ \begin{array}{lcl}
++1 & \text{ if } & \bm{d}_{\LDA}^T\bm{x} - \bm{d}_{\LDA}^T \bar{\bar{X}} > 0 \\
+-1 & \text{ if } & \bm{d}_{\LDA}^T\bm{x} - \bm{d}_{\LDA}^T \bar{\bar{X}} < 0
+\end{array} \right . .
+\label{eqn:LDArule}
+\end{equation}
+
+% \begin{equation*}
+% \bm{d} = \bm{d}_{\LDA} \quad \text{ and } \quad  
+% \beta = \beta_{\LDA} = \bm{d}_{\LDA}^T \left (\bar{X}^{[+]} - \bar{X}^{[-]} \right ).
+% \end{equation*}
+
+
+
+
+\subsection{Naive Bayes}
+\label{sec:NB}
+
+`\gls{nb}' refers to an approach to modifying an 
+existing classification method and is not a 
+classification method itself.
+I use the term `\gls{nb}' to refer specifically to the 
+\gls{nb} variant of \gls{lda} which I describe in this 
+section. 
+\gls{nb} modifies \gls{lda} in a way that allows
+it to function when $\hat{W}$ of \refeqn{fishersW} 
+is not invertible. 
+As mentioned in \refsec{LDA}, requiring that $\hat{W}$ 
+of \refeqn{fishersW} be invertible is problematic when 
+$n < d$.
+Specifically, if we let $\kappa$ denote the number of 
+classes,
+\begin{equation}
+  \rank{\hat{W}} \leq \sum_{\nu}{\min{(n_\nu -1 ,d)}}
+   \quad \text{simplifies to} \quad 
+  \rank{\hat{W}} \leq n - \kappa
+   \quad \text{when} \quad 
+  \max_\nu{n_\nu} - 1 \leq d.  
+  \label{eqn:rankW}
+\end{equation}
+The inequality of \refeqn{rankW} means that if  
+$n-\kappa < d$ then $\hat{W}$ is guaranteed to be 
+singular.
+
+The \gls{nb} variant of \gls{lda} essentially makes the
+`naive' assumption that variables are independent, and
+from this assumption it follows that their covariance 
+should be zero. 
+In practice, instead of calculating the direction 
+vector from the matrix $\hat{W}^{-1}\hat{B}$ as in
+\gls{lda}, the direction vector for the \gls{nb} 
+variant $\bm{d}_{\NB}$ is instead calculated as the 
+eigenvector corresponding to the largest eigenvalue of 
+the matrix 
+\begin{equation}
+  (\diag{\hat{W}})^{-1}\hat{B}.
+	\label{eqn:dNB}
+\end{equation}
+In the case that the variables are infact independent, 
+\gls{lda} reduces to \gls{nb}.
+
+Similarly to \gls{lda} we choose the sign of 
+$\bm{d}_{\NB}$ such that 
+\begin{equation*}
+\bm{d}_{\NB}^T \bar{X}^{[+]} > \bm{d}_{\NB}^T \bar{X}^{[-]}.
+\end{equation*}
+The \gls{nb} classification rule $\tau_{\NB}$,
+constructed from $\mData$ and associated class labels,
+is of the general form of \refeqn{linearDA} and assigns 
+the class label to a $d \times 1$ observation $\bm{x}$
+\begin{equation}
+\tau_{\NB}(\bm{x}) = \left \{ \begin{array}{lcl}
++1 & \text{ if } & \bm{d}_{\NB}^T\bm{x} + \bm{d}_{\NB}^T \left (\bar{X}^{[+]} - \bar{X}^{[-]} \right ) > 0 \\
+-1 & \text{ if } & \bm{d}_{\NB}^T\bm{x} + \bm{d}_{\NB}^T \left (\bar{X}^{[+]} - \bar{X}^{[-]} \right ) < 0
+\end{array} \right . .
+\label{eqn:NBrule}
+\end{equation}
+
+Because $\diag{\hat{W}}$ is a diagonal matrix, it is 
+invertible so long as there are no variables in our 
+dataset $\mData$ that are constant in all
+$\mData^{[\nu]}$ (zero within-class variance).
+The fact that $\diag{\hat{W}}$ is always invertible 
+means that \gls{nb} classification can be applied to 
+cases with $n - \kappa < d$, where \gls{lda} 
+cannot be used.
+Similarly to \gls{lda}, \gls{nb} can be easily extended 
+to more than two classes but we will only be 
+considering the two-class case.
+
+
+\subsection{Distance Weighted Discrimination}
+\label{sec:DWD}
+
+\gls{dwd} was introduced by \citet{Marron2007} as an 
+approach to address `data-piling' which may occur in 
+\acrfull{svm} approaches. 
+% For more on \gls{svm} background, see 
+% \citet{Cristianini2000} and references therein.
+Data-piling occurs when multiple high-dimensional 
+observations are projected to the exact same value, and 
+is often a symptom of over-fitting effects in 
+\gls{hdlss} data.
+As data-piling can be indicative of over-fitting 
+effects, it is undesirable. 
+We have presented linear classification in 
+\refeqn{linearDA} in terms of the projection of data
+into a direction vector $\bm{d}$.
+The motivation for \gls{dwd} is based on an
+alternative perspective for thinking about linear 
+classification rules in which we instead think about 
+a hyperplane separating our classes in high-dimensional 
+space, and consider the `residuals' of the data to this 
+hyperplane.
+These two perspectives of linear classification rules 
+are equivalent.
+A hyperplane is a space of dimension one less than the 
+dimension of the space within which it exists.
+If we consider $\bm{d}$ to be a normal vector to the 
+hyperplane, or the hyperplane to be the space of all 
+vectors orthogonal to $\bm{d}$ we can see that the 
+projection of data onto the direction $\bm{d}$ are 
+equivalent to the residuals of the same data from the 
+hyperplane.
+To be precise, the residuals are the projection of the 
+data onto the direction $\bm{d}$ plus a scalar $\beta$.
+The scalar $\beta$ represents the location of the 
+hyperplane on the line in the direction of $\bm{d}$.
+In \gls{hdlss} data it is often possible to linearly 
+separate the two classes perfectly --- i.e. to place a
+hyperplane such that all observations from one class 
+are on one side of the hyperplane, and all observations
+from the other class are on the other side.
+In the case that the classes can be separated 
+perfectly, a popular approach is to choose a hyperplane 
+that maximises the minimum residual.
+This approach either only considers the smallest 
+residual, or heavily weights the smallest residuals.
+Particularly in \gls{hdlss} data, this heavy weighting 
+of the smallest residuals can cause multiple residuals 
+to be exactly equal smallest, i.e. data-piling.
+\gls{dwd} attempts to avoid the data-piling caused by 
+this max-min approach by weighting larger residuals 
+more heavily.
+\gls{dwd} weights residuals based on their reciprocals
+--- minimising the sum of reciprocal residuals, with an 
+added penalty factor for observations on the wrong side 
+of the hyperplane.
+
+We now formulate \gls{dwd} precisely, but first 
+introduce some notation.
+If we denote the $i$th $d \times 1$ observation 
+$\bm{x}_i$, and the $i$th class label $y_i$ (with 
+possible values of $-1$ and $+1$), we can define the 
+$i$th residual
+\begin{equation*}
+r_i^* = y_i (\bm{d}^T\bm{x}_i + \beta).
+\end{equation*}
+When the classes are perfectly split all the $r_i^*$s 
+can be positive for particular choices of hyperplane,
+i.e. $\bm{d}$ and $\beta$.
+We define perturbed residuals 
+\begin{equation*}
+r_i = r_i^* + \epsilon_i
+\end{equation*}
+by adding positive error terms $\epsilon_i$ to the 
+residuals --- allowing the perturbed residuals to be 
+positive even when the hyperplane does not split
+the classes perfectly, and thereby allowing us to pose 
+the optimisation problem as in \refeqn{DWDopt}.
+If we denote the vector of $r_i$s $\bm{r}$ and the 
+vector of $\epsilon_i$s $\bm{\epsilon}$, then given 
+some penalty parameter $C$ the \gls{dwd} approach finds
+a solution to the optimisation problem:  
+\begin{equation}
+\argmin{\bm{d},\,\beta,\,\bm{r},\,\bm{\epsilon}}{\sum_i{\left ( \frac{1}{r_i} + C\epsilon_i \right ) }}
+\label{eqn:DWDopt}
+\end{equation}
+under the conditions
+\begin{equation*}
+||\bm{d}||^2 \leq 1, \, \quad 
+r_i \geq 0, \, 
+\quad \text{and} \quad 
+\epsilon_i \geq 0 \quad \forall i.
+\end{equation*}
+Some comments:
+\begin{itemize}
+  \item The condition that the vector $\bm{d}$ be 
+  a unit vector is relaxed to $|\bm{d}| \leq 1$ which 
+  makes the optimisation problem convex, but if the 
+  classes are perfectly separable the solution for 
+  $\bm{d}$ will be a unit vector for a sufficiently 
+  large penalty factor $C$.
+  
+  \item For $\bm{x}_i$ that lie on the correct side of 
+  the hyperplane, $\epsilon_i$ will be zero for a 
+  sufficiently large penalty factor $C$.
+  
+  \item We use the penalty factor recommended by 
+  \citet{Marron2007} --- $100$ divided by the median 
+  pairwise Euclidean distance between observations in 
+  one class to observations in the other class.
+  
+  \item As long as the penalty factor $C$ is not too 
+  large, \gls{dwd} will sometimes choose a hyperplane 
+  that does not perfectly split the observations, even 
+  in situations when it is possible to do so --- 
+  something the max-min approach mentioned above will 
+  never do.
+\end{itemize}
+
+
+Let $\bm{d} = \bm{d}_{\DWD}$ and $\beta = \beta_{\DWD}$ 
+be those values found to optimise the problem 
+formulated in \refeqn{DWDopt}.
+The \gls{dwd} classification rule $\tau_{\DWD}$,
+constructed from $\mData$ and associated class labels,
+is of the general form of \refeqn{linearDA} and assigns 
+the class label to a $d \times 1$ observation $\bm{x}$
+\begin{equation}
+\tau_{\DWD}(\bm{x}) = \left \{ \begin{array}{lcl}
++1 & \text{ if } & \bm{d}_{\DWD}^T\bm{x} + \beta_{\DWD} > 0 \\
+-1 & \text{ if } & \bm{d}_{\DWD}^T\bm{x} + \beta_{\DWD} < 0
+\end{array} \right . .
+\label{eqn:DWDrule}
+\end{equation}
+
+
+The reciprocal weights used in the optimisation problem 
+of \refeqn{DWDopt} cause \gls{dwd} to take into account
+how well the two classes are separated overall, 
+with less emphasis placed on the single smallest 
+residual, in particularly when there are many similarly 
+small residuals.
+Compared with the simple max-min approach mentioned 
+above, this weighting used in \refeqn{DWDopt} results 
+in \gls{dwd} being less susceptible to over-fitting 
+effects and data-piling, which can cause \gls{dwd} to be 
+particularly advantageous in \gls{hdlss} scenarios.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Preprocessing MALDI imaging data for Classification}
+\label{sec:DApreprocessing}
+
+In order to apply the methods introduced in 
+Sections~\ref{sec:DAmethods} and \ref{sec:VR} to 
+\gls{maldi}-\gls{ims} data, the data needs to be 
+preprocessed and brought into a form such that these 
+methods will be applicable.
+This involves two main points that require 
+consideration:
+\begin{itemize}
+  \item Variables --- what are the measurements going to 
+  be. 
+  This point boils down to a question of how the \gls{mz}
+  domain ought to be discretised.
+  
+  \item Observations --- what are the objects to be 
+  classified. 
+  Spectra are perhaps not appropriate, as the objects 
+  for which real-world classification is of interest 
+  are the patients.
+  So, a patient-wise representation of the data is 
+  needed.
+\end{itemize}
+We discuss our approach to each of these two points
+in \refsec{DApreprocessingVars} and 
+\refsec{DApreprocessingObs} respectively.
+
+In \refchap{dipps} and \refchap{dippsApplications} we 
+dealt primarily with the binary representation of
+\gls{maldi}-\gls{ims} data --- sidestepping the problem 
+of noise in other measures of peak presence (such as 
+intensity, or \gls{snr}). 
+Transforming the data to binary representation involves
+a significant loss of information, but we demonstrated 
+that tissue types can still be effectively separated 
+using the binary data despite this loss of information.
+It is possible, however, that this lost information 
+could be of use in improving classification results.
+As our aim is to explore different approaches to the 
+classification of \gls{maldi}-\gls{ims} data and to 
+determine if any such approaches consistently 
+perform better than others we will consider a variety 
+of data types:
+\begin{itemize}
+  \item Binary (presence/ absence of peaks),
+  \item Intensity (peak height),
+  \item Area (integrated peak volume),
+  \item \gls{snr}, and
+  \item Log-Intensity ($log(I + 1)$ where $I$ is intensity).
+\end{itemize}
+The non-binary measures of peak-presence could 
+potentially contain information important to the 
+classification problem, and comparing classification 
+performance on these different data-types ought to 
+provide some insight into this.
+
+
+\subsection{Variables (Binning and Majority Rule)}
+\label{sec:DApreprocessingVars}
+
+We discussed the advantages and disadvantages of using 
+data-dependent discretisation for constructing 
+variables in \refsec{dataDependant}.
+In the context of classification, it is appropriate to 
+use data-independent discretisation (i.e. binning),
+as this allows for classification rules to be applied 
+to new data unambiguously, as the same discretisation 
+can be applied to any data. 
+If data-dependent discretisation was used, how to
+apply a classification rule to new data would be 
+somewhat ambiguous, and using data-independent 
+discretisation avoids this problem.
+
+However, as discussed in \refsec{dipps}, binning can 
+potentially remove important information in a small 
+number of variables for which bin edges happen to fall 
+in a region of high peak-density.
+In classification this small loss of information could
+potentially impact results, if the variables affected 
+coincide with variables important to the classification 
+problem in question.
+In order to address this potential loss of important
+information, we suggest using several shifted bin 
+locations, as explicitly defined in \refalg{wiggle}, 
+applying any given classification approach to each 
+shifted-bin dataset in parallel, and finally defining a 
+`meta classification rule' as the classification rule 
+that assigns the class label agreed upon by the 
+majority of the shifted-bin analyses. 
+We will use three shifted-bin analyses as this will 
+always guarantee a unique majority.
+We carry over the choice to use a bin size of 
+$b = 0.25$ from the analysis of the ovarian cancer data 
+and the discussion thereof in \refsec{binSizeChoice}.
+All classification results we present in 
+\refchap{classificationApplication} are the result of 
+using a `meta classification rule' on three shifted-bin
+analyses resulting by bin location shifts of 
+$-\frac{b}{3}$, $0$, and $+\frac{b}{3}$ as per
+\refalg{wiggle}.
+
+
+
+\subsection{Observations (Averages and Cancer Annotation)}
+\label{sec:DApreprocessingObs}
+
+Until now all the data we have presented have had
+spectra as observations. 
+In the endometrial data we wish to classify patients as 
+LNM positive or negative, and so it is natural for 
+observations to correspond to patients.
+The simplest way to construct such a `patient-wise'
+representation is to average the spectra from each 
+patient.
+We call this average spectra representation the 
+`patient-wise summarised data' or `patient data',
+and exclusively use this representation of the data 
+when considering any classification.
+% An alternative would be use spectra as observations, 
+% classify spectra, and then assign a class label to each 
+% patient equal to the mode of the class labels assigned 
+% to the spectra from that patient.
+
+Note that so far we have predominantly been using the 
+binary data, in which case these patient-wise averages
+produce within-patient proportions of occurrence. 
+But, as mentioned in \refsec{DApreprocessingVars}, for 
+classification we will also consider using non-binary 
+measures of peak-presence, and in these cases it is not
+obvious how to treat peak-absence, which is essentially
+a missing value problem. 
+We present two options, and we will consider results of
+applying both in \refchap{classificationApplication}: 
+\begin{itemize}
+  \item Use the value zero to represent the absence of 
+  a peak.
+  
+  \item For each variable, average only present peaks 
+  (ignoring absence).
+\end{itemize}
+The two approaches above are not necessarily the best, 
+but are the simplest.
+Note that all these analyses are on the basis of the 
+peaklist data.
+Which peaks are `present' and `absent' is defined by 
+the peak-picking algorithm, which uses a 
+\gls{snr} threshold. 
+The above two points could be interpreted in terms of 
+this threshold rather than in terms of peak absence, 
+e.g. `the value of peaks with a \gls{snr} 
+below the threshold are set to zero' or `only peaks 
+with a \gls{snr} above the threshold are
+averaged'.
+
+One of the advantages of \gls{ims} data is the fact 
+that spatial information that separates tissue types is
+preserved, as discussed in Chapters~\ref{chap:dipps} 
+and \ref{chap:dippsApplications}.
+Averaging spectra in order to produce a patient-wise 
+representation of the data loses all information about
+within-patient tissue heterogeneity. 
+It is natural to presume results could be improved 
+by incorporating histological information separating 
+tissue types, and thereby reducing variability 
+in the patient data due to tissue heterogeneity.
+We take an approach similar to that of 
+\citet{Mascini2015} ---  we have a pathologist annotate  
+the tumour regions on an image of the \gls{he} stained 
+tissue, and restrict attention to spectra from tumour 
+regions.
+We expect that restricting to the annotated spectra 
+only should improve results as it should reduce the 
+variability caused by tissue heterogeneity --- comparing 
+tumour tissue from one patient to tumour tissue of 
+another patient should allow for differences between 
+the patients to be detected more easily than including 
+all the tissue from each patient. 
+We present results of classification of the cancer 
+annotated data in \refsec{varyingParams} and observe 
+that although improvement is seen in some cases, in 
+other cases restricting to the annotated spectra only
+can worsen results.
+The fact that restricting to cancer annotations does 
+not strictly improve classification results is 
+surprising.
+One possible explanation for this surprising result can 
+be observed from \reftab{tmaPatientBasicStats} in that 
+there are a number of patients with very few cancer 
+annotated spectra, so restricting to only cancer 
+annotated spectra could artificially reduce our sample 
+size, thereby explaining the increase in 
+misclassification. 
+An alternative explanation is that there 
+could be useful information available in surrounding 
+non-tumour tissues. 
+Evidence supporting this intriguing possibility exists, 
+for example \citet{Oppenheimer2010} have shown that 
+histologically normal tissue adjacent to renal 
+carcinoma tumours express many of the molecular 
+characteristics of the tumour.
+This is a possibility that, as \citet{Oppenheimer2010}
+note, warrants further research as it could potentially
+relate directly to tumour recurrence post resection,
+which is a significant factor in patient survival.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Dimension Reduction}
+\label{sec:VR}
+
+As mentioned in \refsec{LDA}, classic classification 
+methods such as \gls{lda} fail for \gls{hdlss} data.
+One approach to addressing this failure is to transform
+the data into a low-dimensional representation, 
+typically a subspace, prior to classification.
+We will consider two methods for such dimension reduction:
+\begin{itemize}
+  \item \gls{pca}, and
+  \item Variable selection based on \gls{cca} ranking.
+\end{itemize}
+\gls{pca} is a commonly used variable reduction method, 
+see \citet[Chapter~2 and Section~13.3.2]{Koch2013}.
+\gls{pca} has been used for dimension reduction 
+extensively, and specifically in the context of 
+\gls{tma} \gls{maldi}-\gls{ims} data 
+\citet{Mascini2015} have suggested \gls{pca}
+dimension reduction followed by \gls{lda}.
+\gls{cca} is an established method in multivariate 
+statistics, see \citet[Chapter~3]{Koch2013}. 
+\citet{Koch2010} have suggested the use of \gls{cca} 
+for variable ranking, and we use an approach similar to 
+that which they suggest.
+The slight deviation between our approach and that of 
+\citet{Koch2010} is that we centre the class labels, 
+while \citet{Koch2010} suggest using uncentred labels.
+We use an approach more similar to that described in 
+\citet[Section 13.3.1]{Koch2013}, but the difference 
+between our approach to that of \citet{Koch2010} is
+trivial in terms of practical results. 
+
+We introduce the known ideas of \gls{pca} and \gls{cca} 
+in \refsec{pca} and \refsec{cca} respectively.
+We apply these variable reduction approaches to the 
+endometrial data of \refsec{endometrialDatasets} and 
+consider the effect they have on the classification 
+performance in \refsec{VRapplication}.
+
+\subsection{PCA}
+\label{sec:pca}
+
+% \gls{pca} is a widely known method for variable 
+% reduction and is often used to address the 
+% high-dimensionality of modern biology data in fields 
+% such as genomics and proteomics \addRef.
+% For example \citet{Mascini2015} use PCA-LDA in an 
+% attempt to classify treatment response in MALDI imaging 
+% data from TMAs of breast cancer. 
+
+Let $S$ be the $d \times d$ sample covariance matrix of 
+a $d \times n$ centred data matrix $\mData$, and let 
+$S$ have rank $r$.
+As $\mData$ is centred, $S = \frac{1}{n-1} \mData \mData^T$.
+Let the eigendecomposition, often called spectral 
+decomposition, of $S$ be 
+\begin{equation}
+  S = \Gamma \Lambda \Gamma^T,
+  \label{eqn:Seigendecomp}
+\end{equation}
+where $\Gamma$ is a $d \times r$ matrix whose columns 
+are eigenvectors of $S$, and $\Lambda$ is an 
+$r \times r$ diagonal matrix of the eigenvalues of $S$ 
+$\lambda_1, \lambda_2, \hdots, \lambda_r$ such that 
+$\lambda_1 \geq \lambda_2 \geq \hdots \geq \lambda_r > 0$.
+Note that for the patient-data we consider for 
+classification, as described in 
+\refsec{DApreprocessingObs}, the matrix $S$ is singular 
+as $n << d$.
+% $S$ is singular if $n<<d$, as $r \leq min(n-1,d)$ and
+% $S$ is singular if $r < d$ -- this was discussed in 
+% \refsec{NB}.
+% When $S$ is singular, 
+% $\Gamma^T \Gamma = I_{r\times r}$ but
+% $\Gamma \Gamma^T \neq I_{d\times d}$.
+We call the columns of $\Gamma$ principal component
+directions, and we project the data into these 
+directions in order to produce the \gls{pca} dimension
+reduced data of \refdef{PCA_VR}.
+\begin{defn}
+  \emph{\textbf{$k$-dimension reduced PCA data:}}	
+	Given a $d \times n$ centred data matrix $\mData$,
+  covariance matrix $S = \frac{1}{n-1} \mData \mData ^T$ and the 
+  eigendecomposition notation of \refeqn{Seigendecomp},
+  Let the $d \times k$ matrix $\Gamma_k$ consist of the 
+  first $k$ columns of $\Gamma$.
+  Then for a given number of components $k$, the 
+  $k$-dimension reduced \gls{pca} data is 
+  \begin{equation*}
+  \Gamma_k^T \mData.
+  \end{equation*}
+\label{def:PCA_VR}	
+\end{defn}
+Note that \refdef{PCA_VR} is a function of the number
+of dimensions reduced to, $k$, and that each of the 
+resulting dimensions correspond to linear combinations
+of the original variables.
+Each of these dimensions, or rows of the dimension 
+reduced \gls{pca} data matrix, correspond to the 
+projection of the original centred data into a 
+principal component direction and are often called
+principal component scores.
+These new dimensions are not immediately interpretable 
+as \gls{mz} values, as they correspond to combinations of 
+many \gls{mz} values and do not have a direct 
+interpretation in \gls{ms} terms.
+
+% Note that $\mData$ is $d \times n$ while $\bar{X}$ is 
+% $d \times 1$ -- when I write `$\mData - \bar{X}$' I 
+% intend that $\bar{X}$ is subtracted from each column of 
+% $\mData$. 
+It is also quite common to produce the scaled data, 
+\begin{equation*}
+(\diag{S})^{-\frac{1}{2}} \mData,
+\end{equation*}
+where $\diag{S}$ is a diagonal matrix whose diagonal is 
+the same as that of $S$, and apply \gls{pca} to the 
+scaled data.
+The covariance matrix of the scaled data is the 
+correlation matrix of the original matrix.
+We do not consider \gls{pca} on the scaled data here as 
+our focus is on comparing \gls{pca} to other methods, 
+which are likely to have a bigger impact on the 
+classification results than scaling would. 
+% Making more comprehensive comparisons, including 
+% \gls{pca} on the scaled data, would be of interest but 
+% ultimately falls beyond the scope of this work.
+
+For a detailed discussion of the interpretation of 
+\gls{pca}, including proofs for its theoretical 
+properties, see \citet[Chapter 2]{Koch2013}.
+In short, it can be shown that the $k$-dimension 
+reduced \gls{pca} data maximises the variability 
+retained from the original data.
+One of the problems with \gls{pca} as a dimension 
+reduction method is that the variables in the 
+transformed data do not have an obvious 
+interpretation as they are linear combinations of the 
+original variables.
+Furthermore, in a classification context the `highest 
+variance' directions are not necessarily the `best' 
+directions --- they are not necessarily the dimensions 
+most relevant to the classification problem in 
+question.
+The \gls{cca}-based approach we describe in 
+\refsec{cca} is an example of an approach that attempts 
+to leverage the extra information contained in the 
+known class labels in order to find variables that are
+the most relevant to the classification problem.
+We would expect a method that makes use of the extra 
+information contained in the class labels to result in 
+better classification performance, and indeed the 
+results in \refchap{classificationApplication} reflect
+that the \gls{cca}-based approach results in better 
+classification performance than \gls{pca} dimension 
+reduction.
+\gls{pca} variable reduction is nonetheless a staple 
+variable reduction method, and a useful baseline for 
+comparison to other approaches.
+
+
+
+\subsection{CCA}
+\label{sec:cca}
+
+As mentioned in \refsec{pca}, \gls{pca} is a purely 
+variance based technique, using the variance of the 
+data matrix $\mData$ without using the class labels at
+all.
+In some contexts variance based variable reduction can 
+be appropriate, for example, clustering.
+In classification however, there is no guarantee that 
+the information differentiating the classes will be 
+contained in higher-variance components.
+\citet{Leek2010} discuss how exploratory analyses using 
+\gls{pca} and other methods, including hierarchical 
+clustering, can reveal that some of these high-variance 
+components often represent unwanted variability such as 
+batch effects --- effects caused by differences in the 
+environment during data acquisition, trace-contaminants 
+in reagents, systematic operator errors, and other 
+similar effects.
+
+In contrast to \gls{pca}, the \gls{cca}-based variable 
+ranking we propose in this section takes the class 
+labels into account when ranking variables in order of 
+importance.
+\gls{cca} is a general method for finding strong 
+correlations between two subsets of variables.
+\gls{cca} is of particular interest when there is a 
+natural partitioning of the variables by context. 
+For example, \citet{Witten2009} demonstrate this 
+principal on a dataset including measurements of both 
+gene expression and DNA copy number for the same 
+samples. 
+Specifically, \citet{Witten2009} use an extension of 
+\gls{cca} to find sparse linear combinations of these 
+two sets of measurements that are highly correlated to 
+each other. 
+In our classification context we can consider the class 
+labels as one set of variables, and the 
+\gls{maldi}-\gls{ims} data as the other.
+In essence, the \gls{cca}-based variable ranking we 
+propose ranks the variables of our data based on their 
+correlation to the class labels.
+
+In this section we introduce \gls{cca} in two parts.
+Firstly we introduce \gls{cca} in general.
+Secondly, we consider \gls{cca} in the specific context 
+of two-class classification, and many of the general 
+expressions simplify in this context.
+
+\subsubsection{In general}
+Let $\mData_1$ and $\mData_2$  be $d_1 \times n$ and 
+$d_2 \times n$ data matrices respectively,
+corresponding to two sets of measurements or variables 
+on the same $n$ subjects or observations. 
+For convenience, let $\mData_1$ and $\mData_2$ be 
+centred --- each row has mean zero.
+Then the sample covariance matrix of 
+\begin{equation}
+\left [ \begin{array}{c} \mData_1 \\ \mData_2 \end{array} \right ]
+\quad \text{ is } \quad
+\frac{1}{n-1} 
+\left [ \begin{array}{c} \mData_1 \\ \mData_2 \end{array} \right ]
+\left [ \begin{array}{c} \mData_1 \\ \mData_2 \end{array} \right ]^T
+= 
+\frac{1}{n-1} 
+\left [ \begin{array}{cc} \mData_1 \mData_1^T & \mData_1 \mData_2^T \\ \mData_2 \mData_1^T & \mData_2 \mData_2^T  \end{array} \right ]
+= 
+\left [ \begin{array}{cc} S_1 & S_{12} \\ S_{12}^T & S_2 \end{array} \right ].
+\label{eqn:SblockNotation}
+\end{equation}
+As mentioned in \refsec{pca}, we will often be dealing 
+with singular covariance matrices in the classification 
+setting.
+Let
+\begin{equation*}
+S_1 = \Gamma_1 \Lambda_1 \Gamma_1^T 
+\quad \text{ and } \quad
+S_2 = \Gamma_2 \Lambda_2 \Gamma_2^T
+\end{equation*}
+be the eigendecompositions of $S_1$ and 
+$S_2$ respectively, analogously to the 
+eigendecomposition of $S$ in \refeqn{Seigendecomp}.
+We use the notation $S_1^{-\frac{1}{2}}$ and 
+$S_2^{-\frac{1}{2}}$, and in order to avoid ambiguity
+in the cases when $S_1$ or $S_2$ are singular, we let 
+\begin{equation}
+S_1^{-\frac{1}{2}} = \Gamma_1 \Lambda_1^{-\frac{1}{2}} \Gamma_1^T 
+\quad \text{ and } \quad
+S_2^{-\frac{1}{2}} = \Gamma_2 \Lambda_2^{-\frac{1}{2}} \Gamma_2^T.
+\label{eqn:S1S2negHalf}
+\end{equation}
+The expressions for $S_1^{-\frac{1}{2}}$ and 
+$S_2^{-\frac{1}{2}}$ in \refeqn{S1S2negHalf} remain 
+well defined in the case that either $S_1$ or $S_2$ is 
+singular because of the way we introduced 
+eigendecomposition in \refeqn{Seigendecomp} --- that is 
+if we let $r_1$ and $r_2$ be the ranks of $S_1$ and 
+$S_2$ respectively, then $\Lambda_1$ and $\Lambda_2$ 
+are $r_1 \times r_1$ and $r_2 \times r_2$ diagonal 
+matrices of non-zero eigenvalues respectively, and 
+similarly $\Gamma_1$ and $\Gamma_2$ are 
+$d_1 \times r_1$ and $d_2 \times r_2$ matrices of 
+eigenvectors.
+Allowing $\Lambda_1$ and $\Lambda_2$ to be of lower 
+dimension, $r_1$ or $r_2$ instead of $d$, and allowing 
+$\Gamma_1$ and $\Gamma_2$ to be non-square is what 
+allows us to define $S_1^{-\frac{1}{2}}$ and 
+$S_2^{-\frac{1}{2}}$ in such a way that they are still 
+defined even when $S_1$ or $S_2$ is singular.
+
+Given the expressions for $S_1^{-\frac{1}{2}}$ and 
+$S_2^{-\frac{1}{2}}$ in \refeqn{S1S2negHalf} we let 
+the canonical correlation matrix
+\begin{equation*}
+C = S_1^{-\frac{1}{2}}S_{12}S_2^{-\frac{1}{2}},
+\end{equation*}
+as in \citet[Equation (3.13)]{Koch2013}.
+$C$ is $d_1 \times d_2$.
+Let
+\begin{equation*}
+C = P \Upsilon Q^T
+\end{equation*}
+be the singular value decomposition of $C$.
+For details on singular value decomposition see 
+\citet[Definition 1.12]{Koch2013}.
+If we let $r$ be the rank of $C$ then $P$, $\Upsilon$, 
+and $Q$ are $d_1 \times r$, $r \times r$ and 
+$d_2 \times r$ respectively.
+Let the diagonal entries of the diagonal matrix 
+$\Upsilon$ be denoted
+$\upsilon_1 \geq \upsilon_2 \geq \hdots \geq \upsilon_r$,
+and the columns of $P$ and $Q$
+$\bm{p}_1, \bm{p}_2, \hdots, \bm{p}_r$ and 
+$\bm{q}_1, \bm{q}_2, \hdots, \bm{q}_r$ respectively.
+% Then the $\bm{p}_i$ and $\bm{q}_i$ could be called left
+% and right-eigenvectors of $C$, in the sense that they 
+% satisfy
+% \begin{equation*}
+% C^T \bm{p}_i = \upsilon_i \bm{q}_i 
+% \quad \text{and} \quad
+% C   \bm{q}_i = \upsilon_i \bm{p}_i, 
+% \quad i = 1,2,\hdots,r.
+% \end{equation*}
+
+% The two matrices 
+% \begin{equation*}
+% R_1 = CC^T = P \Upsilon^2 P^T 
+% \quad \quad \text{and} \quad \quad
+% R_2 = C^TC = Q \Upsilon^2 Q^T
+% \end{equation*}
+% and their eigendecompositions (the rightmost term in 
+% equation above) are of interest.
+CCA is related to what we will call the sphered data, 
+\begin{equation}
+S_1^{-\frac{1}{2}}\mData_1
+\quad \text{and} \quad 
+S_2^{-\frac{1}{2}}\mData_2,
+\label{eqn:spheredData}
+\end{equation}
+assuming that these inverses exist, and recalling that 
+$\mData_1$ and $\mData_2$ denote the centred data.
+$\bm{p}_1$ and $\bm{q}_1$ are direction (unit) vectors 
+such that the projection of the sphered datasets 
+described in \refeqn{spheredData} into these two 
+directions respectively, i.e.
+$\bm{p}_1^T S_1^{-\frac{1}{2}}\mData_1$ and 
+$\bm{q}_1^T S_2^{-\frac{1}{2}}\mData_2$, are maximally 
+correlated to each other.
+The sphered data and the original data are related 
+through the matrices $S_1^{-\frac{1}{2}}$ and 
+$S_2^{-\frac{1}{2}}$, and these matrices can be used to 
+transform the direction vectors $\bm{p}_k$ and 
+$\bm{q}_k$ into the vectors
+\begin{equation}
+\bm{\phi}_k = S_1^{-\frac{1}{2}} \bm{p}_k
+\quad \text{ and } \quad
+\bm{\psi}_k = S_2^{-\frac{1}{2}} \bm{q}_k
+\label{eqn:phipsi}
+\end{equation}
+respectively.
+Projecting the sphered data of \refeqn{spheredData} 
+into the vectors $\bm{p}_k$ and $\bm{q}_k$ is 
+equivalent to projecting the original data $\mData_1$ 
+and $\mData_2$ into the vectors $\bm{\phi}_k$ and 
+$\bm{\psi}_k$.
+As the $\bm{\phi}_k$s and $\bm{\psi}_k$s have this 
+interpretation in terms of projecting the original 
+data, they are commonly used in \gls{cca} rather than 
+the $\bm{p}_k$s and $\bm{q}_k$s as introduced here and 
+in \citet[Chapter 3]{Koch2013}. 
+It should be noted however that the $\bm{\phi}_k$s and 
+$\bm{\psi}_k$s are not unit vectors as the $\bm{p}_k$s 
+and $\bm{q}_k$s are.
+Also, the $\bm{\phi}_k$s and $\bm{\psi}_k$s do not have 
+the interpretation as left and right eigenvectors of 
+$C$ as the $\bm{p}_k$s and $\bm{q}_k$s do.
+The absolute values of the entries of $\bm{\phi}_1$ and 
+$\bm{\psi}_1$ can give us rankings of the variables of 
+$\mData_1$ and $\mData_2$ respectively in order of 
+their contributions towards the strongest correlation 
+between the two sets of measurements or variables.
+We will use these \gls{cca}-based rankings for variable 
+ranking prior to classification.
+
+
+
+
+
+
+\subsubsection{In two-class classification}
+
+There are a number of approaches to using the concepts 
+from \gls{cca} as introduced above for variable ranking 
+in a classification context.
+For example, \citet[Section 13.3.1]{Koch2013} suggest a 
+variable ranking approach that directly applies the 
+general approach we have introduced above to a 
+regression context, while in 
+\citet[Section 13.3.3]{Koch2013} a slightly modified 
+approach is suggested for variable ranking in a 
+classification approach.
+The approach we use is essentially that of 
+\citet[Section 13.3.3]{Koch2013} but with centred class 
+labels. 
+There is some ambiguity concerning how to numerically 
+code classes --- which are categorical in nature but 
+must be represented numerically in order to be used in 
+the context of \gls{cca}.
+In the two-class case, \citet{Marron2007} uses numeric 
+labels of $-1$ and $+1$ as this is convenient for the 
+formulation of their optimisation problem discussed in 
+\refsec{DWD}.
+\citet{Koch2013} and some references therein use labels 
+of $0$ and $1$ as this can simplify the formulation of 
+methods such as \gls{lda}. 
+Which of these two options is better is not obvious. 
+One of the reasons we modify the approach suggested in 
+\citet[Section 13.3.3]{Koch2013} and use centred class 
+labels is that using centred class labels causes our 
+variable ranking method which we describe here to be 
+invariant to choice of class labels --- making this 
+ambiguity irrelevant in the two-class case.
+The deviation we make from the suggested approach of 
+\citet[Section 13.3.3]{Koch2013} is minor, and we 
+would not expect our approach to produce greatly 
+different results to that of 
+\citet[Section 13.3.3]{Koch2013}.
+% Nevertheless it would be appropriate and interesting to 
+% compare the performance of these subtly different 
+% approaches, however this unfortunately falls beyond the 
+% scope of this work.
+
+Let $\mData_1 = \mData$ be our $d \times n$ (centred) 
+data matrix, and $\mData_2 = \mathbb{Y}$ be our 
+$1 \times n$ vector of (centred) class labels. 
+The two-class case is particularly simple, as we can 
+let $\mathbb{Y}$ be a $1 \times n$ binary vector whose 
+entries are either $-\frac{2n_+}{n}$ or $\frac{2n_-}{n}$, 
+coding for the two classes (of sizes $n_-$ and $n_+$ 
+respectively).
+These values of $\mathbb{Y}$ correspond to using class
+labels of $-1$ and $+1$, and then centring.
+Following the same process as in the general case 
+above, the sample covariance matrix of 
+\begin{equation*}
+\left [ \begin{array}{c} \mData \\ \mathbb{Y} \end{array} \right ]
+\quad \quad \text{is} \quad \quad
+\frac{1}{n-1} 
+\left [ \begin{array}{cc} \mData \mData^T & \mData \mathbb{Y}^T \\ \mathbb{Y} \mData^T & \mathbb{Y} \mathbb{Y}^T  \end{array} \right ]
+= 
+\left [ \begin{array}{cc} S_X & S_{XY} \\ S_{XY}^T & S_Y \end{array} \right ].
+\end{equation*}
+Note that these terms are simplified in this context --- 
+$S_{XY}$ is a $d \times 1$ vector, and $S_Y$ is the 
+scalar $\frac{4n_-n_+}{n(n-1)}$ corresponding to the 
+variance of the entries of $\mathbb{Y}$.
+Using this notation, let
+\begin{equation*}
+S_X = \Gamma \Lambda \Gamma^T
+\end{equation*}
+be the eigendecomposition of $S_X$.
+The canonical correlation matrix is found in the same 
+way,
+\begin{equation*}
+C = S_X^{-\frac{1}{2}}S_{XY}S_Y^{-\frac{1}{2}},
+\end{equation*}
+but is now a $d \times 1$ vector, so 
+$\bm{p}_1$ is simply $C$ normalised to length 
+one and 
+$\bm{\phi}_1 = S_X^{-\frac{1}{2}} \bm{p}_1$ as in
+\refeqn{phipsi}.
+We use the absolute values of the entries of 
+$\bm{\phi}_1$ to construct a ranking of the variables 
+of $\mData$, and select the highly ranked variables to 
+make the $k$-variable selected \gls{cca} data of 
+\refdef{CCA_VR}.
+Note that 
+\begin{equation}
+\bm{\phi}_1 = S_X^{-\frac{1}{2}}\bm{p}_1 = S_X^{-\frac{1}{2}} \left ( \frac{1}{|C|}C \right ) = \frac{1}{|C|} S_X^{-\frac{1}{2}} \left ( S_X^{-\frac{1}{2}}S_{XY}S_Y^{-\frac{1}{2}} \right ) \propto S_X^{-1}S_{XY}.
+\label{eqn:simplePhi}
+\end{equation}
+Because we only use $\bm{\phi_1}$ for ranking 
+variables, the ranking is invariant to multiplying 
+$\bm{\phi_1}$ by a non-zero constant, and so we can 
+use the simplified expression in \refeqn{simplePhi}
+for our ranking.
+\begin{defn}
+  \emph{\textbf{$k$-variable selected CCA data:}}  
+	Given a $d \times n$ centred data matrix $\mData$,
+  a $1 \times n$ vector of centred class labels
+  $\mathbb{Y}$ and covariance matrices 
+  $S_X = \frac{1}{n-1} \mData \mData^T$ and 
+  $S_{XY} = \frac{1}{n-1} \mData \mathbb{Y}^T$, 
+  calculate the $d \times 1$ ranking vector 
+  $\bm{\phi} = S_X^{-1}S_{XY}$. 
+  If $S_X$ is singular, let $S_X^{-1}$ be the 
+  Moore-Penrose psuedoinverse.
+  For details on the Moore-Penrose psuedoinverse, see
+  \citet{Penrose1955,Ben-Israel2003}.
+  Let $\vRowSubset$ be a $d \times 1$ vector containing 
+  ones in positions corresponding to the $k$ elements 
+  of $\bm{\phi}$ with highest absolute values and zeros
+  elsewhere.
+  The $k$-variable selected \gls{cca} data is the 
+  submatrix $\mSubsetTransform{\vRowSubset}^T \mData$.
+\label{def:CCA_VR}	
+\end{defn}
+See \refdef{T} for details on the submatrix
+notation used in \refdef{CCA_VR}.
+In comparison to the \gls{pca} dimension reduction 
+approach of \refsec{pca}, the \gls{cca}-based variable
+selection approach of \refdef{CCA_VR} results in data
+whose variables can be directly interpreted as 
+corresponding to \gls{mz} values, rather than linear 
+combinations of \gls{mz} values.
+Also, we expect the \gls{cca}-based approach to 
+dimension reduction to produce better classification 
+results than the \gls{pca} approach of \refsec{pca}
+because \gls{cca} uses the information we have from the
+class labels. 
+The results we present in
+\refchap{classificationApplication} confirm this
+expectation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Normalisation}
+\label{sec:normalisation}
+
+
+In \refchap{dipps} we motivate the use of the binary 
+data by talking about the noise that is typically 
+inherent in non-binary measures of peak-presence.
+However, as discussed in \refsec{DApreprocessing}, 
+we will consider non-binary measures of peak-presence 
+as well as the binary data.
+As such in this section we introduce a new approach 
+that attempts to `normalise' these non-binary measures 
+of peak-presence using the internal calibrants of 
+\citet{Gustafsson2012} in an attempt to reduce
+unwanted variability.
+We will refer to intensity, but the same approach could 
+equally apply to any other measure of peak presence 
+(\gls{snr}, or integrated area for 
+example).
+
+Both peptide applications we consider, ovarian and 
+endometrial cancer, have internal calibrants added in 
+the sample preparation step.
+These internal calibrants are used to calibrate the 
+\gls{mz} measurements, as described by 
+\citet{Gustafsson2012}.
+The internal calibrants are sprayed onto the tissue 
+evenly during sample preparation and so we know that 
+there should be the same concentration of each 
+calibrant at any given location on the tissue. 
+Given the calibrant concentrations should be constant, 
+we would expect the corresponding intensities to be 
+constant. 
+We assume that the overall intensity measurements over 
+an entire spectrum are all affected to the same degree 
+by extraneous variables such as matrix crystallisation 
+and total signal suppression.
+We can use the calibrant intensities to estimate this 
+systematic effect for each spectrum and adjust for these 
+effects.
+We call this adjustment `normalisation'.
+
+
+\subsection{The Model}
+\label{sec:naiveNorm}
+
+The underlying model for our data is 
+\begin{equation}
+  x_{ij} = \mu_{ij}s_j\epsilon_{ij}
+\end{equation}
+for the observed intensity, $x_{ij}$, of variable or 
+molecular species (\gls{mz}) $i$ in spectrum $j$, where 
+$\mu_{ij}$ is an intensity representative of the true 
+concentration of the species $i$ present in spectrum 
+$j$, $s_j$ is the systematic error we would like to 
+estimate and compensate for, and $\epsilon_{ij}$ is 
+random noise, which we will assume to be log-normal, as 
+is fairly typical in such data.
+The fact that $s_j$ is independent of variable $i$ 
+reflects our assumption that all intensity measurements
+in any given intensity should be affected to the same
+degree.
+Similarly, if we let $\sRowSubset$ denote the set of 
+variables that correspond to the internal calibrants, 
+then for $i \in \sRowSubset$ we can represent our 
+assumption that calibrants are evenly distributed 
+across the tissue by omitting the spectra dependence, 
+i.e.
+$\mu_{ij} = \mu_i$.
+These two assumptions are what allow us to simplify the
+model sufficiently such that it is no longer 
+over-parametrised and can now actually be fit to data 
+in order to estimate the parameters we are interested 
+in, i.e. the $s_j$.
+
+We consider the log-model for the calibrants,
+\begin{equation}
+  \log(x_{ij}) = \log{\mu_{i}} + \log{s_j} + \log{\epsilon_{ij}} \quad \quad i \in \sRowSubset.
+\end{equation}
+% For conveniance we will write the log model as  
+% \begin{equation}
+% 	Y_{ij} = M_{i} + S_j + E_{ij}.
+% \end{equation}
+
+Let us have $n$ spectra, $d$ calibrants, and let us 
+assume each spectra contains all $d$ calibrants.
+This log-model can be written using matrices as
+\begin{equation}
+  \bm{y} = \bm{X} \bm{\beta} + \bm{\epsilon},
+  \label{eqn:NormMatFormulation}
+\end{equation}
+where the $dn \times (n + d - 1)$ design matrix 
+$\bm{X}$ is defined in \refeqn{NormMatX}, and the 
+$(n + d - 1) \times 1$ parameter vector $\bm{\beta}$, 
+and the $dn \times 1$ response vector 
+$\bm{y}$ are defined in \refeqn{NormMatYB}.
+\begin{equation}
+\bm{X} = \left [ \begin{array}{ccccccccc}
+	1 & 0 & \hdots & 0 & 0 & 0 & 0 & \hdots & 0 \\
+	0 & 1 &  & 0 & 0 & 0 & 0 & \hdots & 0 \\
+	\vdots & & \ddots & \vdots & \vdots & & & & \vdots \\
+	0 & 0 & \hdots & 1 & 0 & 0 & 0 & \hdots & 0 \\
+	1 & 0 & \hdots & 0 & 1 & 0 & 0 & \hdots & 0 \\
+	0 & 1 & & 0 & 1 & 0 & 0 & \hdots & 0 \\
+	\vdots &  & \ddots & \vdots & \vdots & & & & \vdots \\
+	0 & 0 & \hdots & 1 & 1 & 0 & 0 & \hdots & 0 \\
+	1 & 0 & \hdots & 0 & 0 & 1 & 0 & \hdots & 0 \\
+	0 & 1 &  & 0 & 0 & 1 & 0 & \hdots & 0 \\
+	\vdots & & \ddots & \vdots & \vdots & & & & \vdots \\
+	0 & 0 & \hdots & 1 & 0 & 1 & 0 & \hdots & 0 \\
+	\vdots & & & \vdots & \vdots & & \ddots & & \vdots \\
+	1 & 0 & \hdots & 0 & 0 & 0 & 0 & \hdots & 1 \\
+	0 & 1 &  & 0 & 0 & 0 & 0 & \hdots & 1 \\
+	\vdots & & \ddots & \vdots & \vdots & & & & \vdots \\
+	0 & 0 & \hdots & 1 & 0 & 0 & 0 & \hdots & 1 \\
+	\end{array}
+	\right ],
+\label{eqn:NormMatX}
+\end{equation}
+\begin{equation}
+\bm{\beta}= 
+\left [ 
+\begin{array}{c}
+\log(\mu_1) + \log(s_1) \\
+\log(\mu_2) + \log(s_1) \\
+\vdots \\
+\log(\mu_d) + \log(s_1) \\
+\log(s_2) - \log(s_1) \\
+\log(s_3) - \log(s_1) \\
+\vdots \\
+\log(s_n) - \log(s_1) \\
+\end{array}
+\right ],\,
+  \bm{y} = 
+  \left [ 
+\begin{array}{c}
+\log(x_{11}) \\
+\log(x_{21}) \\
+\vdots \\
+\log(x_{d1}) \\
+\log(x_{12}) \\
+\log(x_{22}) \\
+\vdots \\
+\log(x_{d2}) \\
+% \log(x_{13}) \\
+% \log(x_{23}) \\
+% \vdots \\
+% \log(x_{d3}) \\
+\vdots \\
+\vdots \\
+\log(x_{1n}) \\
+\log(x_{2n}) \\
+\vdots \\
+\log(x_{dn}) \\
+\end{array}
+\right ].
+\label{eqn:NormMatYB}
+\end{equation}
+$\bm{\epsilon}$ of \refeqn{NormMatFormulation} is 
+assumed to be a vector of independent identically 
+distributed normal variables (white noise).
+The formulation of \refeqn{NormMatFormulation} is the 
+standard form for a linear regression model with two 
+categorical independent variables --- in this case, the 
+two categorical variables essentially correspond to 
+spectrum and calibrant.
+The parametrisation defined by our choice of 
+$\bm{\beta}$ in \refeqn{NormMatYB} is not unique,
+but the estimation it yields for the $s_j$ is unique.
+The rows of $\bm{X}$ and $y$ as in 
+Equations~\ref{eqn:NormMatX} and \ref{eqn:NormMatYB} 
+correspond to the individual intensity measurements and 
+are split into $n$ blocks of $d$, each block 
+corresponding to a spectrum, and within each block each 
+row corresponding to a calibrant. 
+The precise form of $\bm{X}$ is determined by the 
+parametrisation chosen for $\bm{\beta}$ and the model 
+assumptions discussed above.
+For more details on regression see \citet{Casella2002}.
+In this context, it is sufficient to understand that 
+this formulation allows for the parameters of interest 
+to be estimated within a well established statistical 
+paradigm.
+Specifically, from linear regression we know that the
+least squares estimate for the parameter vector 
+$\bm{\beta}$ is
+\begin{equation}
+	\hat{\bm{\beta}} = (\bm{X}^T\bm{X})^{-1}\bm{X}^T\bm{y}.
+  \label{eqn:NormBetaHat}
+\end{equation}
+Most linear regression implementations involve
+numeric computation of the matrix inverse 
+$(\bm{X}^T\bm{X})^{-1}$, which here is a 
+$(n+d-1)\times(n+d-1)$ matrix. 
+In our case $n > 10,000$, which leads to very slow 
+computation. 
+This matrix is of a very particular block-matrix form, for 
+which we have derived an analytic form for its inverse 
+--- see \refapp{normalisation} for the derivation.
+Having an analytic form for this inverse allows for 
+much faster computation, as numeric estimation is not 
+necessary, and this speeds up computations by several 
+orders of magnitude.
+Note that for this design matrix $\bm{X}$, 
+\begin{equation*}
+	\bm{X}^T\bm{X} = \left [ \begin{array}{cccccccc}
+	n & 0 & \hdots & 0 & 1 & 1 & \hdots & 1 \\
+	0 & n &  & 0 & 1 & 1 & \hdots & 1 \\
+	\vdots & & \ddots & \vdots & \vdots & & \ddots & \vdots \\
+	0 & 0 & \hdots & n & 1 & 1 & \hdots & 1 \\
+	1 & 1 & \hdots & 1 & d & 0 & \hdots & 0 \\
+	1 & 1 &  & 1 & 0 & d & \hdots & 0 \\
+	\vdots & & \ddots & \vdots & \vdots & & \ddots & \vdots \\
+	1 & 1 & \hdots & 1 & 0 & 0 & \hdots & d \\
+	\end{array}
+	\right ],
+\end{equation*}
+is of the form described in 
+\refeqn{A} --- specifically 
+$\bm{X}^T\bm{X} = A(n,d,d,n-1)$.
+The general result from \refapp{normalisation} gives us 
+the relatively simple form
+% {\Large
+% \begin{equation*}
+% 	\left [(\bm{X}^T\bm{X})^{-1} \right ]_{ij} = \left \{ \begin{array}{cll}
+% 	
+% 						\frac{nd - d(n-1) + (n-1)}{n(nd-d(n-1))} 	& i,j \in [1,d] & i = j \\ \\
+% 						\frac{nd - d(n-1) + d}{d(nd-d(n-1))} 	& i,j \in [d+1,d+n] & i = j  \\ \\
+% 						\frac{n-1}{n(nd-d(n-1))}						& i,j \in [1,d] & i \neq j \\ \\
+% 						\frac{d}{d(nd-d(n-1))}				& i,j \in [d+1,d+n] & i \neq j \\ \\
+% 						\frac{-1}{nd-d(n-1)}			& \begin{array}{l}
+% 																						i \in [1,d], \, j \in [d+1,d+n] \\
+% 																						j \in [1,d], \, i \in [d+1,d+n]
+% 																				\end{array}  & \text{or}
+% 	\end{array} \right .
+% \end{equation*}
+% }
+% 
+% and simplifying gives us:
+% 
+{\large
+\begin{equation*}
+	\left [(\bm{X}^T\bm{X})^{-1} \right ]_{ij} = \left \{ \begin{array}{cll}
+	
+						\frac{d+n-1}{dn} 	& i,j \in [1,d] & i = j \\ \\
+						\frac{2}{d} 	& i,j \in [d+1,d+n] & i = j  \\ \\
+						\frac{n-1}{dn}						& i,j \in [1,d] & i \neq j \\ \\
+						\frac{1}{d}				& i,j \in [d+1,d+n] & i \neq j \\ \\
+						\frac{-1}{d}			& \begin{array}{l}
+																						i \in [1,d], \, j \in [d+1,d+n] \\
+																						j \in [1,d], \, i \in [d+1,d+n]
+																				\end{array}  & \text{or}
+	\end{array} \right .
+\end{equation*}
+}
+This relatively simple form for $(\bm{X}^T\bm{X})^{-1}$ 
+allows us to derive %that
+% \begin{equation*}
+% 	(\bm{X}^T\bm{X})^{-1}\bm{X}^T = \left [ \begin{array}{cccccccccccc}
+% 	
+% 	\frac{d+n-1}{dn} 	& \frac{n-1}{dn} 		& \hdots & \frac{n-1}{dn} 	
+% 					& \frac{d-1}{dn} 	& \frac{-1}{dn}		& \hdots & \frac{-1}{dn} 
+% 					& \frac{d-1}{dn} 	& \frac{-1}{dn}		& \hdots & \frac{-1}{dn} \\
+% 	\frac{n-1}{dn} 		& \frac{d+n-1}{dn} 	&  			 & \frac{n-1}{dn} 	
+% 					& \frac{-1}{dn)} & \frac{d-1}{dn} &  & \frac{-1}{dn} 
+% 					& \frac{-1}{dn} & \frac{d-1}{dn} &  & \frac{-1}{dn} \\
+% 	\vdots 							& 										& \ddots & \vdots 						
+% 					& \vdots & & \ddots & \vdots 
+% 					& \vdots & & \ddots & \vdots \\
+% 	\frac{n-1}{dn} 		& \frac{n-1}{dn} 		& \hdots & \frac{d+n-1}{dn)} 
+% 					& \frac{-1}{dn} & \frac{-1}{dn} & \hdots & \frac{d-1}{dn} 
+% 					& \frac{-1}{dn} & \frac{-1}{dn} & \hdots & \frac{d-1}{dn} \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				& \hdots & \frac{-1}{d} 			
+% 					& \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d} 
+% 					& 0 & 0 & & 0 \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				&  			 & \frac{-1}{d} 			
+% 					& 0 & 0 & & 0 
+% 					& \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d} \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				&  			 & \frac{-1}{d} 			
+% 					& 0 & 0 & & 0 
+% 					& 0 & 0 & & 0 \\
+% 	\vdots 							& 										& \ddots & \vdots 						
+% 					& \vdots 		& & \ddots & \vdots 
+% 					& \vdots 		& & \ddots & \vdots \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				& \hdots & \frac{-1}{d} 			
+% 					& 0 & 0 & \hdots & 0
+% 					& 0 & 0 & \hdots & 0 \\
+% 	
+% 	\end{array}
+% 	\right .
+% \end{equation*}
+% 
+% 
+% \begin{equation*}
+% 	\left . \begin{array}{cccccccccc}
+% 	
+% 					\hdots & \frac{d-1}{dn} 	& \frac{-1}{dn}		& \hdots & \frac{-1}{dn} 
+% 					& \hdots & \frac{d-1}{dn} 	& \frac{-1}{dn}		& \hdots & \frac{-1}{dn} \\
+% 
+% 					& \frac{-1}{dn} & \frac{d-1}{dn} &  & \frac{-1}{dn} 
+% 					& & \frac{-1}{dn} & \frac{d-1}{dn} &  & \frac{-1}{dn} \\
+% 
+% 					& \vdots & & \ddots & \vdots 
+% 					&  &\vdots & & \ddots & \vdots \\
+% 
+% 					\hdots & \frac{-1}{dn} & \frac{-1}{dn} & \hdots & \frac{d-1}{dn} 
+% 					& \hdots & \frac{-1}{dn} & \frac{-1}{dn} & \hdots & \frac{d-1}{dn} \\
+% 
+% 					\hdots & 0 & 0 & & 0 
+% 					& \hdots & 0 & 0 & & 0 \\
+% 
+% 					& 0 & 0 & & 0 
+% 					& & 0 & 0 & & 0 \\
+% 
+% 					& \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d}
+% 					& & 0 & 0 & & 0 \\
+% 
+% 					& \vdots 		& & \ddots & \vdots 
+% 					& & \vdots 		& & \ddots & \vdots \\
+% 
+% 					\hdots & 0 & 0 & \hdots & 0
+% 					& \hdots & \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d} \\
+% 	
+% 	\end{array}
+% 	\right ]
+% \end{equation*}
+$(\bm{X}^T\bm{X})^{-1}\bm{X}^T$ by matrix
+multiplication and from this we can use 
+\refeqn{NormBetaHat} to find analytic solutions to the 
+least squares estimates of the parameters:
+% \begin{align*}
+% 	\widehat{M}_i + \widehat{S}_1 &= \frac{d + n - 1}{dn}x_{i1} 
+% 											+ \frac{n-1}{dn}\sum_{k \neq i}{x_{k1}} 
+% 											+ \frac{d-1}{dn}\sum_{j = 2}^{n}{x_{ij}} 
+% 											- \frac{1}{dn}\sum_{k \neq i}{\sum_{j = 2}^{n}{x_{kj}}} \\
+% 						&=        \frac{1}{n}x_{i1} 
+% 											+ \frac{n-1}{dn}\sum_{k = 1}^{d}{x_{k1}} 
+% 											+ \frac{1}{n}\sum_{j = 2}^{n}{x_{ij}} 
+% 											- \frac{1}{dn}\sum_{j = 2}^{n}{x_{ij}} 
+% 											- \frac{1}{dn}\sum_{k \neq i}{\sum_{j = 2}^{n}{x_{kj}}} \\
+% 						&=        \frac{1}{d}\sum_{k = 1}^{d}{x_{k1}}
+% 											- \frac{1}{dn}\sum_{k = 1}^{d}{x_{k1}}
+% 											+ \frac{1}{n}\sum_{j = 1}^{n}{x_{ij}} 
+% 											- \frac{1}{dn}\sum_{k = 1}^{d}{\sum_{j = 2}^{n}{x_{kj}}} \\
+% 						&=        \frac{1}{d}\sum_{k = 1}^{d}{x_{k1}}
+% 											+ \bar{x}_i 
+% 											- \frac{1}{dn}\sum_{k = 1}^{d}{\sum_{j = 1}^{n}{x_{kj}}} \\
+% 						&=        \bar{x}_i
+% 											+ \frac{1}{d}\sum_{k = 1}^{d}{x_{k1}}
+% 											- \frac{1}{d}\sum_{k = 1}^{d}{\bar{x}_k} \\
+% 						&=        \bar{x}_i
+% 											+ \frac{1}{d}\sum_{k = 1}^{d}{(x_{k1} - \bar{x}_k)} \\
+% \end{align*}
+% 
+% 
+% \begin{align*}
+% 	\widehat{S}_j - \widehat{S}_1 &= \frac{1}{d}\sum_{i = 1}^{d}{x_{ij}} - \frac{1}{d}\sum_{i = 1}^{d}{x_{i1}} \\
+% 	          &= \frac{1}{d}\sum_{i = 1}^{d}{(x_{ij} - \bar{x}_i)} - \frac{1}{d}\sum_{i = 1}^{d}{(x_{i1} - \bar{x}_i)} \\
+% \end{align*}
+\begin{equation*}
+  \widehat{\log(\mu_1) + \log(s_1)}  = 
+  \bar{x}_i + \frac{1}{d}\sum_{k = 1}^{d}{(\log(x_{k1}) - \bar{x}_k)}
+\end{equation*}
+and
+\begin{equation*}
+	\widehat{\log(s_j) + \log(s_1)} = 
+  \frac{1}{d}\sum_{i = 1}^{d}{(\log(x_{ij}) - \bar{x}_i)} - \frac{1}{d}\sum_{i = 1}^{d}{(\log(x_{i1}) - \bar{x}_i)},
+\end{equation*}
+where
+\begin{equation*}
+\bar{x}_i = \sum_{j = 1}^{n}{\log(x_{ij})}
+\end{equation*}
+These analytic solutions to the least squares estimates
+agree with the intuitive estimates
+\begin{equation}
+	\widehat{\log(\mu_i)} = \bar{x}_i
+  \quad \text{ and } \quad
+  \widehat{\log(s_j)} = \frac{1}{d}\sum_{i = 1}^{d}{(\log(x_{ij}) - \bar{x}_i)}.
+  \label{eqn:NormParamEstimates}
+\end{equation}
+
+Ultimately all we are interested in is estimating the 
+$s_j$, which represent the unwanted variability in our
+data we wish to adjust for. 
+The expression for $\widehat{\log(s_j)}$ as in 
+\refeqn{NormParamEstimates} provides us with a way to 
+estimate these $s_j$ as 
+$\hat{s_j} = e^{\widehat{\log(s_j)}}$, and all the 
+preceding work in this section was simply about 
+justifying the choice to estimate the $s_j$ in this 
+way.
+From here onwards, all that we are interested in is the 
+fact that we can estimate $s_j$ using the intensity 
+measurements of the calibrants $\sRowSubset$, and we 
+can adjust for unwanted variability in the data by 
+replacing the intensity measurements in our data with 
+the normalised intensities 
+\begin{equation}
+x^*_{ij} = \frac{x_{ij}}{\hat{s_j}}.
+\label{eqn:NormIntensities}
+\end{equation}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{Known Ratio Model}
+% 
+% The naive model is general in that it does not assume 
+% any knowledge about the relative concentrations of the 
+% calibrants, only that each calibrant is present in an 
+% equal concentration in each spectrum. 
+% Estimating the appropriate intensity for each calibrant 
+% (the $\mu_i$ terms) is part of the regression.
+% However in reality, we do have information about the 
+% relative concentrations the calibrants should be 
+% present in. 
+% Specifically, of the four calibrants discussed by 
+% \citet{Gustafsson2012}, two are sprayed at a 
+% concentration of $0.4$pmol/$\mu{}$L, and the other two 
+% are at a concentration of $2$pmol/$\mu{}$L. 
+% We can incorporate this information into the model if 
+% we consider the underlying model to be of the form:
+% 
+% \begin{equation}
+% 	y_{ij} = r_i\mu{}s_j\epsilon_{ij}
+% \end{equation}
+% 
+% Where the relative quantites $r_i$ are known (in this case $0.4$ and $2$ for the respective calibrants). The corresponding log model then naturally becomes
+% 
+% \begin{equation}
+% 	\log{y_{ij}} = \log{r_i} + \log{\mu} + \log{s_j} + \log{\epsilon_{ij}}
+% \end{equation}
+% 
+% Or otherwise
+% 
+% \begin{equation}
+% 	\log{y_{ij}} - \log{r_i} =  \log{\mu} + \log{s_j} + \log{\epsilon_{ij}}
+% \end{equation}
+% 
+% as the $r_i$'s are known. Again this fits into the same 
+% category of model (linear for categorical independent 
+% variables) as the naive model and works out 
+% analogously, again we are fitting the model
+% 
+% \begin{equation}
+% 	\bm{y} = \bm{X} \bm{\beta} + \bm{\epsilon}
+% \end{equation}
+% 
+% but this time $\bm{\beta}$ is of the form:
+% \begin{equation}
+% \left [ 
+% \begin{array}{c}
+% M + S_1\\
+% S_2 - S_1 \\
+% S_3 - S_1 \\
+% \vdots \\
+% S_n - S_1 \\
+% \end{array}
+% \right ],
+% \end{equation}
+% 
+% Notice that this is very similar to the previous regression (where the relative concentrations where not known). The the $dn \times n$ design matrix is of the form:
+% 
+% \begin{equation}
+% 	\bm{X} = \left [ \begin{array}{cccccc}
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& \ddots 	& 				& \vdots \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% 	\end{array}
+% 	\right ]
+% \end{equation}
+% 
+% We want 
+% 
+% \begin{equation}
+% 	\hat{\bm{\beta}} = (\bm{X}^T\bm{X})^{-1}\bm{X}^T\bm{y}
+% \end{equation}
+% 
+% So we begin by observing that
+% 
+% \begin{equation}
+% 	\bm{X}^T\bm{X} 
+% 	= \left [ \begin{array}{ccccc}
+% 	dn 	& d 			& d & \hdots & d \\
+% 	d 			& d 			& 0 & \hdots & 0 \\
+% 	d 			& 0 			& d & \hdots & 0 \\
+% 	\vdots 	& \vdots 	& 	& \ddots & \vdots \\
+% 	d 			& 0 			& 0 & \hdots & d \\
+% 	\end{array}
+% 	\right ]
+% 	= d \left [ \begin{array}{ccccc}
+% 	n 			& 1 			& 1 & \hdots & 1 \\
+% 	1 			& 1 			& 0 & \hdots & 0 \\
+% 	1 			& 0 			& 1 & \hdots & 0 \\
+% 	\vdots 	& \vdots 	& 	& \ddots & \vdots \\
+% 	1 			& 0 			& 0 & \hdots & 1 \\
+% 	\end{array}
+% 	\right ]
+% \end{equation}
+% 
+% Note that $\bm{X}^T\bm{X} = dA(n,1,1,(n-1))$, and so substituting into the analytic form for the inverse of $A(a,b,c,d)$ gives us: 
+% {\Large
+% \begin{equation*}
+% 	\left [(\bm{X}^T\bm{X})^{-1} \right ]_{ij} = \left \{ \begin{array}{cll}
+% 	
+% 						\frac{1}{d} 			& i = j = 1 & \\ \\
+% 						\frac{2}{d} 			& i,j \in [2,n+1] & i = j  \\ \\
+% 						\frac{1}{d}				& i,j \in [2,n+1] & i \neq j \\ \\
+% 						\frac{-1}{d}			& \begin{array}{l}
+% 																						i = 1, \, j \in [2,n+1] \\
+% 																						j = 1, \, i \in [2,n+1]
+% 																				\end{array}  & \text{or}
+% 	\end{array} \right .
+% \end{equation*}
+% }
+% 
+% so 
+% 
+% \begin{equation*}
+% 	(\bm{X}^T\bm{X})^{-1}\bm{X}^T = \left [ \begin{array}{ccccccccccccccccc}
+% 	
+% 	\frac{1}{d} 	& \frac{1}{d} 		& \hdots & \frac{1}{d} 	
+% 					& 0 	& 0		& \hdots & 0 
+% 					& 0	  & 0		& \hdots & 0 
+% 					& \hdots 
+% 					& 0 & 0 & \hdots & 0 \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				& \hdots & \frac{-1}{d} 			
+% 					& \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d} 
+% 					& 0 & 0 & & 0  
+% 					& \hdots 
+% 					& 0 & 0 & \hdots & 0 \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				&  			 & \frac{-1}{d} 			
+% 					& 0 & 0 & & 0 
+% 					& \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d}  
+% 					& \hdots 
+% 					& 0 & 0 & \hdots & 0 \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				&  			 & \frac{-1}{d} 			
+% 					& 0 & 0 & & 0 
+% 					& 0 & 0 & & 0  
+% 					& \hdots 
+% 					& 0 & 0 & \hdots & 0 \\
+% 	\vdots 							& 										& \ddots & \vdots 						
+% 					& \vdots 		& & \ddots & \vdots 
+% 					& \vdots 		& & \ddots & \vdots  
+% 					& \hdots 
+% 					& 0 & 0 & \hdots & 0 \\
+% 	\frac{-1}{d} 				& \frac{-1}{d} 				& \hdots & \frac{-1}{d} 			
+% 					& 0 & 0 & \hdots & 0
+% 					& 0 & 0 & \hdots & 0  
+% 					& \hdots 
+% 					& \frac{1}{d} & \frac{1}{d} & \hdots & \frac{1}{d} \\
+% 	
+% 	\end{array}
+% 	\right ]
+% \end{equation*}
+% 
+% 
+% 
+% and from this, if we let $x_{ij}$ denote the log-intensity observation of the $i$th calibrant in the $j$th spectrum, let $\bar{x}_i$ denote the mean log-intensity of the $i$th calibrant, and let $R_i$ denote the (known) relative log-concentration of calibrant $i$. Then we have acquired analytic solutions to the least squares estimates of the coefficients for the model:
+% 
+% \begin{align*}
+% 	\widehat{M} + \widehat{S}_1 &= \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{i1} - R_i \right )} \\
+% 															&= \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{i1} - \bar{x}_i + \bar{x}_i - R_i \right )} \\
+% 															&= \frac{1}{d}\sum_{i = 1}^{d}{\left (\bar{x}_i - R_i \right )} + \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{i1} - \bar{x}_i \right )} \\
+% \end{align*}
+% 
+% 
+% \begin{align*}
+% 	\hat{S}_j - \hat{S}_1 &= \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{ij} - R_i \right )} - \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{i1} - R_i \right )} \\
+% 											  &= \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{ij} - R_i -  x_{i1} + R_i\right )} \\
+% 												&= \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{ij} - \bar{x}_i + \bar{x}_i -  x_{i1} + \right )} \\
+% 												&= \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{ij} - \bar{x}_i \right )} - \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{i1} - \bar{x}_i \right )} \\	  
+% \end{align*}
+% 
+% This justifies the natural estimation of the parameters as 
+% \begin{equation}
+% 	\widehat{M} = \frac{1}{d}\sum_{i = 1}^{d}{\left (\bar{x}_i - R_i \right )}
+% \end{equation}
+% and
+% \begin{equation}
+% 	\hat{S}_j = \frac{1}{d}\sum_{i = 1}^{d}{\left ( x_{ij} - \bar{x}_i \right )}
+% \end{equation}
+% 
+% 
+% 
+% \pagebreak 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% \section{Full Model}
+% 
+% Another way to think about this would be to consider
+% the full model, including non-calibrant species.
+% Our underlying model is still essentially
+% \begin{equation}
+% 	y_{ij} = \mu_{ij}s_j\epsilon_{ij},
+% \end{equation}
+% however this time we will not limit attention to only 
+% calibrants.
+% As it stands however, this model is horribly 
+% overparameterised -- with $n(d+1)$ parameters for $nd$ 
+% observations.
+% This is where the negative contols (or calibrants) come 
+% in. Let us say that species $i = 1,2,...,c$ denote the 
+% calibrants without loss of generality.
+% Then let
+% \begin{equation}
+% 	\mu_{ij} = r_i\mu  \quad \quad \text{ for } i \in [1,c], \, j \in [1,n]
+% \end{equation}
+% This removes $nc - 1$ parameters from our model (as I am assuming $r_i$ are known, although this could also be fit with $r_i$ unknown), 
+% leaving us with $n(d+1) - nc + 1$ or $nd + n(1-c) + 1$ parameters -- in other words, if 
+% $c > 1$ we no longer have an overparameterised model, and we can actually fit it for the predicted values.
+% 
+% 
+% The log-model looks like
+% \begin{equation}
+% 	\log{y_{ij}} = \log{\mu_{ij}} + \log{s_j} + \log{\epsilon_{ij}}
+% \end{equation}
+% This is of the familiar form of a linear regression for categorical independent variables ($i$ and $j$):
+% \begin{equation}
+% 	Y_{ij} = M_{ij} + S_j + E_{ij}
+% \end{equation}
+% which allows the easy estimation of the parameters via standard linear regression theory.
+% 
+% So, to be explicit we we are fitting the model
+% 
+% \begin{equation}
+% 	\bm{y} = \bm{X} \bm{\beta} + \bm{\epsilon}
+% \end{equation}
+% 
+% where $\bm{\beta}$ is of the form:
+% \begin{equation}
+% \left [ 
+% \begin{array}{c}
+% M + S_1\\
+% S_2 - S_1 \\
+% S_3 - S_1 \\
+% \vdots \\
+% S_n - S_1 \\
+% M_{(c+1)1} - M \\
+% M_{(c+2)1} - M \\
+% \vdots \\
+% M_{d1} - M \\
+% M_{(c+1)2} - M \\
+% M_{(c+2)2} - M \\
+% \vdots \\
+% M_{d2} - M \\
+% \vdots \\
+% M_{(c+1)n} - M \\
+% M_{(c+2)n} - M \\
+% \vdots \\
+% M_{dn} - M \\
+% \end{array}
+% \right ],
+% \end{equation}
+% 
+% Notice that this is very similar to the previous regression (where the relative concentrations where not known). 
+% The $dn \times (d-c+1)n$ design matrix is of the form
+% \begin{equation}
+% 	\bm{X} = \left [ \begin{array}{cc}
+% 	B_c & \bm{0} \\
+% 	B_{(d-c)} & \bm{I}
+% 	\end{array}
+% 	\right ]
+% \end{equation}.
+% 
+% We want 
+% 
+% \begin{equation}
+% 	\hat{\bm{\beta}} = (\bm{X}^T\bm{X})^{-1}\bm{X}^T\bm{y}
+% \end{equation}
+% 
+% So we begin by observing that
+% 
+% \begin{align*}
+% 	\bm{X}^T\bm{X} 
+% 	&= 
+% 	\left [ \begin{array}{ccccc}
+% 	B_c^T & B_{(d-c)}^T \\
+% 	\bm{0} & \bm{I}
+% 	\end{array}
+% 	\right ]
+% 	\left [ \begin{array}{cc}
+% 	B_c & \bm{0} \\
+% 	B_{(d-c)} & \bm{I}
+% 	\end{array}
+% 	\right ] \\
+% 	&=
+% 	\left [ \begin{array}{ccccc}
+% 	B_c^TB_c + B_{(d-c)}^TB_{(d-c)} & B_{(d-c)}^T \\
+% 	B_{(d-c)} & \bm{I}
+% 	\end{array}
+% 	\right ] \\
+% 	&=
+% 	\left [ \begin{array}{ccccc}
+% 	dA(n,1,1,n-1) & B_{(d-c)}^T \\
+% 	B_{(d-c)} & \bm{I}
+% 	\end{array}
+% 	\right ] \\
+% 	&=
+% 	C(n,d,c)
+% \end{align*}
+% 
+% So we have $\left [ X^TX \right ]^{-1}$. 
+% 
+% {\highlightTextAs{incomplete}
+% This derivation is as yet incomplete in 
+% \refapp{normalisation}.
+% }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Proof of Principle on the motivating dataset A3}
+
+In \refsec{naiveNorm} we established a model that we 
+can use to adjust for unwanted variability by using the 
+intensity measurements of our calibrants $\sRowSubset$
+to obtain the normalised intensities 
+(\refeqn{NormIntensities}). 
+Now we are interested in applying this to a motivating 
+dataset to validate that the method actually reduced 
+the unwanted variability.
+
+A natural way to test the performance of this 
+normalisation would be to look at a \gls{mz} corresponding
+to a peptide that is uniformly distributed across the 
+tissue before and after normalisation and (hope to) 
+observe a reduction in the variability or spread of the
+intensity values observed for that \gls{mz} value.
+However, the only peptides expected to be uniformly 
+distributed across the tissue are the internal 
+calibrants.
+As the internal calibrants are used to estimate the 
+parameters in the normalisation model, looking at the
+internal calibrants before/ after normalisation would 
+give an optimistic measure of the effectiveness of the 
+normalisation. 
+We use an approach similar to that of \gls{loo} 
+\gls{cv} as described in \refsec{CV} where for each of 
+the four calibrants we fit the normalisation model 
+using the other three and normalise the intensities of 
+the calibrant we left out of the model-fit step.
+We can then consider the intensities of the internal 
+calibrants before and after normalisation and thereby 
+estimate the effectiveness of the normalisation.
+This estimation should infact be conservative, as in 
+each case the model-fit is done on the basis of three
+calibrants.
+When the normalisation is done for the whole data, the 
+model-fit step will be performed using all four 
+calibrants, which should give better estimates than 
+using only three.
+\reffig{normalisation_plot} demonstrates the expected 
+trend in these results --- normalisation causing a 
+reduction in the variability and range of intensity 
+values for each calibrant. 
+Although encouraging, the reduction in variability 
+shown in \reffig{normalisation_plot} is small relative 
+to the total variability.
+We show the effect the normalisation has on 
+classification results in \refsec{varyingParams}.
+Normalisation improves classification results in some 
+cases, but in other cases it worsens results.
+Overall, there does not seem to be a consistent trend 
+showing that normalisation has an effect on 
+classification results, although it is possible that
+our sample-size is simply too small to detect such a 
+trend.
+
+
+<<normalisation_A3_read>>=
+dataset_name = 'A3'
+norm_df <- read.csv(paste('./matlab/output/',dataset_name,'_normalisation.csv',sep=""))
+names(norm_df)[1:3] = c('Acquisition', 'nCal', 'S')
+names(norm_df)[4:17] = paste('Scv',substring(names(norm_df)[4:17],2),sep="")
+
+peaklist_all <- load_peaklist(dataset_name)
+mzL = c(1296.685, 
+        1570.677, 
+        2147.199, 
+        2932.588,
+        1628.8015,
+        2854.3884
+)
+nameL = c('Angiotensin I',
+          '[Glu]-Fibrinopeptide B',
+          'Dynorphin A',
+          'ACTH fragment (1-24)',
+          'Heterogeneous nuclear ribonucleoprotein A1',
+          'Keratin 18'
+)
+shortNameL = c('AngI',
+               'GluF',
+               'DynA',
+               'ACTH',
+               'ROA1',
+               'K1C18'
+               )
+ratioCal = c(0.4, 0.4, 2, 2)
+
+for (i in 1:length(mzL)){
+  mz = mzL[i]
+  if (i < 5){
+    peaklist_tmp = subset_of_peaklist(peaklist_all,
+                                      mz,
+                                      10,
+                                      TRUE)
+  } else {
+    peaklist_tmp = subset_of_peaklist(peaklist_all,
+                                      mz,
+                                      20,
+                                      TRUE)    
+  }
+  if (length(unique(peaklist_tmp$Acquisition))!=nrow(peaklist_tmp)){
+    peaklist_tmp = ddply(peaklist_tmp,
+                         "Acquisition",
+                         summarise,
+                         intensity = mean(intensity)
+    )
+  }
+  norm_df = merge(norm_df,peaklist_tmp[,c("Acquisition","intensity")],all=TRUE)
+  names(norm_df)[names(norm_df) == "intensity"] = shortNameL[i]
+  
+}
+@
+
+
+
+
+<<normalisation_plot, warning=FALSE, fig.cap="Boxplots of log-intensity on the $y$-axis is plotted for the four calibrants before and after normalisation. The $x$-axis separates between the calibrants, alternating between before-normalisation and after-normalisation results. For each calibrant, the normalisation model is fit using the other three calibrants, so as to avoid over-fitting effects. Spectra are restricted to only those including peaks for all $4$ calibrants.", out.width=".7\\linewidth", fig.align='center',dependson="normalisation_A3_read">>=
+norm_df$AngI_norm = norm_df$AngI/exp(norm_df$Scv234)
+norm_df$GluF_norm = norm_df$GluF/exp(norm_df$Scv134)
+norm_df$DynA_norm = norm_df$DynA/exp(norm_df$Scv124)
+norm_df$ACTH_norm = norm_df$ACTH/exp(norm_df$Scv123)
+# norm_df$ROA1_norm = norm_df$ROA1/exp(norm_df$S)
+# norm_df$K1C18_norm = norm_df$K1C18/exp(norm_df$S)
+norm.m = melt(subset(norm_df,nCal == 4)[,c("Acquisition",shortNameL[1:4],paste(shortNameL[1:4],"norm",sep="_"))],
+              id.vars = "Acquisition",
+              variable.name="Species",
+              value.name="intensity")
+norm.m$Species = levels(norm.m$Species)[as.numeric(norm.m$Species)]
+norm.m$Species = factor(norm.m$Species)
+p = ggplot(data=norm.m,aes(x=Species,y=log(intensity+1)))
+p = p + geom_boxplot()
+p = p + xlab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+print(p)
+@
+
+\section{Summary}
+\label{sec:DAmethodsSummary}
+
+In this chapter we introduced and discussed a number of 
+different points relating to the classification of 
+\gls{maldi}-\gls{ims} data.
+In \refchap{classificationApplication} we will apply 
+these ideas to the \gls{tma} data of 
+\refsec{endometrialDatasets}, evaluating and comparing 
+many different classification schemes, but first here 
+we will summarise the points covered in this chapter as 
+they relate to the results in 
+\refchap{classificationApplication}.
+In \refsec{DAmethods} we introduced \gls{cv} and three 
+classification methods: \gls{lda}, \gls{nb} and 
+\gls{dwd}. 
+We will exclusively use \gls{loo} \gls{cv} for 
+evaluating the performance of the various 
+classification schemes we consider, and in each case we 
+will compare the performance of the three 
+classification methods introduced.
+
+In \refsec{DApreprocessing} we introduced our approach 
+to preprocessing \gls{maldi}-\gls{ims} data prior to 
+classification, which involves two main discussion 
+points: discretisation for constructing variables, and 
+averaging of observations.
+We will use binning to discretise the \gls{mz} domain 
+and construct variables, and we will replicate each 
+classification three times, each differing only by a 
+shift in bin locations.
+In each case we ultimately use the classification rule 
+resulting from taking the majority result of the 
+three parallel shifted-bin classifications.
+When averaging spectra, we include zeroes for absent 
+peaks.
+As mentioned in \refsec{DApreprocessing}, there are a 
+number of data types that could be used, and we will
+compare results using five different data types, binary
+and four different non-binary data types (intensity, 
+area, \gls{snr}, and log-intensity).
+Furthermore, for the non-binary data types we will also 
+consider an alternative averaging scheme in which 
+absent peaks are omitted rather than included as 
+zeros, and compare results between these averaging 
+schemes.
+
+In \refsec{normalisation} we introduced an approach to 
+normalisation that could reduce unwanted variability in 
+the non-binary data types, and in 
+\refchap{classificationApplication} we will consider 
+results with and without such normalisation.
+For the binary data type, we will also consider the 
+spatial smoothing introduced earlier in 
+\refsec{spatialSmooth}, to similar effect.
+
+Finally, and perhaps most crucially, 
+\gls{maldi}-\gls{ims} data are high-dimensional, and 
+this poses a challenge for classification.
+In \refsec{VR} we introduced two approaches to 
+dimension reduction: a \gls{pca} based projection 
+approach, and a \gls{cca}-based variable ranking 
+approach.
+We will explore the results of applying these 
+approaches in \refchap{classificationApplication}.
+So, in summary, in \refchap{classificationApplication} 
+we will consider each combination of the following 
+options: 
+\begin{itemize}
+  \item \textbf{Dimension reduction approach} (\gls{pca}, 
+  \gls{cca}, or no dimension reduction) as introduced 
+  in \refsec{VR},
+  
+  \item \textbf{Classification method} (\gls{nb}, 
+  \gls{lda}, or \gls{dwd}),  
+  \emph{note: \gls{lda} cannot be used if no dimension 
+  reduction is performed, as discussed in 
+  \refsec{DAmethods}}.
+
+  \item \textbf{Spectra included in patient-averages} 
+  (all, or only annotated tumour spectra) as discussed
+  in \refsec{DApreprocessingObs},
+  
+  \item \textbf{Data type} (area, binary, intensity, 
+  log-intensity, or \gls{snr}),
+  \begin{itemize}
+  
+    \item When non-binary data types are used,
+    \begin{itemize}
+      \item \textbf{Normalisation} (with, or without) 
+      as described in \refsec{normalisation}, and
+      
+      \item \textbf{Treatment of absent peaks when averaging}
+      (include as zeros, or ignore) as discussed in 
+      \refsec{DApreprocessingObs}, 
+    \end{itemize}
+
+    \item When binary data is used, 
+    \textbf{Spatial smoothing} ($\tau = 0$, $\tau = 0.15$, 
+  or $\tau = 0.25$) as described in 
+  \refsec{spatialSmooth},
+
+  \end{itemize}
+\end{itemize}
+
+
+

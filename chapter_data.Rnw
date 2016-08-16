@@ -1,0 +1,2428 @@
+<<chapter_data_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+In order to be self-contained in terms of required 
+proteomics background knowledge, we begin with a short 
+introduction to the broad concepts of proteomics 
+(\refsec{proteomics}) and \gls{ms}
+(\refsec{ms}).
+In \refsec{FFPEandIHC} we introduce some more specific 
+proteomics topics that will be relevant to our context.
+We then discuss the technique that is the main focus of 
+this project, \gls{maldi}-\gls{ims}, in 
+\refsec{maldiims}.
+Finally, in \refsec{data} we introduce data sourced 
+from three different applications of 
+\gls{maldi}-\gls{ims} --- the study of: peptides from 
+ovarian cancer tumours embedded in surrounding healthy 
+tissues, glycans from murine kidney tissue, and 
+peptides from endometrial and vulvar cancer tumour 
+tissues arranged in \glspl{tma}.
+Each of these applications highlights different aspects 
+of the potential in \gls{maldi}-\gls{ims} data.
+The remainder of this thesis is concerned with 
+developing data analysis methods for such applications.
+For example, clustering of the ovarian cancer data
+highlights the ability of \gls{maldi}-\gls{ims} to 
+separate tissue types spatially.
+Classification of the endometrial data highlights the 
+ability of \gls{maldi}-\gls{ims} to contribute to 
+diagnostics by use of \glspl{tma}.
+
+The discussion of proteomics in this chapter is biased
+towards points relevant to \gls{maldi}-\gls{ims}, as 
+this is our main interest. 
+For more complete reviews of proteomics as a whole and 
+the role of \gls{maldi}-\gls{ims}, see 
+\citet{Mallick2010}, \citet{Schwamborn2010} and 
+references therein. 
+\citet{Wu2003} also provide an overview of some of
+the statistical challenges inherent in working with
+proteomics \gls{ms} data. 
+
+\section{Proteomics}
+\label{sec:proteomics}
+
+Proteins are biological molecules involved in most 
+cellular processes and consisting of a sequence of 
+amino acids that are chemically connected by 
+`peptide bonds'.
+When connected in this fashion, each amino acid in a 
+protein is referred to as a residue.
+There exist $22$ naturally occurring proteinogenic amino 
+acids in eukaryotes --- organisms whose cells 
+contain nuclei.
+Naively, it could be said that this means there are 
+$22^n$ possible unique linear proteins of $n$ residues 
+--- in reality it is a smaller number than this, but a 
+very large number nonetheless.
+Each gene can simplistically be thought of as code for 
+a protein's amino acid sequence. 
+Living organisms transcribe a gene and synthesise the 
+corresponding protein as a linear amino acid sequence 
+which then undergoes post-translational modification 
+and folds into a complex three dimensional structure w
+hich usually determines the protein's function and 
+intra-cellular location.
+The compounding diversity of: linear amino acid 
+sequence post-translational modification, and three 
+dimensional folding is what allows proteins to fill 
+such a wide variety of functions.
+The complete set of proteins which exist in a given 
+cell, tissue or biological fluid, under defined 
+conditions, is termed its proteome \citep{Wilkins1996}. 
+Proteomics is the study of proteomes, and often of how 
+proteomes change.
+Proteomes vary considerably between different cellular 
+states and understanding these variations can provide 
+remarkable insights.
+A cell in the lining of your stomache would have a 
+virtually identical genome to a neuron in your brain, 
+but they would contain dramatically different 
+proteomes, and the differences between their proteomes 
+is what allows for such dramatic differences in their 
+phenotypes --- behaviour and functions. 
+We are particularly interested in the effects diseases 
+have on the proteomes of cells.
+Studying these effects can elucidate mechanisms 
+involved in disease behaviour and provide insight 
+into the development and progression of diseases. 
+Such fundamental knowledge could lead to new approaches 
+for both diagnosis and treatment \citep{Casadonte2011}. 
+
+The study of proteomics includes the 
+identification, quantification, and/or localisation of 
+proteins in a sample \citep{Ong2005}.
+Samples are often sourced from a cell culture, but 
+other biological sources are possible --- such as: 
+saliva \citep{Vitorino2004}, 
+blood \citep{Liotta2003,Thadikkaran2005}, tissue 
+\citep{Chaurand2004}, and even animal specimens
+\citep{Khatib-Shahidi2006}.
+Proteomics is an extremely broad field, but techniques
+that can characterise the proteins present in a sample
+are needed across almost all areas of the field.
+\gls{ms} is the core method in proteomics for 
+characterising and identifying the proteins in a sample 
+\citep{Yates2009}.
+Many different technologies have been developed in 
+proteomics \gls{ms} \citep{Aebersold2003}.
+In the following section we explain the principles 
+behind \gls{ms} and its role in various applications 
+within proteomics, and in particular how it is extended
+for use in \gls{maldi}-\gls{ims}.
+
+
+\section{Mass Spectrometry}
+\label{sec:ms}
+
+A mass spectrometer measures the \gls{mz} ratio of 
+molecules ionised from a given sample.
+To achieve this, a mass spectrometer invariably 
+consists of three crucial components: 
+\begin{enumerate}
+  \item An ion source,
+  \item A mass analyser, and
+  \item A detector.
+\end{enumerate}
+As its name implies, the ion source converts sample 
+molecules into gaseous ions, which allows them to be 
+manipulated using electromagnetic fields.
+The mass analyser separates the ions according to their 
+\gls{mz} by controlled application of electromagnetic 
+fields.
+The detector counts ions after they have been 
+separated in the mass analyser, thereby producing a
+mass spectrum of ion counts versus \gls{mz}.
+This section briefly discusses the ion source 
+and mass analyser that we use in imaging 
+experiments, \gls{maldi} and \gls{tof}
+respectively.
+For \gls{ims} on biological samples, \gls{maldi}
+is used almost exclusively.
+\gls{maldi} can also be used in \gls{lc}-\gls{ms} 
+analyses of proteins and peptides, but 
+Electrospray Ionisation (ESI) is the 
+predominant ion source for \gls{lc}-\gls{ms}.
+\gls{lc}-\gls{ms} is very useful in proteomics due to 
+its ability to reproducibly identify the peptide 
+sequences of analytes in complex mixtures.
+As \gls{lc} is a core technique in proteomics, a brief 
+introduction to \gls{lc}, specifically \gls{lc}-ESI, is
+included in \refsec{fractionation}.
+
+Although we peripherally refer to some 
+\gls{lc}-\gls{ms} identification results in 
+\refsec{Nglycans} and \refsec{opt_opt}, the focus of 
+this work is on \gls{maldi}-\gls{ims}, and so the 
+discussion of \gls{maldi}-\gls{ims} in 
+\refsec{maldiims} is appropriately more detailed than 
+the discussion of \gls{lc}-ESI-\gls{ms} in 
+\refsec{fractionation}. 
+Note that when we discuss \gls{lc}-\gls{ms} what we are
+ultimately referring to is \gls{msms}, which is the 
+fragmentation of analytes to determine their identity.
+Although the distinction betwen \gls{ms} and \gls{msms} 
+is important, it is of only tangential relevance to our 
+work and so for brevity we avoid a detailed discussion
+and simply refer to \gls{lc}-\gls{ms}.
+
+Of course there are other ion source options, 
+often designed to ionise particular types of target 
+molecule. 
+For example, Laser Ablation Inductively Coupled Plasma 
+(LA-ICP) is a popular ionisation method for measuring 
+trace element concentrations such as copper, gold, 
+silver, arsenic, etc. 
+% \citep{Winderbaum2012}.
+LA-ICP-\gls{ms} can even be used for imaging, and 
+has been used in conjunction with \gls{ge} and 
+\gls{maldi}-\gls{ms} to study phospho- and 
+metal-containing proteins 
+\citep{Becker2009,Becker2010}. 
+LA-ICP-\gls{ms} is one of the most extreme 
+examples of what are called `hard' ionisation methods.
+Hard ionisation methods often fragment large molecules 
+during the ionisation process, destroying information about the original 
+intact analytes --- LA-ICP-\gls{ms} typically 
+fragments analytes down to their elemental composition.
+The `soft' ionisation methods such as \gls{maldi} and 
+ESI are by far the most popular for mass 
+spectrometric analysis in proteomics as they allow for
+large biological molecules to be converted into gaseous 
+ions with minimal fragmentation. 
+
+\subsection{MALDI}
+\label{sec:maldi}
+
+There are many types of ion source, and most are 
+optimised for particular substances or molecules.
+\gls{maldi} is an ionisation method which avoids 
+significant fragmentation of large organic analytes
+due to the relatively low energy levels that it 
+operates at.
+\gls{maldi} functions by adding a matrix to the sample, 
+which is a small molecule and acts as the primary 
+absorber for a laser system which provides the 
+ionisation energy.
+There are numerous matrices available, each with 
+advantages and disadvantages, but in each case the 
+matrix is a small molecule whose role is to absorb at 
+the wavelength of the laser system and transfer the 
+absorbed energy to the sample in a controlled manner, 
+ionising the analytes in such a way that their covalent 
+bonds are not broken.
+\gls{maldi} has the added advantage of almost always 
+producing singly charged ions ($z = 1$) for peptides. 
+The interpretation of \gls{maldi} spectra is 
+significantly simplified as $z=1$ can be assumed for 
+low-mass peptides, meaning the measured \gls{mz} can be 
+interpreted as simply molecular mass ($m$) plus a 
+proton that provides the single positive charge.
+This reduction in complexity is important in the 
+analysis of complex biological samples, as we will 
+discuss in more depth in \refsec{fractionation}.
+
+\subsection{Time-of-Flight (TOF)}
+\label{sec:tof}
+
+\newcommand{\KE}{E_{k}}
+
+Allowing analyte ions to travel through a field-free
+drift region separates analyte ions by \gls{mz}, and 
+this type of mass analyser is coined \acrfull{tof} as 
+analytes are separated based on the time they spend in 
+the field-free drift region --- see 
+\reffig{msSchematic}.
+Other types of mass analyser are also used, but we will 
+focus on \gls{tof}-\gls{ms} as this is the most common 
+approach for \gls{ims}, and all the data we will 
+consider in detail were collected using this mass 
+analyser type.
+In \gls{tof}-\gls{ms}, the sample is ionised (given a 
+charge $z$) before being accelerated through a 
+potential difference, $V$, to acquire a fixed amount of 
+kinetic energy, $\KE = zV$.
+The accelerated sample is then allowed to drift a
+fixed distance, $d$, through a field-free region to a 
+detector where the \gls{tof} can be measured.
+Because each analyte molecule was given the same
+kinetic energy, their velocities in the field-free 
+drift region will be determined by their mass through
+the relationship for kinetic energy
+\begin{equation}
+  \KE = \frac{1}{2}mv^2.
+	\label{eqn:KE}
+\end{equation}
+\refeqn{KE} shows that for constant kinetic energy, 
+$\KE$, the squared velocity ($v^2$) of each analyte 
+molecule is inversely proportional to mass ($m$).
+If we let the time spent in the field-free drift region 
+(\gls{tof}) be $t$, then $v = \frac{d}{t}$ and as $V$ and $d$ are 
+known constants, we see that mass-to-charge ratio 
+(\gls{mz}) is a quadratic function of \gls{tof} $t$,
+\begin{equation}
+\frac{m}{z} = \frac{2t^2V}{d^2}.
+\label{eqn:mz_t}
+\end{equation}
+\refeqn{mz_t} shows how \gls{mz} can effectively be 
+measured by flight time --- hence 
+\acrfull{tof}-\gls{ms}.
+This whole process, from ionisation to detection, is 
+illustrated in \reffig{msSchematic}. 
+
+%\begin{figure}[ht]
+%	\begin{center}
+%		\includegraphics[scale = 0.7,trim = 0cm 10.7cm 0.5cm 0cm,clip = true]{./01/Schematics/SeeleyFig2_opt}
+%	\end{center}
+%	\caption{A schematic diagram describing the acquisition of a mass spectrum (from Fig. 2(a) of
+%          \cite{Seeley2011}). {\color{red}This needs either to be replaced with a custom figure, or the authors need to be asked for permission to use this figure}}
+%\end{figure}
+
+\begin{figure}[ht]
+	\begin{center}
+		\input{./figure_MSschematic}
+	\caption{Schematic describing the acquisition of a 
+  mass spectrum in a linear mass spectrometer. 
+%   (similar to Fig. 2(a) in \citet{Seeley2011}). 
+  From left to right, sample is ionised, accelerated 
+  through an electric potential, allowed to 
+  drift through a field free region, and the time of 
+  arrival at the detector is measured. 
+  Ion arrival time at the detector is transformed into 
+  \gls{mz} which yields a mass spectrum. 
+  \label{fig:msSchematic}}
+   \end{center}
+\end{figure}
+
+The system described above and illustrated in 
+\reffig{msSchematic} is a simplification when 
+considering most modern instruments.
+Specifically, when using \gls{maldi}, the initial laser 
+pulse results in a small explosion of ions.
+This explosion results in the analyte ions having 
+variable initial positions and velocities (kinetic 
+energies), and these variations limit the accuracy of 
+the mass spectrometer.
+A number of improvements to the system described above 
+have been made that can compensate for these small 
+differences in initial position and energy of analyte 
+ions, increasing the accuracy of modern mass 
+spectrometers. 
+Some notable examples of such improvements include:
+\begin{itemize}
+  \item \textbf{Delayed Extraction:}
+  Variation in the initial positions and energies of 
+  analyte ions can be further compensated for by a 
+  process called \emph{delayed extraction} 
+  \citep{Vestal1995}.
+  Delayed extraction involves incorporating a short 
+  delay time between the ionising laser pulse and 
+  switching on the accelerating electric potential 
+  illustrated in \reffig{msSchematic}.
+  This delay allows ions with higher initial energy to
+  drift further into the mass spectrometer than those
+  with lower initial energy before the electric 
+  potential is applied.
+  The fact that ions with higher initial energy have 
+  travelled further into the mass spectrometer when the 
+  electric potential is applied means they traverse 
+  less distance within the electric field and are given 
+  less energy.
+  Conversely, ions with lower initial energy 
+  traverse more distance through the electric field and 
+  are thereby given more energy.
+  This process helps compensate for variations in
+  initial energies and results in ions leaving the 
+  electric potential region and entering the field-free 
+  drift region of \reffig{msSchematic} with a more 
+  consistent total amount of kinetic energy --- thereby 
+  improving the accuracy of the resulting measurements.
+
+\item \textbf{Reflectron Mode:} The system described 
+  above and in \reffig{msSchematic} is that of a 
+  \gls{tof} mass spectrometer in \emph{linear mode}, 
+  so-called because the analyte ions follow a path 
+  through the mass spectrometer described by a straight 
+  line. 
+  Most modern \gls{tof} mass spectrometers still have 
+  an option to be operated in linear mode, typically 
+  for use in analysing intact proteins, but in practice 
+  these instruments are almost always operated in 
+  reflectron mode.
+  In reflectron mode, after initial acceleration ions
+  are `reflected' by a constant electric field at an 
+  angle to their initial velocity, causing them to 
+  follow a parabolic path and thereby creating a focal 
+  point that can compensate for small deviations in 
+  initial energy and position of analyte ions 
+  \citep{Boesl1992,Kaufmann1993}.
+  This reflection step essentially replaces the 
+  field-free drift region of \reffig{msSchematic}.
+  In addition to compensating for some variability in 
+  initial energies and positions, reflectron mode 
+  allows for a longer effective drift distance $d$, and
+  these two factors combined significantly improve the 
+  accuracy with which the \gls{mz} of analyte ions can 
+  be measured, and thereby the resolution ultimately 
+  achieved.
+\end{itemize}
+All the data presented in this thesis were collected in
+reflectron mode and using delayed extraction.
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{Fractionation}
+\label{sec:fractionation}
+
+Proteomics samples are often highly complex ---
+containing many thousands of proteins.
+Strong signals due to abundant proteins can 
+obscure the weaker signals of less abundant proteins, 
+making these weaker signals difficult or impossible to 
+detect. 
+Also, the \gls{mz} values of multiple proteins can 
+overlap, making identification difficult.
+These complications can be addressed by fractionation 
+--- separating analytes in the sample by some physical 
+or chemical property prior to \gls{ms} acquisition.
+Fractionation can be done at either the protein level,
+or at the peptide level, corresponding to fractionation
+before or after proteolytic cleavage respectively.
+Fractionation has become standard in proteomics, 
+see \citet{Wasinger1995}.
+\gls{ge} and \gls{lc} are examples of common 
+fractionation techniques in proteomics, with \gls{lc} 
+being the predominant fractionation technique 
+\citep{Gygi2000,Rogowska-Wrzesinska2013}. 
+For an overview and review of recent approaches in 
+\gls{lc}-\gls{ms}, see \cite{America2008}.
+Although we only tangentially incorporate results that
+involve fractionation in this work, the results we
+do present are from \gls{lc}-\gls{ms} at the peptide 
+level.
+
+\gls{ge} typically fractionates on the protein level, 
+and separates analytes by size, charge, or both --- as 
+is the case in 2D-\gls{ge}, a very popular method in 
+proteomics.
+This is achieved by using an electric field to 
+force molecules through a gel, often polyacrylamide, 
+that acts as a `sieve'.
+Smaller molecules find that their movement is 
+restricted less by the gel media than larger molecules, 
+and in this way molecules are separated by size.
+
+\gls{lc} makes use of columns to bind molecules to a 
+stationary phase --- an immobile surface with gaps to 
+allow solvent to be pushed through.
+The molecules are subsequently eluted over time using a
+changing gradient of mobile phase solvent.
+Traditionally the stationary phase was hydrophilic, 
+but `reverse-phase' chromatography is popular in 
+proteomics, in which the stationary phase is 
+hydrophobic and the hydrophobicity of the mobile phase 
+is increased gradually with time.
+% In a reverse-phrase \gls{lc} experiment, hydrophobic 
+% molecules begin bound to the stationary phase, and are
+% gradually eluted by increasing the hydrophobic 
+% component of the mobile phase. 
+Coupling this fractionation method directly to a mass 
+spectrometer (\gls{lc}-\gls{ms}) allows molecules to be 
+characterised by \gls{ms} as they elute off the column 
+one by one, reducing the complexity of any single 
+spectrum tremendously.
+
+Both \gls{lc}-\gls{ms} and 2D-\gls{ge} are very 
+powerful methods in terms of their ability to 
+characterise and identify proteins in a sample.
+However both these methods involve the homogenisation 
+of a sample prior to analysis, and this step destroys
+any information about the spatial distributions of 
+proteins within a sample.
+The loss of spatial information in these established 
+methods motivated the development of direct tissue 
+analysis using \gls{maldi}-\gls{ims} 
+\citep{Cornett2007,Groseclose2008,Gustafsson2011}. 
+
+
+% Data Analysis Lit. Review, according to inge 
+% `appropriate for a paper, but not important here'.
+
+% In terms of data analysis, the statistics and 
+% bioinformatics literature on the analysis of 
+% $2$D-\gls{ge} and \gls{lc}-\gls{ms} data 
+% is growing fast and covers a range of statistical 
+% methods.
+% Testing and classification of such data are described 
+% in \cite{Morris2005,Morris2012,Yu2006} and references 
+% therein.
+% Other statistical approaches that have been proposed 
+% and applied to 2D-\gls{ge} and \gls{lc}-\gls{ms} data 
+% include peak identification, alignment, and feature 
+% selection, see \cite{Yu2006}; identification of 
+% proteins, see \cite{Yu2006} and \cite{Karpievitch2010}; 
+% wavelet-based methods, see \cite{Morris2006}, 
+% \cite{America2008}, \cite{Du2006} and references 
+% therein; and methods from survival analysis for the
+% detection of differentially expressed proteins, see 
+% \cite{Tekwe2012}.
+
+
+
+
+
+
+\section{Histopathology and Formalin Fixation}
+\label{sec:FFPEandIHC}
+
+We are interested in the use of \gls{maldi}-\gls{ims} 
+to detect spatial patterns in tissue and so it is  
+important to consider other histopathology techniques.
+\gls{ihc} is the established `gold standard' for 
+mapping the spatial distribution of a protein, and so 
+any discussion of \gls{maldi}-\gls{ims} in the context 
+of mapping such spatial distributions requires 
+comparison to, and validation by, \gls{ihc}. 
+In \refsec{IHC} we briefly introduce histopathology and
+\gls{ihc} in comparison to \gls{maldi}-\gls{ims}.
+Ultimately, we discuss how \gls{maldi}-\gls{ims} can 
+complement the use of these methods.
+
+There are different methods for preserving or `fixing' 
+the spatial information in the tissue for analysis.
+In the field of \gls{maldi}-\gls{ims}, fresh frozen 
+tissue samples have historically been used, but recent 
+advances have allowed for the use of \gls{ffpe} tissue.
+This has had widespread impact on the field as 
+\gls{ffpe} tissue samples can be stored long term 
+relatively cheaply, and so large archives of \gls{ffpe}
+tissue samples exist.
+Access to larger sample sizes via these \gls{ffpe} 
+tissue archives has allowed for previously difficult 
+research questions to be tackled, as we discuss further
+in \refsec{TMAs}.
+In \refsec{FFPE} we introduce the concepts underlying 
+fresh frozen and \gls{ffpe} tissue samples, including a 
+brief comparison of their respective advantages and a 
+discussion of the methodological developments that have 
+led to \gls{maldi}-\gls{ims} analysis of \gls{ffpe} 
+tissue. 
+All the applications of \gls{maldi}-\gls{ims} we 
+consider in this thesis are on \gls{ffpe} tissue.
+
+
+\subsection{Histopathology and Immunohistochemistry}
+\label{sec:IHC}
+
+Histopathology is the study of the anatomy of tissues
+at the microscopic scale, and is typically performed by 
+a pathologist, who can often provide diagnostic 
+information on a disease by examination of a stained 
+section of tissue using a light microscope.
+The staining step is important as tissue has little 
+inherent contrast and, as well as adding contrast, 
+staining can highlight features of interest.
+\gls{he} is one of the most common stains used in 
+histopathology, highlighting cellular nuclei and 
+cytoplasm respectively.
+We use images of \gls{he} stained tissue as a 
+baseline of spatial structure to compare the 
+results of many of our analyses.
+In some datasets, we also use 
+annotations made by a pathologist on the basis of
+\gls{he} stained tissue.
+
+\gls{ihc} refers to the use of an antibody to stain
+tissue in an attempt to highlight the corresponding 
+antigen (protein). 
+Given an antibody for the protein of interest a stain 
+is usually achieved either by conjugating the antibody
+to an enzyme, such as peroxidase, that can catalyse a 
+visible reaction, or by tagging the antibody with a 
+fluorophore. 
+Regardless of how the antibody is made visible, this 
+process allows for the spatial distribution of a 
+particular protein to be visualised, given a 
+sufficiently specific antibody.
+
+In \gls{ihc} the protein of interest and associated 
+antibody are chosen \emph{a priori}, and as such this 
+method cannot discover previously unidentified proteins 
+with interesting spatial distributions.
+\gls{maldi}-\gls{ims} does not have this limitation as 
+it does not target specific proteins --- and so has the 
+capacity to lead to the discovery of new biomarkers 
+\citep{Schwamborn2010}.
+However \gls{maldi}-\gls{ims} has only a limited 
+ability to identify proteins, so even if a mass is 
+found to have an interesting spatial distribution, 
+follow-up identification and validation experiments are
+required.
+Potential identifications for masses of interest can be
+inferred by mass-matching to peptides identified in 
+parallel \gls{lc}-\gls{ms} experiments on similar 
+tissue, as demonstrated by \citet{Meding2012}.
+Identification is one of the strengths 
+of \gls{lc}-\gls{ms}, but \gls{lc}-\gls{ms} provides no 
+information on distribution within the tissue.
+As \gls{ihc} is cheaper, easier, and much more 
+established than \gls{maldi}-\gls{ims}, it makes 
+sense to find masses with interesting spatial 
+distributions by \gls{maldi}-\gls{ims}, infer 
+parent proteins by \gls{lc}-\gls{ms}, and validate the 
+spatial distributions of these proteins by \gls{ihc}.
+
+% This paragraph discusses running multiple analyses, 
+% MALDI-IMS and IHC for example, on the same tissue 
+% sections, and why this can be important. Seemed abit
+% tacked on and didnt really add anything much though.
+
+% In order to produce \gls{maldi}-\gls{ims} data, an
+% \gls{he} stained image, and to perform \gls{ihc} 
+% validation on the same tissue can be problematic.
+% The simple solution to this problem is to produce 
+% three consequetive sections of tissue, and use one for
+% each of \gls{maldi}-\gls{ims}, \gls{he} staining, and
+% \gls{ihc} validation. 
+% This solution can also be problematic for two reasons:
+% first, although consequetive sections should be very 
+% similar, there will nonetheless be small differences in 
+% the tissue between the three sections, and second, if 
+% the tissue samples are precious it may be difficult to 
+% justify taking three seperate sections.
+% The tissue samples being sufficiently precious that 
+% this simple solution becomes problematic is not 
+% unrealistic, as a realistic application of these 
+% techniques would be to a clinical diagnostic setting 
+% where the sample is likely to be from a small biopsy.
+% \citet{Deutskens2011} demonstrated that \gls{ihc} can 
+% be performed post-acquisition by \gls{maldi}-\gls{ims},
+% meaning that both techniques can be used in sequence on 
+% the same tissue, meaning there is no real downside to 
+% \gls{ihc} validation for a \gls{maldi}-\gls{ims} 
+% experiment in terms of amount tissue used.
+
+
+
+\subsection{FFPE vs Fresh-Frozen}
+\label{sec:FFPE}
+
+In this section we briefly discuss the 
+differences between \gls{ffpe} and fresh-frozen tissue. 
+%
+\gls{ffpe} tissue is prepared by first immersing 
+tissue in a formalin solution and then embedding the 
+tissue in paraffin for storage.
+Formaldehyde in the formalin solution creates covalent 
+cross-linking bonds between proteins thereby `fixing' 
+the tissue by interrupting biochemical reactions, 
+preventing decay, and causing the tissue structure to 
+stabilise \citep{Fox1985}.
+This fixation process can be partially reversed using 
+heat in the presence of excess water, and this process 
+is often called `antigen retrieval'. 
+\gls{ffpe} samples can be stored indefinitely at room 
+temperature while proteins (and even nucleic acids) are
+still recoverable for detection many years after 
+fixation --- making \gls{ffpe} samples a crucial 
+resource in retrospective or large-sample studies.
+%
+Fresh-frozen tissue is prepared by rapidly reducing the 
+temperature of the tissue. 
+This is typically achieved by placing the 
+tissue sample in liquid nitrogen. 
+% ($-196\,^{\circ} {\rm C}$). 
+Care must be taken to preserve spatial information 
+during the cooling process \citep{Schwartz2003}.
+
+\gls{ffpe} tissue can be stored at room temperature,
+while fresh frozen tissue requires expensive 
+refrigeration, and so \gls{ffpe} tissue is much cheaper 
+and easier to store for long periods of time.
+For this reason, \gls{ffpe} tissue is the international 
+gold standard for tissue sample storage, and large 
+archives of \gls{ffpe} tissue exist, often with 
+complete patient history and meta-data 
+\citep{Hood2005}.
+It is usually not feasible to obtain such a large 
+number of fresh frozen samples, so when designing an 
+experiment for which a large number of samples will be 
+needed, using \gls{ffpe} tissue is preferable.
+Proteomic analysis of \gls{ffpe} tissue has been 
+difficult due to the cross-linking of the proteins 
+\citep{Hood2005}, and so until recently, fresh frozen 
+tissue has been the most common sample 
+for proteomic analysis \citep{Poschmann2009}.
+As such, most studies have involved only a small number 
+of patients due to the limitations of using fresh 
+frozen tissue.
+One of the foci in the applications of 
+\gls{maldi}-\gls{ims} that we consider in \refsec{data} 
+is the application to relatively large sample sizes,
+and we will consequently use \gls{ffpe} tissue.
+
+
+Early work on antigen retrieval originates from the 
+immunology field, as discussed by \citet{Brown1998}.
+First attempts involved simple enzymatic cleavage, but 
+\citet{Shi1991} introduced the first method to 
+employ additional heating via a microwave source.
+Since the work of \citet{Shi1991}, more heat-based 
+methods were developed and \citet{Shi2005} discussed 
+the standardisation of these methods as they matured in 
+the \gls{ihc} field. 
+Eventually these developments were transferred into the 
+increasingly popular mass spectrometric fields, as 
+evidenced in \citet{Palmer-Toy2005} and 
+\citet{Crockett2005}.
+\citet{Groseclose2008} suggested a  methodology for 
+antigen retrieval and subsequent \gls{maldi}-\gls{ims}
+of \gls{ffpe} lung tissue.
+\citet{Gustafsson2010} applied the methodology of
+\citet{Groseclose2008} to \gls{ffpe} ovarian cancer 
+tissue, and proposed an improved antigen retrieval 
+methodology.
+In all the applications we consider in \refsec{data}, 
+the methodology of \citet{Gustafsson2010} was used for
+antigen retrieval.
+
+
+
+
+% {\highlightTextAs{incomplete}
+% I have a short reading list here on formalin fixation 
+% and cross linking with associated problems that 
+% motivate how exciting the development of the 
+% methodology to analyse FFPE tissue is, and I could 
+% include some discussion on it if I wanted to go into 
+% more detail: 
+% \citet{Fox1985,Clark1986,McGhee1975,McGhee1975a,Kunkel1981}
+% }
+
+
+
+
+\section{MALDI-MSI}
+\label{sec:maldiims}
+
+\gls{maldi}-\gls{ims} is a technique which collects a 
+\gls{maldi}-\gls{ms} spectrum from many points on the 
+surface of a tissue sample. 
+As we have already introduced \gls{maldi}-\gls{ms} in 
+\refsec{ms}, here we will focus on the imaging aspect, 
+and properties of \gls{maldi}-\gls{ims} --- i.e. the
+process of collecting many \gls{maldi}-\gls{ms} spectra 
+from spatially distributed points across the surface 
+of a tissue sample.
+
+There are two main goals that use of 
+\gls{maldi}-\gls{ims} can facilitate:
+\begin{itemize}
+  \item To resolve the spatial distributions of 
+  biomolecules of interest within tissue samples.
+  \item To acquire data from large numbers of patients
+  by use of \glspl{tma}.
+\end{itemize}
+We discuss advantages and disadvantages of approaches 
+to these two main goals in \refsec{spottingspraying} 
+and \refsec{TMAs} respectively.
+For a review of \gls{maldi}-\gls{ims} 
+see \citet{Seeley2011}.
+\citet{Groseclose2007} and \citet{Aoki2007} also 
+provide discussions on \gls{maldi}-\gls{ims}.
+
+
+Other \gls{ims} methods exist, even within proteomics 
+--- \citet{Becker2009,Becker2010} are good examples of 
+this, making use of Laser Ablation Inductively Coupled 
+Plasma (LA-ICP)-\gls{ims} to study 
+metalloproteins.
+We focus specifically on \gls{maldi}-\gls{ims} due to 
+the usefulness of \gls{maldi} in proteomics, as 
+discussed in \refsec{maldi}.
+The process of taking many measurements on the surface
+of a tissue sample by \gls{maldi}-\gls{ims} is 
+illustrated in \reffig{imagingSchematic}.
+In order to collect \gls{maldi}-\gls{ims} data from a 
+tissue section as depicted in 
+\reffig{imagingSchematic}, a number of sample 
+preparation steps must first be completed:
+\begin{itemize}
+  \item Antigen Retrieval - If \gls{ffpe} tissue is 
+  used, cross-linking caused by formalin fixation must 
+  be partially reversed prior to analysis, as discussed 
+  in \refsec{FFPE}.
+  We use the method suggested by 
+  \cite{Gustafsson2010} for citric acid antigen 
+  retrieval.
+  
+  \item Enzyme Digestion - It can be useful to digest 
+  proteins by use of an enzyme (eg. trypsin) prior
+  to acquisition, as the smaller peptides produced by
+  enzymatic cleavage can be measured more accurately.
+  All the peptide data we consider was acquired after
+  trypsin digestion, so the signals we observe are 
+  tryptic peptides. 
+  For the glycan data a different enzyme, PNGase F, was 
+  used to cleave off the asparagine (N)-linked glycans of interest.
+  
+	\item Internal Calibrants - Known calibrants are 
+  added so that each spectrum will contain
+  calibrant peaks that can be used for 
+  mass-calibration.
+  We follow the procedure for internal calibration 
+  suggested by \citet{Gustafsson2012}.
+  Coincidentally, these internal calibrants can also be 
+  useful for data quality control as 
+  discussed in \refsec{normalisation}.
+	\item Matrix deposition - A matrix, as briefly 
+  discussed in \refsec{maldi}, needs to be deposited 
+  onto the tissue in order to facilitate ionisation.
+  In \gls{maldi}-\gls{ims} there are two approaches to 
+  this, which we introduce and compare in 
+  \refsec{spottingspraying}.
+\end{itemize}
+
+%\begin{figure}[ht]
+%	\begin{center}
+%		\includegraphics[scale = 0.7,trim = 0cm 0cm 0cm 0cm,clip = false]{./01/Schematics/SchwambornFig2_opt}
+%	\end{center}
+%	\caption{Figure 2 in \cite{Schwamborn2010}: A schematic workflow of MALDI-IMS analysis  \textcolor{red}{This needs either to be replaced with a custom figure, or the authors need to be asked for permission to use this figure}}
+%\end{figure}
+
+\begin{figure}[ht]
+	\begin{center}
+		\input{./figure_IMSschematic}
+	\caption{A schematic diagram illustrating the 
+  work-flow for \gls{maldi}-\gls{ims}.
+  The depicted spots reflect a spotting approach --- if
+  a spraying approach was used the reagent would be
+  uniformly distributed accross the slide.
+  Note that `Ion count' is often simply
+  called `intensity'.
+%   (similar to Figure 2 in \citet{Schwamborn2010}). 
+  \label{fig:imagingSchematic}}
+   \end{center}
+\end{figure}
+
+\subsection{Spotting vs. Spraying}
+\label{sec:spottingspraying}
+
+%Discuss the pros and cons of the two methods (lateral resolution, homogenisation, time (cost), etc.).
+
+Care needs to be taken in all of these sample 
+preparation steps to preserve spatial information 
+by limiting the mobility of molecules of interest on 
+the surface of the tissue \citep{Schwartz2003}. 
+In some of the sample preparation steps, most notably 
+the internal calibrant and matrix deposition steps, 
+limiting the mobility of molecules of interest can be 
+achieved by ensuring that reagents are deposited in
+non-overlapping `spots'. 
+There are two widely accepted approaches for depositing
+reagents onto the surface of the tissue, which
+we will call `spotting' and `spraying' respectively. 
+Here I will briefly introduce these two approaches, 
+and discuss their relative advantages and 
+disadvantages.
+For a more detailed discussion, including some examples 
+of instrumentation for various applications, see
+\citet{Walch2008}.
+
+\subsubsection{Spraying}
+
+Spraying involves aerosolising the reagents and 
+depositing them as a fine mist.
+This involves the adjustment of many tuning parameters 
+such as droplet size, concentration, and total volume 
+deposited as well as the number of spray deposition 
+cycles.
+There are two main disadvantages to spraying:
+\begin{itemize}
+  \item Risk of mobilising the molecules of interest ---
+  by random chance multiple droplets could merge over a
+  significant region of tissue, allowing molecules of 
+  interest to disperse across this region.
+  
+  \item The possibility of gaps --- in order to automate 
+  data acquisition spectra are collected from arbitrary 
+  positions, some of which may, by random chance, not 
+  have matrix on them, and thus no molecules will 
+  ionise from those positions.
+\end{itemize}
+However, the impact of these disadvantages can be 
+controlled and greatly reduced by careful optimisation 
+of the tuning parameters. 
+One of the main advantages of spraying is the ability 
+to push the limits of lateral resolution (centre to 
+centre distance between spectra acquisition locations).
+All the applications we consider use spraying, with 
+lateral resolutions ranging from $50\,\mu$m to 
+$100\,\mu$m.
+\citet{Guenther2011} have pushed the limits of this
+technology, demonstrating that it is possible to 
+resolve images at lateral resolutions as low as 
+$5\,\mu$m under certain conditions.
+
+\subsubsection{Spotting}
+
+Spotting utilises an instrument comparable to an ink-jet 
+printer to deposit reagent at pre-allocated positions 
+(or spots) across the surface of  the tissue. 
+After the antigen retrieval, trypsin, internal 
+calibrants, and matrix would be spotted on the same 
+grid of positions, and a mass spectrum collected from 
+each spot. 
+This guarantees that each spot will contain both 
+internal calibrants and matrix.
+Spotting has the additional advantage that it 
+guarantees there will be no overlap between spots, 
+thereby restricting the mobility of molecules to within 
+each spot.
+The disadvantages of spotting when compared to spraying 
+are: it is slower (depositing individual spots is time
+consuming), the printing instrumentation is more 
+expensive, and the minimum achievable lateral 
+resolution (centre to centre distance between spots) is 
+generally more coarse --- typically $\geq 150\,\mu$m.
+
+In addition to the glycan data we consider in 
+\refsec{NglycansDatasets}, \citet{Gustafsson2015} also
+considered spotted droplet data.
+Spotting can be most useful when the objective is to 
+acquire a small number of high-quality spectra and 
+a low lateral resolution is not a priority.
+This often occurs when the aim is to provide a 
+proof-of-principle demonstration of a new methodology 
+or technique, as was the case when 
+\citet{Gustafsson2015} demonstrated that it was 
+possible to use \gls{maldi}-\gls{ims} to map the 
+spatial distributions of asparagine (N)-linked glycans 
+by using PNGase F to cleave the glycans of interest 
+from their parent proteins.
+The promising large droplet results then prompted the 
+follow-up experiment using spraying to achieve better 
+lateral resolution, which which we consider in 
+\refsec{NglycansDatasets}.
+
+
+
+\subsection{TMAs for MALDI-MSI}
+\label{sec:TMAs}
+
+% % Microdissection.
+% \gls{LC}-\gls{MS} is fundamentally more powerful than 
+% \gls{maldi}-\gls{ims} in terms of its ability to 
+% separate and identify mass signals.
+% The advantage of \gls{maldi}-\gls{ims} over 
+% \gls{LC}-\gls{MS} is its ability to preserve spatial 
+% information that is typically lost during the 
+% homogenising sample preparation steps involved in 
+% \gls{LC}-\gls{MS}.
+% Some degree of spatial information can be preserved 
+% pre-homogenisation by microdissection -- cutting the 
+% tissue section into peices and then analysing each 
+% piece seperately by \gls{LC}-\gls{MS} \citep{Hood2005}. 
+% A microdissection \gls{LC}-\gls{MS} experiment has a 
+% significantly limited lateral resolution compared to a 
+% \gls{maldi}-\gls{ims} experiement, comparable to a 
+% large-droplet \gls{maldi}-\gls{ims} experiement as 
+% mentioned in \refsec{spottingspraying}.
+% More importantly however, A microdissection 
+% \gls{LC}-\gls{MS} experiment is significantly more 
+% expensive and time-consuming. 
+
+A \acrfull{tma} is a physical array of  cylindrical 
+tissue cores extracted from blocks of preserved patient
+tissue.
+Cores are typically less than $2$mm in diameter
+\citep{Meding2012} and the number of cores in a single 
+\gls{tma} block depends on the size of the cores --- 
+smaller diameters allow more cores to fit in a single 
+block, but less tissue to be analysed in each core.
+Using cores $\sim 1.5$mm in diameter it is typical to 
+fit of the order $50$ cores in a single \gls{tma}. 
+This arrangement allows for the parallelisation of
+tissue analyses, as the entire \gls{tma} can be treated 
+as a single sample.
+For example, the entire \gls{tma} can be sectioned as 
+a single block, resulting in tissue from many samples 
+being represented in each section --- an \gls{he} 
+stain of such a section is shown in 
+\reffig{tmaExample}, including tumour annotations from 
+a pathologist.
+\glspl{tma} were originally developed in order to
+parallelise \gls{ihc} staining, but more recently 
+have attracted attention for \gls{maldi}-\gls{ims}.
+
+Construction of a \gls{tma} involves the arrangement of 
+tissue cores from multiple patient samples (biopsies)
+into a new `\gls{tma}' block that can then be 
+sectioned as one.
+The application of \gls{maldi}-\gls{ims} to \glspl{tma}
+allows for data to be collected from a large number of 
+patients very quickly --- see 
+\citet{Groseclose2008,Steurer2013}.
+A one-day sample preparation of sections from such a 
+\gls{tma} allows for an overnight \gls{maldi}-\gls{ims}
+experiment to collect data on more than $50$ cores in 
+one $24$ hour period.
+This approach is significantly faster than more
+traditional tissue analysis approaches, such as 
+\gls{lc}-\gls{ms}.
+If \gls{maldi}-\gls{ims} can be shown to produce diagnostically
+relevant information, its speed would allow for it to 
+potentially be applied for clinical screening of 
+individual samples \citep{Casadonte2011}. 
+
+% Lit Review of people using TMAs and MALDI-IMS for stuff.
+% Inge says not relevant here, so ok.
+
+% \citet{Mascini2015,Rauser2010} provide examples of how
+% the application of \gls{maldi}-\gls{ims} to \glspl{tma}
+% can produce information relevant to classification 
+% problems in breast cancer, and similarly 
+% \citet{Djidja2010} proposed a \gls{pca} based 
+% classification method for such data, which they 
+% demonstrate on pancreatic cancer data.
+% In \refsec{endometrialDatasets} we introduce an 
+% application of \gls{maldi}-\gls{ims} to endometrial 
+% cancer \glspl{tma} that we will consider in 
+% \refchap{classificationApplication}, where we will 
+% apply \gls{pca} based methods similar to those proposed 
+% by \citet{Djidja2010} as well as some alternatives 
+% which we introduce and discuss in 
+% \refchap{classificationMethods}.
+
+\begin{figure}[ht]
+ \begin{center}
+    \includegraphics[scale = 0.4,trim = 0cm 0cm 0cm 0cm,clip = false]{./data/Etma_images/tma2b.png}
+	\end{center}
+	\caption{A \gls{he} stained section of a typical 
+  \gls{tma}, annotated by a pathologist in black to 
+  highlight tumour regions.
+  This corresponds to a section of the \gls{tma} 
+  labelled `EB' of the endometrial data we introduce 
+  in \refsec{endometrialDatasets} and 
+  \reftab{tmaBasicStats}. 
+	\label{fig:tmaExample}}
+\end{figure}
+
+
+
+
+\section{Data}
+\label{sec:data}
+
+We consider datasets from three applications of 
+\gls{maldi}-\gls{ims}:
+\begin{itemize}
+  \item Ovarian Cancer --- These whole-section data 
+  relate to ovarian tumours embedded in peritoneal
+  tissue (elements of the internal abdominal wall) from 
+  three patients.
+  Further details can be found in the work of 
+  \citet{Gustafsson2012thesis}. 
+  These data contain spectra from both tumour tissue 
+  and surrounding non-tumour tissues excised as a 
+  `margin of error' around the tumours during surgery.
+  These are peptide data and the main interest is to 
+  find peptide signals that differentiate between 
+  different tissue types, particularly peptides that 
+  are present more in tumour than the 
+  surrounding non-tumour tissues.
+  We approach this in a two-step process, first using
+  clustering to separate the tissue types in an 
+  automated manner, second using a \gls{dipps}-based
+  feature extraction step to find a short-list of 
+  potential peptides of interest.
+  We introduce and discuss this two step process in 
+  \refchap{dipps}.
+  In \refsec{datasetComparisons} we then 
+  compare these short-lists of tumour-identifying 
+  peptides between patients, to separate the 
+  within-patient variability from the between-patient 
+  variability and detect peptides specific to the 
+  short-lists from certain patients --- i.e. peptides 
+  that are over-expressed by tumour cells in particular
+  patients but not others. 
+  In the future, such peptides could form a starting 
+  point for experiments investigating individualised 
+  treatments, but at this initial stage the ability to 
+  detect such peptides acts primarily as a 
+  proof-of-principle that can then be followed up.
+  
+  \item Murine Glycans --- These data relate to sections 
+  of murine kidney treated with PNGase F to release 
+  asparagine (N)-linked glycans.
+  The object of these data is to serve as a 
+  proof-of-principle that glycans can effectively be 
+  released \emph{in situ} and measured by 
+  \gls{maldi}-\gls{ims}.
+  In \refsec{dataDependant} we demonstrate how the 
+  second (\gls{dipps}-based feature extraction) step 
+  of the approach introduced in \refchap{dipps} can be
+  applied in this context to produce a short-list of 
+  potential glycan masses.
+  
+  \item \glspl{tma} --- We consider two \gls{tma} 
+  applications of \gls{maldi}-\gls{ims}, one primary
+  application (to endometrial cancer) that we will 
+  focus on and a secondary, smaller, application (to 
+  vulvar cancer) that we will use primarily to validate
+  and replicate results obtained from the endometrial 
+  cancer application.
+  The endometrial cancer data relate to 
+  \glspl{tma} of endometrial cancer, 
+  providing access to data from a relatively large 
+  number of patients (more than $40$), as discussed in 
+  \refsec{TMAs}. 
+  The objective is to demonstrate that these data can 
+  be used to predict clinically relevant diagnostic 
+  information, justifying further research into the use 
+  of \gls{maldi}-\gls{ims} of \glspl{tma} for clinical 
+  screening and diagnostics.
+  The diagnostic variable of interest is 
+  lymph node metastasis status, which we attempt to 
+  classify on the basis of the \gls{maldi}-\gls{ims}
+  data in \refchap{classificationApplication}.
+  The secondary vulvar cancer data relate to a similar
+  diagnostic variable of interest relating to 
+  metastasis, but provide access to data from a 
+  smaller number of patients (still more than $20$).
+  We will use the vulvar cancer data to investigate 
+  whether the conclusions we reach through 
+  investigation of the endometrial cancer data can be 
+  replicated in an unrelated dataset.
+
+\end{itemize}
+
+
+All the data originate from \gls{ffpe} tissue samples 
+that have been sectioned --- cut into thin 
+cross-sections, typically $6-10\,\mu$m thick.
+We will use the word `dataset' to mean the data 
+collected from one such section of tissue, except where
+otherwise specified.
+All the data were acquired by \gls{maldi}-\gls{ims} at 
+the \gls{apc}, but on two different instruments, and 
+using different parameters.
+Parameter choices involved in 
+the data acquisition are shown in \reftab{acqParams}, 
+as well as the citations relevant to each application
+including several papers we have published in the 
+process of pursuing this research.
+
+All the data we will deal with is in `peaklist' format, 
+meaning that some pre-processing has already been 
+performed to extract the signals of interest from the
+raw spectra. This pre-processing has been done in 
+proprietary software (flexControl, flexAnalysis, and 
+flexImaging, Bruker Daltonik, 
+\url{http://www.bruker.com}), and involves a number of 
+steps: smoothing (Gaussian kernels), baseline reduction 
+(TopHat), and finally peak picking (SNAP).
+The SNAP algorithm isolates mono-isotopic peaks and 
+defines significant peaks as those peaks with a 
+\gls{snr} of two or higher.
+These pre-processing and peak-picking methods could be 
+improved, and as all our analysis is downstream of the 
+peak-picking (that is, it occurs after peak-picking),
+any improvements to these pre-processing and 
+peak-picking steps could clearly carry through to our
+results.
+However, the object of most of our work is 
+proof-of-principle and so, although interesting, 
+optimisation of pre-processing methods falls beyond the 
+scope of this work.
+
+\begin{table}
+\caption{Data Acquisition Parameters \label{tab:acqParams}}
+\begin{center}
+\begin{tabular}{llrrr}
+ & & Lateral \\
+Application        & \gls{mz} range & Resolution & Citation \\ \hline
+Ovarian Sections   & $1000-4500$ & $100\,\mu$m  & \citet{Gustafsson2012thesis} \\
+                   &              &           & \citet{Winderbaum2015} \\
+                   &              &           & \\
+Murine Glycans     & $800-4500$  & $100\,\mu$m  & \citet{Gustafsson2015} \\
+                   &              &           & \\
+Endometrial \glspl{tma} & $800-4000$  & $60\,\mu$m   & \citet{Mittal2016} \\
+                   &              &           & \citet{Winderbaum2016} \\
+Vulvar \glspl{tma} & $800-4000$  & $60\,\mu$m   & \\
+\end{tabular}
+\end{center}
+\end{table}
+
+
+In Sections~\ref{sec:ovarianDatasets}, 
+\ref{sec:NglycansDatasets} and 
+\ref{sec:endometrialDatasets} we introduce and discuss
+details for the three applications of 
+\gls{maldi}-\gls{ims} respectively.
+When introducing the details of these applications, we 
+also discuss the objectives of each application, and 
+the statistical approaches we will use in order to 
+address these objectives, in general terms.
+In \refsec{statsBackground} we introduce some 
+statistics background, in particular introducing the 
+terms `clustering' and `classification', giving some 
+added context and expanding upon the approaches briefly 
+mentioned here in \refsec{data}. 
+
+
+
+\subsection{Ovarian Cancer Application}
+\label{sec:ovarianDatasets}
+
+\citet{Winderbaum2015} motivate the study of ovarian cancer
+by proteomics:
+\begin{quote}
+``Ovarian cancers are virtually asymptomatic and as a 
+result the vast majority of cases are detected when the 
+disease has metastasised. 
+For these patients, radical surgery and chemotherapy 
+are often insufficient to address the disease 
+adequately and many patients relapse. 
+The combination of late-stage diagnosis and 
+unsuccessful treatments makes ovarian cancer the most 
+lethal gynaecological cancer, with advanced stage 
+patients exhibiting a five year survival rate of less 
+than $30\%$  
+\citep{Ricciardelli2009,Jemal2011}. 
+The keys to addressing ovarian cancer will be: 
+increasing our understanding of the mechanisms driving 
+cancer progression, identifying molecular markers which 
+can predict treatment success and identifying new 
+treatment targets. 
+As proteins are key functional components of cells and 
+tissues, determining protein distributions in cancer 
+tissue represents a crucial step in addressing these 
+key aims.''
+\end{quote}
+
+<<data_imaging_names>>=
+dataset_table <- data.frame(Dataset = c("A1","A2","A3","A4",
+                                        "B1","B2","B3","B4",
+                                        "C1","C2","C3","C4"
+                                        ),
+                            Peaks = 0,
+                            Spectra = 0,
+                            EmptySpectra = 0
+                            )
+@
+
+
+<<data_imaging_readin, results='hide', dependson=c("data_imaging_names")>>=
+for(dataset_name in dataset_table$Dataset){
+  peaklist_all <- readPeaklists(dataset_name)
+}
+@
+
+<<data_imaging_summary_table_make, dependson=c("data_imaging_names","data_imaging_readin")>>=
+for(dataset_name in dataset_table$Dataset){
+  peaklist_all <- load_peaklist(dataset_name)
+  LXY <- load_LXY(dataset_name)
+  dataset_table[dataset_table$Dataset == dataset_name,"Peaks"] = nrow(peaklist_all)
+  dataset_table[dataset_table$Dataset == dataset_name,"Spectra"] = nrow(LXY)
+  dataset_table[dataset_table$Dataset == dataset_name,"EmptySpectra"] = nrow(LXY) - length(unique(peaklist_all$Acquisition))
+}
+@
+
+<<data_imaging_summary_table_display, results="asis", dependson="data_imaging_summary_table_make">>=
+print(xtable(dataset_table, digits=0, caption="Total number of peaks, spectra, and empty spectra (spectra with no peaks) for each of the ovarian cancer datasets.", label="tab:imgBasicStats"),
+             size="footnotesize",
+             include.rownames=FALSE,
+             include.colnames=FALSE,
+             caption.placement="top",
+             hline.after=NULL,
+             add.to.row = list(pos=list(-1,
+                                        nrow(dataset_table)),
+                               command = c(paste("\\toprule \n",
+                                                 "Dataset Name & \\# Peaks & \\# Spectra & \\# Empty Spectra \\\\ \n",
+                                                 "\\midrule \n"),
+                                           "\\bottomrule \n")
+                               )
+      )
+@
+
+\begin{table}
+\caption{Two peptide \gls{mz} values found in many of the 
+ovarian cancer \gls{maldi}-\gls{ims} datasets and their 
+inferred parent proteins.
+Peptide sequences and parent proteins were inferred by 
+mass matching to concurrent \gls{lc}-\gls{ms} analyses 
+and validated by both 
+\emph{in situ} tandem \gls{maldi}-\gls{ms} and 
+\gls{ihc}.
+\gls{ihc} stains used for validation are shown in 
+\reffig{IHCvalidation}
+}
+\begin{center}
+\begin{tabular}{ccc}
+LC-\gls{msms}           & UniProtKB/SwissProt & Protein \\ 
+mass $[$M$+$H$]^+$ & Database Entry Name          & Name    \\ \hline
+                   &                     &         \\
+1628.8015          & ROA1\_HUMAN         & Heterogeneous nuclear \\
+                   &                     & ribonucleoprotein A1  \\
+	                 &                     &         \\
+2854.3884          & K1C18\_HUMAN        & Keratin 18
+\end{tabular}
+\end{center}
+\label{tab:massIDs}
+\end{table}
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {\includegraphics[scale=0.6,trim = 0cm 0cm 11cm 0cm, clip=TRUE]{./miscImages/IHC/IHCsummary_cropped_flipped_lowres.jpg}};
+\draw (4,0) node {\includegraphics[scale=0.6,trim = 11cm 0cm 0cm 0cm, clip=TRUE]{./miscImages/IHC/IHCsummary_cropped_flipped_lowres.jpg}};
+\end{tikzpicture}
+\end{center}
+\caption{\gls{ihc} stains used for validation of the 
+proteins in \reftab{massIDs} on two of the ovarian 
+cancer patients.
+Columns correspond to protein antibody stains, rows to 
+patients. \label{fig:IHCvalidation}}
+\end{figure}
+
+Ovarian cancers are known to be quite heterogeneous 
+tissues \citep{Deininger2008}, and this motivates the 
+use of \gls{maldi}-\gls{ims} in acquiring spatial 
+information that can de-convolute the inherent 
+heterogeneity of the tissue \citep{Gorzolka2014}. 
+\citet{Gustafsson2012thesis} describes the acquisition 
+of the data we have from a number of embedded ovarian 
+tumours --- containing not only tumour tissue, but also
+a margin of surrounding non-tumour tissues.
+One of our primary aims in considering these data is to
+separate the different tissue types, which we do by 
+means of the $k$-means clustering.
+Further to separating spectra from different tissue 
+types, we are interested in the extraction of features 
+or variables specific to the tumour tissue and less 
+prevalent in the non-tumour tissues.
+We present a method for this feature extraction based
+on ranking the variables by a statistic which we call
+\gls{dipps}, and then selecting the highly-ranked 
+variables.
+The process we propose for these clustering and feature 
+selection steps is described in detail in 
+\refchap{dipps}.
+Another aim when considering these ovarian cancer data 
+is to compare these highly ranked variables across 
+multiple datasets from both the same and different 
+patients, in an attempt to provide a  
+proof-of-principle that differences between patients 
+can be found using \gls{maldi}-\gls{ims} in this way, 
+potentially providing reasons to pursue future cohort 
+studies making use of \glspl{tma} to predict treatment 
+response.
+We consider the results of our combined clustering and
+feature selection method on several datasets from the 
+same and different patients in detail in 
+\refsec{datasetComparisons}.
+\refchap{dipps} and \refsec{datasetComparisons} 
+represent a more comprehensive view of the results 
+published by \citet{Winderbaum2015}, and provide us the 
+opportunity to discuss these results in more detail.
+
+The ovarian cancer datasets originate from patients who
+were diagnosed with serous ovarian cancer and went 
+through surgery to have tumours removed. 
+We consider $12$ datasets collected from sections of 
+surgically excised ovarian cancer tumours --- $4$ 
+from each of $3$ patients, where the $4$ datasets from 
+each patient are from multiple tissue sections of 
+the same tumour or tissue block.
+We will refer to the patients as A, B, and C, and will 
+refer to the four datasets from patient A as; A1, A2, 
+A3, and A4, and similarly for patients B and C. 
+\reftab{imgBasicStats} provides some details for each 
+of these datasets, indicating the scale of these data.
+The number of empty spectra, that is spectra with no 
+peaks, can be used as a heuristic for quality control 
+as every spectra, even off-tissue spectra, should 
+contain at least the internal calibrants and so a 
+spectrum being empty most likely indicates acquisition 
+conditions that require examination or improvement --- 
+inconsistent matrix crystallisation, for example.
+The number of empty spectra shown in 
+\reftab{imgBasicStats} are generally very small 
+relative to the total number of spectra, indicating no 
+obvious problem with the data acquisition, although 
+amongst all $12$ datasets C2 and C4 seem to have 
+notably more empty spectra than others.
+There is no immediately obvious reason why these two 
+datasets should be any different to the others, but we 
+will notice these empty spectra in further analyses in 
+\refchap{dipps}.
+% As alluded to in \refsec{statsBackground}, we 
+% discretise the \gls{mz} domain and the method we use for 
+% doing this in the ovarian cancer datasets is binning, 
+% which we explicitly define in \refapp{binning}.
+
+Similar to the methodology of \citet{Meding2012}, 
+\gls{lc}-\gls{ms} data was collected in parallel for 
+these ovarian cancer samples.
+Peptide identities of masses in the 
+\gls{maldi}-\gls{ims} data can be inferred by matching 
+to the masses of peptides identified in the 
+\gls{lc}-\gls{ms} data.
+Two such peptide masses that we find to be of 
+particular interest later in \refchap{dipps}, with 
+their parent proteins, are shown in \reftab{massIDs}.
+\gls{ihc} validation was also carried out for three
+selected proteins, including the two of 
+\reftab{massIDs}, and the \gls{ihc} stains for these 
+are shown in \reffig{IHCvalidation}.
+
+
+
+
+
+
+
+
+\subsection{N-Glycan Application (in Murine Kidney)}
+\label{sec:NglycansDatasets}
+
+\citet{Gustafsson2015} motivate the study of glycans:
+\begin{quote}
+``The majority of mammalian secretary and membrane 
+proteins are modified through glycosylation: the 
+covalent linkage of polysaccharide moieties (i.e., 
+glycans) to either serine/ threonine (O-linked) or 
+asparagine (N-linked) residues \citep{Pan2011}.''
+...
+% As such, glycosylation is one of the most common 
+% posttranslational modifications (PTM) 
+% \citep{Pan2011,Kam2008}. 
+% Global analysis of glycans and glycoproteins is 
+% currently pursued through glycomics and 
+% glycoproteomics, respectively \citep{Kolarich2012}. 
+% Glycomics focuses on the isolation and characterization 
+% of glycans \citep{Kolarich2012}, while glycoproteomics 
+% focuses on the elucidation of information such as the 
+% identity of glycosylated proteins, glycan composition, 
+% glycosylation site, and the role of the glycoprotein in 
+% cellular function and/or dysfunction \citep{Pan2011}.
+``Much of the interest in the analysis of protein 
+glycosylation stems from the observation of altered 
+glycosylation patterns in cancer \citep{Pan2011}. 
+An understanding of these alterations could provide 
+novel biomarkers of disease as well as new treatment 
+targets for anticancer therapies \citep{Abbott2008}.''
+\end{quote}
+
+<<data_Nglycans_readin, results='hide'>>=
+dataset_name <- 'glycans_kidney'
+peaklist_all <- readPeaklists(dataset_name)
+@
+
+The glycan experiment involved the use of an enzyme 
+PNGase F to free N-linked glycans from \gls{ffpe} 
+tissue in order to be available for analysis, this 
+sample preparation step essentially replaced that of 
+the trypsin digestion discussed in \refsec{maldiims}.
+The objective of the experiment was to demonstrate the
+proof-of-principle that N-linked glycans could be 
+detected by \gls{maldi}-\gls{ims} on \gls{ffpe} tissue.
+As this was a proof-of-principle experiment and not 
+yet a study of a clinically relevant disease such as 
+cancer (which is intended to be the next application of 
+this method), non-precious murine (rodent) kidney 
+tissue was used.
+\citet{Gustafsson2015} carried out three different 
+analyses on these samples: \gls{lc}-\gls{ms} of 
+homogenised tissue treated with PNGase F, and both 
+large droplet \emph{in situ} \gls{maldi}-\gls{ms} (as
+mentioned in \refsec{spottingspraying}), and 
+high-resolution \gls{maldi}-\gls{ims} on both tissue
+treated with PNGase F, and (untreated) control tissue.
+
+For the high-resolution \gls{maldi}-\gls{ims} data we 
+will consider, spectra were collected from two 
+comparable regions of tissue, one of which was treated 
+with the enzyme PNGase F and the other, `control', 
+region was not treated with the enzyme. 
+Masses observed in the first region but not in the 
+second are expected to be glycan masses, and further 
+evidence for their identity as glycans was established
+by \citet{Gustafsson2015} using the additional 
+\gls{lc}-\gls{ms} and large droplet data.
+As this experiment essentially consists of only a 
+single \gls{maldi}-\gls{ims} dataset, some of the 
+decisions made in preprocessing the ovarian cancer 
+datasets (where a major objective was to compare 
+multiple datasets) are no longer easily justified for 
+the glycan dataset.
+Specifically, the preprocessing decisions relate to the 
+method for discretisation of the \gls{mz} domain, for the
+ovarian cancer datasets we propose a naive 
+`data-independent' binning approach (explicitly defined 
+in \refapp{binning}), as this allows for multiple 
+datasets to be combined and compared intuitively.
+However when this is not necessary, better approaches 
+exist, and in \refsec{dataDependant} we discuss this 
+point in more detail, and introduce alternative  
+`data-dependent' discretisation methods appropriate for 
+the glycan data.
+Ultimately we apply the `\gls{dipps}' feature 
+extraction approach introduced in \refchap{dipps} to 
+select likely glycan mass candidates in the 
+\gls{maldi}-\gls{ims} data, and match them by mass to 
+identified glycans from the \gls{lc}-\gls{ms} as shown 
+in \reftab{glycan_matches}.
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{TMA Applications}
+\label{sec:endometrialDatasets}
+
+\subsubsection{Endometrial Cancer TMAs}
+% {\highlightTextAs{incomplete}
+% The endometrial data of \cite{Mittal2016} was 
+% collected using an Bruker UltrafleXtreme at 
+% $2$kHz in positive reflectron mode with a \gls{mz} 
+% detection range of $800-4000$, and a centre to 
+% centre lateral distance of $60\,\mu$m.
+% Acquisition and preprocessing was done through 
+% proprietary software (flexControl v3.0.1 and 
+% flexImaging v4.0.1, Bruker Daltonik, 
+% \url{http://www.bruker.com}).
+% Most notable of the preprocessing is peak-picking, 
+% consisting of the following steps: 
+% smoothing using a Gaussian kernel, baseline reduction 
+% using the `TopHat' method, peak-picking/deisotoping 
+% using the \SNAP method, and finally setting a 
+% \gls{snr} threshold of two.
+% }
+
+
+As mentioned in \refsec{TMAs}, an exciting application 
+of \gls{maldi}-\gls{ims} is to \glspl{tma} --- as this
+allows data from large cohorts of patients to be
+collected rapidly, potentially allowing difficult
+diagnostic and prognostic problems to be addressed.
+The problem we will consider is that of diagnosing 
+\gls{lnm} in patients with endometrial cancer.
+
+
+\citet{Winderbaum2016} motivate the classification of 
+\gls{lnm} in endometrial cancer:
+\begin{quote}
+``Endometrial cancer is the most common gynaecological 
+malignancy in Australia with $2256$ diagnosed cases in
+$2010$ and $381$ associated deaths in $2011$ 
+\cite{AIHW2012}. 
+The presence or absence of \acrfull{lnm} 
+is the most important prognostic factor in endometrial 
+cancer as patients with localised disease have a $5$ 
+year survival rate of $96\%$, which drops to just 
+$17\%$ for patients with metastatic disease 
+\cite{Rungruang2012}. 
+Accurately staging endometrial cancer is difficult and 
+a large percentage of patients are misclassified prior 
+to treatment \cite{Jacques1998}. 
+Although the presence of \gls{lnm} is confirmed in only 
+around $15\%$ of cases \cite{Morrow1991,Creasman2006}, 
+the majority of endometrial cancer patients undergo 
+radical treatment including the removal of pelvic lymph 
+nodes as a precautionary measure to compensate for our 
+current inability to accurately stage the disease. 
+Lymph node removal is associated with significant 
+complications including lower extremity lymphoedema, 
+which has been described in up to $38\%$ of patients 
+\cite{Todo2010}. 
+A classification system based around predictive tissue 
+markers of metastasis would greatly benefit stage I 
+endometrial cancer patients by helping determine 
+optimal treatment strategies that avoid unnecessary, 
+invasive procedures.''
+\end{quote}
+
+\gls{lnm} is highly predictive of survival but can be 
+difficult to diagnose pre-surgery.
+Clinical variables such as grade, size, and depth of 
+myometrium invasion  are sometimes available 
+pre-surgery but do not correlate well enough with 
+\gls{lnm} to allow accurate prediction --- see
+\reftab{tmaPatientBasicStats}.
+We aim to demonstrate that it is possible to improve on 
+this prediction by applying suitable classification 
+methods to \gls{maldi}-\gls{ims} data from \glspl{tma}.
+
+If a patient is \gls{lnm} positive and they do not have
+their lymph nodes excised with their primary tumour the
+cancer is very likely to recur.
+Generally the lymph nodes are excised at the same time 
+as the primary tumour, as it is difficult to diagnose 
+the \gls{lnm} status pre-surgery and the risk of 
+leaving any potentially \gls{lnm} positive lymph nodes 
+outweighs the additional invasiveness of the surgery to 
+remove them.
+In addition to \gls{lnm} status potentially providing 
+more accurate prognostic prediction due to its 
+importance to survival, being able to diagnose
+\gls{lnm} status could potentially contribute to the
+individualisation of patient treatments.
+Patients who are negative for \gls{lnm} could be 
+subjected to less invasive surgery as their lymph nodes 
+would not need to be removed.
+Reduction in the invasiveness of the surgery could then
+have positive carry-on effects on post-surgery recovery 
+time and quality of life.
+
+
+<<Etma_clinical_data, results="asis">>=
+clin_df <- read.csv('./data/Etma_annotation/Etma_clinical_data.csv')
+p <- c(16, 28, 17, 34, 18, 39, 25, 36, 11, 37, 12, 51, 13, 46, 26, 40, 14, 47, 27, 48, 20, 49, 21, 56, 24, 57, 22, 58, 55, 
+       60, 61, 19, 41, 8, 1, 35, 32, 4, 64, 63, 2, 30, 33, 9, 65, 6, 10, 66, 5, 29, 52, 7, 53, 54, 59, 44, 38)
+# temp <- subset(clin_df,Suitable & !is.na(match(clin_df$Patient,p)))
+# temp$Suitable <- NULL
+# temp$Patient <- NULL
+# print(xtable(temp, 
+#              digits=c(0,0,0,0,0,0,0,0,0,1,1,1), 
+#              caption="Clinical Information for Suitable Endometrial Cancer Patients", 
+#              label="tab:Etma_clin_df"),
+#              size="footnotesize",
+#              include.rownames=FALSE,
+#              include.colnames=FALSE,
+#              caption.placement="top",
+#              hline.after=NULL,
+#              add.to.row = list(pos=list(-1,
+#                                         nrow(temp)),
+#                                command = c(paste("\\toprule \n",
+#                                                  "LNM & LVSI & Grade & Size & FIGO.old & FIGO.new & T.told & T & Inv.Myo & Thi.Myo & Dis.Ser \\\\ \n",
+#                                                  "\\midrule \n"),
+#                                            "\\bottomrule \n")
+#                                )
+#       )
+
+@
+
+
+The endometrial cancer datasets we consider originate
+from $\Sexpr{length(unique(p))}$ patients diagnosed 
+with endometrial cancer who had been through surgery to 
+have their tumours excised.
+Two cylindrical $1.5$mm diameter tissue cores from each 
+patients primary tumour were taken and the cores 
+arranged into two \gls{tma} blocks --- each \gls{tma} 
+block consisting of a $7 \times 9$ grid of cores, 
+including some control cores and some empty positions.
+These \gls{tma} blocks were then sectioned.
+We consider $4$ datasets, two sections of each of the 
+two \gls{tma} blocks.
+We call the two \gls{tma} blocks `EA' and `EB' 
+respectively.
+We will denote the two datasets from EA EA1 and EA2, 
+and similarly denote the two datasets from EB EB1 and 
+EB2.
+Although each core is taken from primary tumour tissue,
+some sections of some cores still have non-tumour 
+tissue or are entirely missing due to the three 
+dimensional nature of the cores and the heterogeneity 
+of the tumours. 
+In order to address this potential tissue heterogeneity
+each section was also \gls{he} stained and the tumour 
+tissue was manually annotated by a pathologist.
+Similarly to \reftab{imgBasicStats},  
+\reftab{tmaBasicStats} provides some details for these 
+datasets.
+The additional column `\# Cancer Spectra' gives the 
+total number of spectra from regions annotated as 
+tumour tissue by the pathologist.
+Notice that the total number of cancer spectra is 
+significantly smaller than the number of spectra total
+--- this is likely because of both small margins of 
+off-tissue regions being acquired, and due to the 
+significant heterogeneity of the tissue cores.
+
+<<data_tmas_names>>=
+tma_dat_table <- data.frame(Dataset = c("EA1", "EA2",
+                                        "EB1", "EB2"),
+                            Peaks = 0,
+                            Spectra = 0,
+                            EmptySpectra = 0,
+                            stringsAsFactors = FALSE
+                            )
+
+@
+
+
+<<data_tmas_readin, results='hide', dependson=c("data_tmas_names")>>=
+for(dataset_name in tma_dat_table$Dataset){
+  peaklist_all <- readPeaklists(dataset_name)
+}
+@
+
+<<data_tmas_summary_table_make, dependson="data_tmas_readin">>=
+for(dataset_name in tma_dat_table$Dataset){
+  peaklist_all <- load_peaklist(dataset_name)
+  LXY <- load_LXY(dataset_name)
+  tma_dat_table[tma_dat_table$Dataset == dataset_name,"Peaks"] = nrow(peaklist_all)
+  tma_dat_table[tma_dat_table$Dataset == dataset_name,"Spectra"] = nrow(LXY)
+  tma_dat_table[tma_dat_table$Dataset == dataset_name,"EmptySpectra"] = nrow(LXY) - length(unique(peaklist_all$Acquisition))
+}
+@
+
+
+<<data_tmas_annotations, dependson="data_tmas_names">>=
+tma_dat_table$CancerSpectra <- 0
+tma_dat_table$Dataset_matlab = c("Etma1B1_2kHz","Etma1B2_2kHz",
+                                 "Etma2B1_2kHz","Etma2B2_2kHz")
+p_list = 0
+for(dataset_name_matlab in tma_dat_table$Dataset_matlab){
+  dataset_name = tma_dat_table[tma_dat_table$Dataset_matlab==dataset_name_matlab,"Dataset"]
+  annot_df <- read.csv(paste("./data/Etma_annotation/",dataset_name_matlab,"_annotation.csv",sep=""))
+  tma_dat_table[tma_dat_table$Dataset==dataset_name,"CancerSpectra"] <- sum(annot_df$Cancer==1)
+  
+  LXY = load_LXY(dataset_name)
+  LXY = merge(LXY,annot_df)
+  p_numbers <- read.csv(paste('./matlab/output/',dataset_name_matlab,'_r_p_numbers.csv',sep=""),header=FALSE)
+  names(p_numbers) = 'Patient'
+  p_numbers$Region = unique(LXY$Region)
+  LXY = merge(LXY,p_numbers)
+  write.table(LXY,file=paste("./data/",dataset_name,"_LXY_annotated.txt",sep=""),
+              sep="\t",row.names=FALSE,col.names=TRUE)
+  p_list = unique(c(p_list,p_numbers$Patient))
+}
+@
+
+
+
+<<data_tmas_summary_table_display, results="asis", dependson=c("data_tmas_summary_table_make","data_tmas_annotations")>>=
+print(xtable(tma_dat_table[,1:5], digits=0, caption="Basic statistics on endometrial TMA datasets", label="tab:tmaBasicStats"),
+             size="footnotesize",
+             include.rownames=FALSE,
+             include.colnames=FALSE,
+             caption.placement="top",
+             hline.after=NULL,
+             add.to.row = list(pos=list(-1,
+                                        nrow(tma_dat_table)),
+                               command = c(paste("\\toprule \n",
+                                                 "Dataset Name & \\# Peaks & \\# Spectra & \\# Empty Spectra & \\# Cancer Spectra \\\\ \n",
+                                                 "\\midrule \n"),
+                                           "\\bottomrule \n")
+                               )
+      )
+@
+
+
+
+
+
+
+<<data_tmas_patients, dependson=c("Etma_clinical_data","data_tmas_annotations")>>=
+clin_df$Peaks = 0
+clin_df$CancerPeaks = 0
+clin_df$Spectra = 0
+clin_df$CancerSpectra = 0
+clin_df$EmptySpectra = 0
+
+for(dataset_name in tma_dat_table$Dataset){
+  peaklist_all <- load_peaklist(dataset_name)
+  LXY <- read.table(paste("./data/", dataset_name, "_LXY_annotated.txt",sep=""), sep="\t", header=TRUE)
+
+  dat_sum = ddply(LXY,c("Patient"),summarise,
+                  Spectra = length(Acquisition),
+                  CancerSpectra = sum(Cancer))  
+  peaklist_all = merge(peaklist_all[,c("m.z","Acquisition")],LXY[,c("Acquisition","Patient","Cancer")])
+  temp_sum = ddply(peaklist_all,c("Patient"),summarise,
+                   EmptySpectra = length(unique(Acquisition)),
+                   Peaks = length(m.z),
+                   CancerPeaks = sum(Cancer))
+  dat_sum = merge(dat_sum,temp_sum)
+  dat_sum$EmptySpectra = dat_sum$Spectra - dat_sum$EmptySpectra
+  
+  p_idxs = match(dat_sum$Patient,clin_df$Patient,nomatch=0)
+  for (colnam in c("Peaks","CancerPeaks","Spectra","CancerSpectra","EmptySpectra")){
+    clin_df[p_idxs,colnam] = clin_df[p_idxs,colnam] + dat_sum[p_idxs > 0,colnam]
+  }
+}
+@
+
+
+In the ovarian cancer data we refer to datasets as they 
+conveniently separate the data into biological and 
+technical replicates.
+However in the endometrial cancer data the goal is to 
+make predictions about patients, and many patients are 
+represented in each dataset.
+We combine all four of the datasets described in
+\reftab{tmaBasicStats}, and in our analysis we will 
+partition these data by patient.
+Also, after closer inspection of the clinical records
+it was determined that several patients represented in
+the \glspl{tma} are not comparable to the others for
+the purposes of predicting \gls{lnm} --- belonging to a 
+different sub-type of cancer expected to have very 
+different molecular composition and behaviour.
+Data from these patients will be completely ignored, 
+and after having removed these inappropriate patients 
+we are left with data from 
+$\Sexpr{nrow(subset(clin_df,Suitable & !is.na(match(clin_df$Patient,p))))}$ 
+patients, 
+$\Sexpr{sum(subset(clin_df,Suitable & !is.na(match(clin_df$Patient,p)))$LNM)}$ 
+of which are \gls{lnm} positive.
+\reftab{tmaPatientBasicStats} shows some clinical 
+variables of interest as well as details similar to 
+\reftab{imgBasicStats} and \reftab{tmaBasicStats} for 
+these 
+$\Sexpr{nrow(subset(clin_df,Suitable & !is.na(match(clin_df$Patient,p))))}$ 
+patients.
+
+We will approach the question of predicting \gls{lnm} 
+on the basis of the \gls{maldi}-\gls{ims} data using 
+the framework of classification. 
+In \refchap{classificationMethods} we introduce a 
+variety of classification methods from the literature, 
+some established, and one quite recent.
+We also discuss the difficulties in classification of 
+such high-dimensional data, and present two different 
+approaches to dimension reduction, the comparison of 
+which is the focus of \citet{Winderbaum2016}.
+We also discuss our approach to preprocessing these 
+data, and our novel approach to what we call 
+`normalisation' that could potentially improve 
+classification results.
+After having introduced all these methods in 
+\refchap{classificationMethods}, we apply them to the 
+endometrial cancer data in 
+\refchap{classificationApplication}, and discuss the 
+results in detail.
+Finally we conclude that useful information that can be
+used to improve diagnosis of \gls{lnm} status can be 
+obtained from these data in a variety of ways.
+The variable reduction method suggested in
+\citet{Winderbaum2016} works by ranking variables and 
+selecting the highly-ranked ones for use in 
+classification. 
+This approach has the additional advantage that 
+highly-ranked variables can be further investigated as 
+potential biomarkers for \gls{lnm}, and we consider 
+some promising variables with which to begin this 
+process in \refsec{opt_opt}.
+
+
+
+
+<<data_tmas_patient_summary_table, results="asis", dependson="data_tmas_patients">>=
+temp <- subset(clin_df,Suitable & !is.na(match(clin_df$Patient,p)))[,c("Patient","LNM","Grade","Size","Invasion.Myometrium","Spectra","CancerSpectra","EmptySpectra")]
+print(xtable(temp, 
+             digits=0, 
+             caption="Basic statistics on endometrial TMA data, per patient. Grade, Size, and Myometrium Invasion are clinical variables known to be correlated to \\gls{lnm}. These clinical variables are sometimes known before surgery, and have been considered for use in prediction of \\gls{lnm} status but, as reflected in these data, do not allow for very accurate prediction. Note the presence of some missing values, these correspond to patients whose stored clinical data are incomplete.", label="tab:tmaPatientBasicStats"),
+      size="footnotesize",
+      include.rownames=FALSE,
+      include.colnames=FALSE,
+      caption.placement="top",
+      hline.after=NULL,
+      table.placement="p",
+      add.to.row = list(pos=list(-1,
+                                 nrow(temp)),
+                        command = c(paste("\\toprule \n",
+                                          "\\multirow{2}{*}{Patient \\#} & \\multirow{2}{*}{LNM} & \\multirow{2}{*}{Grade} & \\multirow{2}{*}{Size} & Myometrium & \\multirow{2}{*}{\\# Spectra} & \\# Cancer & \\# Empty \\\\ \n & & & & Invasion & & Spectra & Spectra \\\\ \n",
+                                          "\\midrule \n"),
+                                    "\\bottomrule \n")
+      )
+)
+@
+
+
+
+\subsubsection{Vulvar Cancer TMAs}
+
+
+Vulvar cancer is another gynaecological cancer for 
+which, similar to endometrial cancer, \gls{lnm} is 
+highly predictive of prognosis and important to the 
+choice of treatment.
+
+% {\highlightTextAs{incomplete}
+% The following is a quote from Chao's `failed' manuscript, 
+% which did not end up getting published. So I'll probably 
+% have to change the way in which this is presented.
+% }
+% \begin{quote}
+% ``In the United States $5150$ new vulva cancer cases 
+% were diagnosed and $1080$ deaths from this disease were 
+% recorded in $2015$, constituting $5\%$ of all 
+% gynaecological cancers and $0.6\%$ of all cancer cases 
+% in women \citep{Siegel2015}. 
+% 
+% ...
+% 
+% Within Australia, incidence rates of the disease are 
+% extremely high among Aboriginal women from Arnhem Land 
+% in the Northern Territory. 
+% Studies conducted within this cohort have found no 
+% relation between the disease and human papilloma virus 
+% (HPV) infection or any underlying genomic 
+% irregularities \citep{Condon2009}. 
+% 
+% ...
+% 
+% Limited research has been performed on the molecular 
+% characterization of vulva cancer progression at both 
+% the genomic and proteomic level, leaving the medical 
+% community with a poor understanding of how the disease 
+% initiates and metastasises.  
+% 
+% ...
+% 
+% \gls{lnm} is a crucial factor in the prognosis and 
+% choice of treatment of gynaecological cancer patients. 
+% However, conventional surgical-pathological variables 
+% of the primary tumour, such as tumour size, depth of 
+% stromal invasion, histological grade and lymphovascular 
+% space invasion (LVSI) or radiological imaging are 
+% unreliable in determining if a gynaecological cancer 
+% has metastasized. 
+% New predictive tissue markers, that could be used alone 
+% or in combination with traditional clinic-pathological 
+% variables, are essential to identify patients with high 
+% risk for metastasis. 
+% The lymphatic spread of vulvar carcinomas can occur 
+% early in the disease process and is the strongest 
+% prognostic factor of the disease. 
+% The $5$-year survival rates for patients with negative 
+% nodes range from $70$ to $98\%$, but drop to  $12–41\%$ 
+% for those with metastatic nodes \citep{Gadducci2012}.  
+% Most women with vulvar carcinoma undergo an 
+% inguinofemoral lymph node dissection which is 
+% associated with significant short and long term 
+% complications occurring in up to $85\%$ of the patients 
+% \citep{Hinten2011}.  
+% If positive lymph nodes are identified, adjuvant 
+% radiotherapy is administered which leads to even greater 
+% morbidity.
+% 
+% ...
+% 
+% Ramaswamy et al. demonstrated that a gene-expression program of metastasis is present in the bulk of a primary tumour, challenging the idea that metastasis originates from rare cells within the tumour which have acquired an exclusive ability to metastasize by random mutations [9].  Moreover, in recent years a number of proteomics approaches have identified protein signatures from primary tumours to accurately predict lymph node metastasis, overall survival or disease reoccurrence [10-15]. Previous studies on vulvar cancer development have mainly focused on exploring the efficiency of existing gynaecological cancer biomarkers, for example mutations in p53 have been shown to promote the development of vulvar cancer [16]. However, the mechanism of vulvar cancer progression and invasion remains unclear. Although several other cancer biomarkers, such as CA125 and Cyclin D1 show a strong correlation with vulvar cancer progression, they are not sensitive nor specific enough to reliably discriminate cancer stages or predict metastasis [17, 18]. Gene sequencing and immunohistochemical staining have been performed on vulvar cancer, but have not identified any suitable cancer biomarkers [19, 20].
+% ''
+% \end{quote}
+
+In \refchap{classificationApplication} we compare 
+different approaches to the classification of the 
+endometrial cancer data described above.
+Ultimately we note that certain approaches tend to 
+perform better than others and it is of interest to 
+validate that these trends can be reproduced in a 
+different context.
+We will use the smaller vulvar cancer dataset to 
+reproduce all the analyses included in 
+\refchap{classificationApplication} in order to 
+investigate which trends are reproduced in this second
+dataset, and which are not.
+The results of classification on the vulvar cancer data 
+are included in \refapp{vulvar}, and discussed in 
+\refsec{DAconclusions}.
+
+The vulvar data, similarly to the endometrial cancer
+described above, consists of multiple sections from two 
+\glspl{tma}, but fewer patients are represented in the
+vulvar \glspl{tma} as compared with the endometrial.
+The endometrial data represents information from $43$ 
+patients relevant to this study, but the vulvar data 
+represents information from only $28$ patients. 
+
+% {\highlightTextAs{incomplete}
+% I have a bunch more detail I could give here, including
+% stats on these patients and loads of references and 
+% discussion of the medical literature surrounding vulvar
+% cancer -- motivating its study, etc. But that all seems 
+% quite unneccessary here and so for the time being I've 
+% left is as concise as possible as that seems for the 
+% best? I can always add the extra detail later.
+% }
+
+
+\section{Statistics Background}
+\label{sec:statsBackground}
+
+As mentioned above, the data we will consider is of 
+peaklist form. 
+Peaklist data does not fit into the standard 
+statistical paradigm of `observations' and `variables'
+in an obvious way, as the data simply consist of peaks
+with \gls{mz} values, several other characteristics (such 
+as peak height or intensity, integrated area, and
+\gls{snr}), and labels indicating the 
+spectra from which the peaks originated.
+
+In each application we construct observations and 
+variables from the peaklists in a different way 
+appropriate to the particular context.
+In many contexts our observations correspond to 
+spectra as is common in the analysis of 
+\gls{maldi}-\gls{ims} data, but in the endometrial data 
+for example our observations correspond to patients. 
+The variables will always be some discretisation of the 
+\gls{mz} domain --- where each variable corresponds to an 
+\gls{mz} interval and peaks are grouped based on which 
+variable or \gls{mz} interval they fall into.
+We will present different approaches to discretisation 
+of the \gls{mz} domain, each with advantages and 
+disadvantages, and will use different approaches in 
+different applications.
+The values of these variables for any given spectrum
+then correspond to a particular characteristic of the 
+peaks in that spectrum within the relevant \gls{mz} 
+interval.
+Characteristics that can correspond to the values of 
+the variables include: the intensity of a peak, the 
+integrated area of the peak, \gls{snr} of 
+the peak, and binary values coding the presence or 
+absence of a peak. 
+In cases when multiple peaks from a single spectrum 
+occur in the same \gls{mz} interval, these values can be 
+averaged, or the maximum value taken, but we will 
+choose sufficiently small \gls{mz} intervals such that 
+multiple peaks from the same spectrum should not occur
+in the same \gls{mz} interval.
+In \refsec{binSizeChoice} we discuss how to choose 
+\gls{mz} intervals that are sufficiently small such 
+that multiple peaks from the same spectrum do not occur 
+in the same \gls{mz} interval.
+We will consider each of these options for values of 
+the variables in different applications.
+
+In each of the options discussed above, the decisions
+about how to discretise the \gls{mz} domain into variables 
+and what objects correspond to observations, allow us 
+to represent the data as a $d \times n$ data matrix 
+$\mData$, where rows correspond to variables and 
+columns to observations.
+Representing these data in this form allows us to draw 
+on the methods from the multivariate statistics 
+literature.
+Two such methods we will consider in some detail are
+clustering, and classification.
+We introduce these two methods, along with some 
+associated concepts and a little discussion of the 
+literature, in \refsec{statsBackgroundClus} and
+\refsec{statsBackgroundClas} respectively.
+Note that we will repeat much of the discussion from
+\refsec{statsBackgroundClas} in \refsec{DAmethods}, 
+where we discuss the particular classification methods 
+we will use in more detail.
+Similarly we will repeat some of the discussion from 
+\refsec{statsBackgroundClus} in \refsec{kmeans},
+where we discuss the particular clustering method we 
+will use in more detail.
+
+\subsection{Clustering, Similarity, and Distance}
+\label{sec:statsBackgroundClus}
+
+Clustering is a field in which the objective is to
+group (usually partition) observations into `clusters' 
+such that observations in the same cluster are more 
+`similar' to each other than observations from 
+different clusters. See \citet{Jain1999} for a review
+on clustering.
+
+In different applications the term `similar' can be 
+interpreted in different ways but a general way to 
+discuss it is in terms of a distance --- two 
+observations are `similar' if the distance between them 
+is small.
+Distance can be defined more precisely, for example as 
+a pseudometric (\refdef{distance}). 
+\begin{defn}
+\emph{\textbf{Distance (Pseudometric):}} 
+a non-negative function $D$ such that for a set $S$, 
+$D: S \times S \rightarrow \mathbb{R}$ and for every 
+$x,y,z \in S$,
+\begin{enumerate}
+  \item $D(x,x) = 0$,
+  \item $D(x,y) = D(y,x)$, and %(symmetric)
+  \item $D(x,z) \leq D(x,y) + D(y,z)$. %(triangle inequality)
+\end{enumerate}
+\label{def:distance}
+\end{defn}
+The word distance is sometimes used to mean any 
+function $D: S \times S \rightarrow \mathbb{R}$ such 
+that smaller values of $D(x,y)$ indicate $x$ and $y$ 
+are more `similar', for some intuitive interpretation 
+of the term `similar'.
+This more vague usage of the word `distance' is more 
+general and includes functions that are not 
+pseudometrics but could still be meaningfully used in 
+any of the places we use pseudometrics.
+That said, all the distances we use are 
+pseudometrics, so in the context of this thesis the two 
+usages of the word `distance' are interchangeable and 
+we simply use the more precise pseudometric definition 
+(\refdef{distance}) to avoid confusion.
+
+Although we use several other distances later, in the 
+context of clustering we focus on three distances in
+particular: the Euclidean distance (or $L^2$ norm), the 
+cosine distance (\refdef{Dcos}), and the Hamming 
+distance (\refdef{Dham}). 
+\begin{defn}
+\emph{\textbf{Cosine Distance:}}
+$D_{cos} : \mathbb{R}^d \times \mathbb{R}^d \rightarrow [0,2]$, such that
+\begin{equation}
+  D_{cos}(\bm{x},\bm{y}) = 1 - \frac{\bm{x} \cdot \bm{y}}{\sqrt{(\bm{x} \cdot \bm{x})(\bm{y} \cdot \bm{y})}}.
+\end{equation}
+\label{def:Dcos}
+\end{defn}
+\begin{defn}
+\emph{\textbf{Hamming Distance:}}
+$D_{Ham} : \{0,1\}^d \times \{0,1\}^d \rightarrow [0,d]$, such that
+\begin{equation}
+  D_{Ham}(\bm{x},\bm{y}) = d - \bm{x} \cdot \bm{y} - (1-\bm{x}) \cdot (1-\bm{y}).
+\end{equation}
+\label{def:Dham}
+\end{defn}
+The Euclidean distance allows `similar' to be 
+interpreted as `spatially nearby', and as such is 
+useful in many clustering applications.
+Although there are more general definitions for the 
+Hamming distance than \refdef{Dham}, we restrict the 
+domain to $d$-dimensional binary vectors $\{0,1\}^d$, 
+as this is the context in which we will use the Hamming
+distance. 
+It is interesting to note that, in this restricted 
+domain of binary vectors, the Hamming distance is 
+actually equivalent to the squared Euclidean distance, 
+i.e. $D_{Ham} = D_{Euc}^2$.
+
+
+
+
+
+
+
+
+There are many different approaches to clustering, see
+\citet[Chapter 6]{Koch2013} and references therein.
+One popular choice is to use Markov chain Monte Carlo 
+methods to estimate mixture model parameters --- for 
+references to this approach see 
+\citet{McLachlan1988,Peel2000}.
+\citet{Xu2005} review more clustering approaches, 
+including so-called `fuzzy' clustering and neural 
+network based methods.
+One approach to clustering of particular note due to 
+its popularity in the analysis of \gls{maldi}-\gls{ims} 
+is that described by \citet{Deininger2008}, which 
+combines `supervised' and `unsupervised' steps, and is 
+described as as `semi-supervised' by 
+\citet{Deininger2008}.
+Due to the popularity of such semi-supervised 
+approaches in the \gls{maldi}-\gls{ims} context we will 
+briefly describe the approach of \citet{Deininger2008}, 
+including a brief discussion of agglomerative 
+hierarchical clustering that forms a component of it, 
+although we do not pursue the idea further.
+Finally we will briefly discuss the $k$-means approach, 
+which we discuss in more detail in \refsec{kmeans},
+as this is the clustering approach we will primarily 
+rely on in this work.
+
+Agglomerative hierarchical clustering is an approach in 
+which each observation can be thought of as beginning 
+in a separate cluster, and an iterative process is 
+implemented such that at each iteration two clusters, 
+chosen due to being the `most similar' in some sense, 
+are combined.
+The total number of clusters is reduced by one in each 
+iteration.
+This process ends either when a predefined number of 
+clusters is reached or after $n-1$ steps when all 
+observations are in the same cluster.
+Hierarchical clustering such as this can be visualised 
+in a dendrogram or hierarchical tree, describing the 
+order in which clusters were combined. 
+Sometimes the dendrogram representing a hierarchical 
+clustering is informative, such as in the context 
+described by \citet{Winderbaum2012}.
+In the context of \gls{maldi}-\gls{ims} such a 
+dendrogram is difficult to interpret due to the spatial 
+information not being represented in the dendrogram.
+A specific partition of the observations into clusters 
+can be plotted spatially and thus interpreted usefully.
+In order to produce a specific partition using standard
+hierarchical clustering methods a predefined number of 
+clusters needs to be chosen, but justifying this choice
+can be difficult.
+
+
+So-called `semi-supervised' methods popular in the 
+analysis of \gls{maldi}-\gls{ims} data, such as that 
+described by \citet{Deininger2008}, produce a 
+particular set of clusters by first visualising a 
+standard, unsupervised, agglomerative clustering in a 
+dendrogram and then allowing the user to 
+recursively open branches in the dendrogram --- 
+essentially performing a `supervised' divisive 
+clustering step where the choice of which cluster to 
+split in each case is determined by the user.
+Beginning with the single cluster containing all 
+observations the user `opens' clusters, splitting them 
+in two, and thus effectively moves down through the 
+dendrogram (splitting the observations into more and 
+more clusters) until the user believes they have 
+reached a meaningful set of clusters. 
+What the user determines to be a meaningful set of 
+clusters is usually judged on the basis of the 
+histology of the tissue with the aid of a \gls{he} 
+stain as described in \refsec{IHC}, but this process is 
+subjective nonetheless.
+This combination of unsupervised hierarchical clustering
+and user-determined steps is what earns these methods 
+the term `semi-supervised'.
+We will not consider results from such semi-supervised
+methods, or any hierarchical clustering methods at all, 
+instead favouring the $k$-means approach described 
+below, which compared to hierarchical methods is more 
+computationally efficient.
+
+$k$-means is an alternative approach to that of 
+hierarchical clustering that attempts to find an optimum 
+partition of the observations into $k$ clusters such 
+that observations in the same cluster are `more 
+similar' than observations in different clusters in 
+some sense.
+We give details on the $k$-means algorithm in 
+\refsec{kmeans}.
+In comparison to the semi-supervised approaches 
+described above, $k$-means is an entirely unsupervised
+method.
+We make extensive use of $k$-means to separate tissue 
+types in the ovarian cancer data, where we know
+reasonable values of $k$ to be the number of different 
+tissue types present, which is easily determined from 
+the \gls{he} stains.
+
+These different clustering approaches each have 
+advantages and disadvantages, and both hierarchical 
+and $k$-means clustering are used in the analysis of 
+\gls{maldi}-\gls{ims} data, as \citet{Jones2012} 
+discuss.
+We favour the $k$-means approach, as its unsupervised 
+nature allows us to repeat many computations in 
+parallel, and it is more computationally efficient than
+hierarchical methods as it does not need to generate 
+full dendrograms.
+However it should be noted that hierarchical approaches 
+have their uses as well, as discussed at length by 
+\citet{Alexandrov2012} and references therein.
+
+
+\subsection{Classification}
+\label{sec:statsBackgroundClas}
+
+Classification, sometimes called discriminant analysis, 
+is a field that concerns the differentiation of data 
+belonging to several classes 
+\citep[Chapter 4]{Koch2013}.
+Classification can be subdivided into two steps: 
+\begin{itemize}
+  \item Constructing a classification rule capable of 
+  assigning a class label to an observation.
+  The construction of the rule is done on the basis of 
+  data with known class membership (labels, identifying 
+  the class to which each observation belongs), 
+  sometimes called `training' data.
+  This construction step is often referred to as the 
+  `training' or `learning' step.
+  \item Applying a rule to assign a class label to 
+  an observation (or observations). 
+  This step can be further subdivided into one of two cases: 
+  \begin{itemize}
+  	\item applying the rule to an observation of 
+    unknown class membership for which a real-world 
+    decision needs to be made (prediction), or 
+    \item applying the rule to observations of known 
+    class membership in order to assess the performance 
+    of the rule (sometimes called `testing').
+	\end{itemize}
+\end{itemize}
+
+It should be noted that there are a plethora of 
+approaches to classification, and we only consider a 
+very limited selection, which we describe in 
+\refsec{DAmethods}.
+Popular approaches to classification not represented 
+in this work include random forests (see 
+\citet{Breiman2001} and references therein) and 
+\glspl{svm} (see \citet{Scholkopf1998,Cristianini2000} 
+and references therein).
+Special consideration of the analysis of binary data 
+has dated back as far as \citet{Cox1972}, and although
+we consider classification of binary data, we do not 
+consider classification approaches specifically 
+developed for binary data, although such approaches do
+exist (see \citet{Lee2011} and references therein). 
+Comparison of a broader selection of classification 
+approaches for binary data, such as that of
+\citet{Asparoukhov2001} is needed, but is beyond the 
+scope of this work.
+Comparisons of a broader range of classification 
+approaches (without restricting to binary data) have 
+been made on \gls{maldi}-\gls{ms} data by 
+\citet{Wu2003} and on cDNA/mRNA microarray data by 
+\citet{Dudoit2002} but an extensive comparison of 
+classification approaches on \gls{maldi}-\gls{ims} data 
+specifically is lacking.
+Extensive comparisons of classification approaches is 
+lacking, but there has been significant 
+interest in the classification of \gls{maldi}-\gls{ims} 
+data in the literature \citep{Casadonte2011}.
+Some research of particular interest from the 
+literature includes:
+\begin{itemize}
+  \item \citet{Mascini2015} suggest using 
+  \gls{pca}-\gls{lda} for the classification of 
+  \gls{maldi}-\gls{ims} data, and this is one of the 
+  options we consider in 
+  \refchap{classificationApplication}.
+  
+  \item \citet{Rauser2010} consider \gls{svm} and 
+  Artificial Neuronal Network approaches to the 
+  classification of top-down (protein level) 
+  \gls{maldi}-\gls{ims} data of fresh frozen tissue --- 
+  a fundamentally different approach to the bottom up 
+  (peptide level) data from \gls{ffpe} tissue that we 
+  consider.
+  
+  \item \citet{Casadonte2011} discuss the importance of 
+  classification applied to \gls{maldi}-\gls{ims} data 
+  acquired on \glspl{tma} constructed from \gls{ffpe}
+  tissue. The endometrial cancer data we consider falls 
+  in this category, as do the data considered by 
+  \citet{Groseclose2008} and \citet{Djidja2010}, who
+  apply univariate dimension reduction approaches 
+  followed by \gls{svm} classification and \gls{pca} 
+  based classification respectively.
+\end{itemize}
+
+Although there is need for a comparison of a broader 
+range of classification approaches for 
+\gls{maldi}-\gls{ims} data, this is beyond the scope of 
+this work --- we aim to fulfil a similar role to the 
+work of \citet{Djidja2010}, \citet{Mascini2015} and 
+\citet{Groseclose2008} on the classification of 
+\gls{tma} \gls{maldi}-\gls{ims} data.
+Each of these papers considers the application of a 
+particular classification approach on each of their 
+respective datasets.
+We consider the application of a slightly wider variety
+of approaches, comparing the results of these 
+approaches and suggesting approaches that seem to be 
+promising on the basis of these results.
+
+We will restrict attention to two-class problems 
+and linear classification approaches, but it should be 
+noted that multi-class and non-linear alternatives 
+exist and are simply not discussed here.
+As we will only deal with linear two-class 
+classification, we introduce some notation in 
+\refeqn{linearDAintro} specific to that scenario, and 
+which we will use as a framework for comparing 
+classification approaches within these restrictions.
+
+% In the context of linear classification approaches, 
+% training a rule essentially consists of finding an
+% $(d-1)$-dimensional hyperplane in the $d$-dimensional 
+% sample space that `best' separates the two classes in 
+% some sense.
+% This is equivalent finding a direction, or a line 
+% through the origin, normal to the hyperplane and a 
+% scalar cutoff value -- the intersection of the line and 
+% the hyperplane.
+% Testing such a classification rule then consists of 
+% identifying which side of the hyperplane an observation 
+% is, and assigning it the appropriate class label. 
+% This is equivalent to projecting the observation into 
+% the line and determining if the projection is less than 
+% or greater than the cutoff value.
+% Many approaches, such as \glspl{svm} discuss linear 
+% classification from the perspective of 
+% identifying a separating hyperplanes, and we will touch 
+% on this in our discussion of \gls{dwd} in \refsec{DWD}.
+% However primarily we will discuss linear classification
+% from the perspective of lines identified by direction 
+% vectors with associated scalar cutoffs. 
+First, let us consider the canonical Fisher's \gls{lda}
+for some intuition on linear classification.
+In the context of linear classification approaches, 
+\citet{Fisher1936} proposed to project the data onto a 
+direction which leads to the best separation into two 
+parts of the one-dimensional projected data.  
+Equivalently Fisher’s proposal results in a vector of 
+weights, $\bm{d}$, such that the linear combination of 
+the data with this vector yields one-dimensional 
+quantities which, ideally, fall into two disjoint 
+intervals.
+In practice the projected one-dimensional data may not 
+separate completely into separate intervals, and an 
+offset or scalar value $\beta$ is used to represent the 
+value that achieves the best separation.
+
+
+
+
+To state this more formally, first let $\mData$ denote 
+a $d \times n$ data matrix of $n$ observations with 
+known class labels coded as $-1$ or $+1$. 
+All the rules we will consider use the data $\mData$ 
+and the associated class labels to `train' a rule by 
+finding a $d \times 1$ vector $\bm{d}$ and a scalar
+$\beta$. This rule then assigns class label 
+$\tau(\bm{x})$ to a $d \times 1$ observation $\bm{x}$ 
+in the following way:
+\begin{equation}
+\tau(\bm{x}) = \left \{ \begin{array}{lcl}
++1 & \text{ if } & \bm{d}^T\bm{x} + \beta > 0 \\
+-1 & \text{ if } & \bm{d}^T\bm{x} + \beta < 0
+\end{array} \right . .
+\label{eqn:linearDAintro}
+\end{equation}
+The notation of \refeqn{linearDAintro} is repeated in 
+\refeqn{linearDA}, where we explore these ideas in more
+detail and also present an example application of 
+Fisher's \gls{lda} to illustrate the intuition behind 
+these concepts.
+% does not address the case
+% when $\bm{d}^T\bm{x} + \beta = 0$, as in this 
+% unlikely case the observation $\bm{x}$ is not assigned
+% a class label.
+The difference between the classification approaches 
+we discuss in Sections~\ref{sec:LDA}, \ref{sec:NB} and 
+\ref{sec:DWD} essentially boils down to different 
+approaches to choosing $\bm{d}$ and $\beta$.
+
+
+
+
+
+
+
+

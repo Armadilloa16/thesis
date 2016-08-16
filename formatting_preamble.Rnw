@@ -1,0 +1,275 @@
+% !TeX root = whole_thesis.Rnw
+
+<<formatting_preamble_set_parent, cache=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+
+
+
+% \usepackage[top=1.8cm,bottom=1.8cm,outer=3cm,inner=3cm]{geometry}
+\usepackage[top=1.8cm,bottom=1.8cm,outer=1.8cm,inner=4.2cm]{geometry}
+% \usepackage[top=1.8cm,bottom=1.8cm,outer=1.8cm,inner=1.8cm]{geometry}
+\usepackage{hyperref}
+% \hypersetup{
+% colorlinks,
+% citecolor=blue,
+% linkcolor=blue,
+% urlcolor=blue,
+% }
+\hypersetup{
+colorlinks,
+citecolor=black,
+linkcolor=black,
+urlcolor=black,
+}
+
+
+
+
+\usepackage{lipsum}
+\usepackage{cjhebrew}
+% \usepackage[english,hebrew]{babel}
+
+\usepackage[authoryear,round]{natbib}
+\usepackage{amsmath, amsthm,  amsfonts, amscd}
+\usepackage{bm}
+
+\usepackage{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{positioning}\usepackage{etoolbox}
+
+\usepackage{datetime}
+\newdateformat{monthyeardate}{%
+  \monthname[\THEMONTH], \THEYEAR}
+
+\usepackage{color}
+\usepackage{ifthen}
+
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{multicol}
+\usepackage{multirow}
+
+\usepackage{enumerate}
+\usepackage[hang]{footmisc}
+\usepackage{pdfpages}
+
+\usepackage[toc,page]{appendix}
+
+
+\usepackage[acronym,toc,nonumberlist,nogroupskip]{glossaries}
+% \usepackage{glossary-mcols}
+\makeglossaries
+
+\newacronym{apc}{APC}{Adelaide Proteomics Centre}
+\newacronym{maldi}{MALDI}{Matrix Assisted Laser Desorption Ionisation}
+\newacronym{ims}{MSI}{Mass Spectrometry Imaging}
+\newacronym{ms}{MS}{Mass Spectrometry}
+\newacronym{mz}{\textit{m/z}}{Mass-to-Charge Ratio}
+\newacronym{Da}{Da}{Dalton}
+\newacronym{msms}{MS/MS}{Tandem Mass Spectrometry}
+\newacronym{tof}{TOF}{Time-of-Flight}
+% \newacronym{esi}{ESI}{Electrospray Ionisation}
+% \newacronym{laicp}{LA-ICP}{Laser Ablation Inductively Coupled Plasma}
+\newacronym{lc}{LC}{Liquid Chromatography}
+\newacronym{ge}{GE}{Gel Electrophoresis}
+\newacronym{ffpe}{FFPE}{Formalin Fixed and Paraffin Embedded}
+\newacronym{ihc}{IHC}{Immunohistochemistry}
+\newacronym{he}{H\&E}{Hematoxylin and Eosin}
+\newacronym{tma}{TMA}{Tissue Microarray}
+% \newacronym{ptm}{PTM}{Post-Translational Modification}
+% \newacronym{caar}{CAAR}{Citric Acid Antigen Retrieval}
+\newacronym{snr}{SNR}{Signal-to-Noise Ratio}
+
+\newacronym{dipps}{DIPPS}{Difference in Proportions of Occurrence Statistic}
+\newacronym{lnm}{LNM}{Lymph Node Metastasis}
+
+\newacronym{pca}{PCA}{Principal Component Analysis}
+\newacronym{cca}{CCA}{Canonical Correlation Analysis}
+\newacronym{svm}{SVM}{Support Vector Machine}
+% \newacronym{ann}{ANN}{Artificial Neuronal Network}
+\newacronym{lda}{LDA}{Linear Discriminant Analysis}
+\newacronym{nb}{NB}{Naive Bayes}
+\newacronym{dwd}{DWD}{Distance Weighted Discrimination}
+\newacronym{cv}{CV}{Cross Validation}
+\newacronym{loo}{LOO}{Leave-One-Out}
+
+\newacronym{hdlss}{HDLSS}{High-Dimension Low Sample Size}
+
+
+
+
+
+
+
+% Footnote Alignment
+\setlength\footnotemargin{10pt}
+
+
+% Text Highlighting
+\newcommand{\highlightTextAs}[1]{\ifstrequal{#1}{notation}{\color{black}}{\ifstrequal{#1}{incomplete}{\color{red}}{}}}
+
+
+% Internal referencing commands
+\newcommand{\reffig}[1]{Figure~\ref{fig:#1}}
+\newcommand{\refchap}[1]{Chapter~\ref{chap:#1}}
+\newcommand{\reftab}[1]{Table~\ref{tab:#1}}
+\newcommand{\refeqn}[1]{Equation~\ref{eqn:#1}}
+\newcommand{\refapp}[1]{Appendix~\ref{appendix:#1}}
+\newcommand{\refsec}[1]{Section~\ref{sec:#1}}
+\newcommand{\refsubsec}[2]{Section~\ref{sec:#1}(#2)}
+\newtheorem{defn}{Definition}
+\newcommand{\refdef}[1]{Definition~\ref{def:#1}}
+\newtheorem{example}{Example}[chapter]
+\newcommand{\refeg}[1]{Example~\ref{eg:#1}}
+\newtheorem{alg}{Algorithm}[chapter]
+\newcommand{\refalg}[1]{Algorithm~\ref{alg:#1}}
+\newtheorem{thm}{Theorem}[chapter]
+\newcommand{\refthm}[1]{Theorem~\ref{thm:#1}}
+
+\newcommand{\addRef}{{\highlightTextAs{incomplete}(ref?)}}
+
+
+% Functions
+\newcommand{\argmax}[1]{\underset{#1}{\operatorname{arg}\,\operatorname{max}}\;}
+\newcommand{\argmin}[1]{\underset{#1}{\operatorname{arg}\,\operatorname{min}}\;}
+
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\diag}{diag}
+\DeclareMathOperator{\unio}{\cup}
+
+\newcommand{\LDA}{\text{\tiny{}LDA}}
+\newcommand{\NB}{\text{\tiny{}NB}}
+\newcommand{\DWD}{\text{\tiny{}DWD}}
+
+
+
+% TODO: REVIEW
+% Basic Notation
+\newcommand{\RV}{X}
+\newcommand{\vRV}{\bm{X}}
+\newcommand{\vRVRow}[1]{\vRV_{#1 \bullet}}
+\newcommand{\vRVCol}[1]{\vRV_{\bullet #1}}
+\newcommand{\mRV}{\mathcal{X}}
+\newcommand{\Data}{x}
+\newcommand{\vData}{\bm{x}}
+\newcommand{\vDataRow}[1]{\vData_{#1 \bullet}}
+\newcommand{\vDataCol}[1]{\vData_{\bullet #1}}
+\newcommand{\mData}{\mathbb{X}}
+% Proportion of Occurance
+\newcommand{\propOcc}{p}
+% Absolute difference between PropOcc and PropOcc (compliment)
+\newcommand{\propOccD}{\rho}
+% Cutoff value
+\newcommand{\propOccCutoff}{\alpha}
+\newcommand{\sColSubset}{\mathcal{C}}
+\newcommand{\vColSubset}{\bm{\mathfrak{c}}}
+\newcommand{\sRowSubset}{\mathcal{D}}
+\newcommand{\vRowSubset}{\bm{\mathfrak{d}}}
+\newcommand{\mSubsetTransform}[1]{T_{#1}}
+% Distributional Assumptions Notation
+\newcommand{\p}{\mathfrak{p}}
+\newcommand{\cutoffOcc}{\tau_{occ}}
+\newcommand{\occThreshold}{\tau_{occ}}
+\newcommand{\posDiffPropOcc}[1]{\bm{t}_{#1^+}}
+\newcommand{\negDiffPropOcc}[1]{\bm{t}_{#1^-}}
+% Binning notation
+\newcommand{\mMin}{m_{\text{min}}}
+\newcommand{\mMax}{m_{\text{max}}}
+\newcommand{\nFirst}{n_{\text{first}}}
+\newcommand{\nLast}{n_{\text{last}}}
+
+
+% TODO: Cleanup
+% Colours 
+
+% % In text colors
+% \newcommand{\wordgrey}{\textcolor{gray}{grey} }
+% \newcommand{\wordGrey}{\textcolor{gray}{Grey} }
+% \newcommand{\wordred}{\textcolor{red}{red} }
+% \newcommand{\wordRed}{\textcolor{red}{Red} }
+% \newcommand{\wordblue}{\textcolor{blue}{blue} }
+% \newcommand{\wordBlue}{\textcolor{blue}{Blue} }
+% \newcommand{\wordpurple}{\textcolor{purple}{purple} }
+% \newcommand{\wordPurple}{\textcolor{purple}{Purple} }
+% \newcommand{\wordcyan}{\textcolor{cyan}{cyan} }
+% \newcommand{\wordCyan}{\textcolor{cyan}{Cyan} }
+% \newcommand{\wordmagenta}{\textcolor{magenta}{magenta} }
+% \newcommand{\wordMagenta}{\textcolor{magenta}{Magenta} }
+
+
+<<formatting_plot_colours>>=
+library(grDevices)
+palette <- hcl(h = c(15, 105, 195, 285), c = 100, l = 75)
+@
+
+% plot colours
+\definecolor{colClus1}{RGB}{\Sexpr{toString(col2rgb(palette[1]))}}
+\definecolor{colClus2}{RGB}{\Sexpr{toString(col2rgb(palette[2]))}}
+\definecolor{colClus3}{RGB}{\Sexpr{toString(col2rgb(palette[3]))}}
+\definecolor{colClus4}{RGB}{\Sexpr{toString(col2rgb(palette[4]))}}
+% \definecolor{colClus5}{rgb}{0.4302, 0.8118, 1     }
+% \definecolor{colClus6}{rgb}{0.8161, 0.8324, 0.8772}
+
+\definecolor{colOcc0}{RGB}{\Sexpr{toString(col2rgb(palette[1]))}}
+\definecolor{colOcc1}{RGB}{\Sexpr{toString(col2rgb(palette[3]))}}
+
+
+% Clus4 legend
+\newcommand{\colboxcancer}{\colorbox{colClus4}{cancer}}
+\newcommand{\colboxCancer}{\colorbox{colClus4}{Cancer}}
+\newcommand{\colboxstroma}{\colorbox{colClus2}{stroma}}
+\newcommand{\colboxStroma}{\colorbox{colClus2}{Stroma}}
+\newcommand{\colboxadipose}{\colorbox{colClus3}{adipose}}
+\newcommand{\colboxAdipose}{\colorbox{colClus3}{Adipose}}
+\newcommand{\colboxofftissue}{\colorbox{colClus1}{off-tissue}}
+\newcommand{\colboxOfftissue}{\colorbox{colClus1}{Off-tissue}}
+\newcommand{\colboxOffTissue}{\colorbox{colClus1}{Off-Tissue}}
+
+\newcommand{\colboxabsence}{\colorbox{colOcc0}{absence}}
+\newcommand{\colboxAbsence}{\colorbox{colOcc0}{Absence}}
+\newcommand{\colboxpresence}{\colorbox{colOcc1}{presence}}
+\newcommand{\colboxPresence}{\colorbox{colOcc1}{Presence}}
+
+\newcommand{\colboxsalmon}{\colorbox{colClus1}{salmon}}
+\newcommand{\colboxSalmon}{\colorbox{colClus1}{Salmon}}
+\newcommand{\colboxcyan}{\colorbox{colClus3}{cyan}}
+\newcommand{\colboxCyan}{\colorbox{colClus3}{Cyan}}
+\newcommand{\colboxpurple}{\colorbox{colClus4}{purple}}
+\newcommand{\colboxPurple}{\colorbox{colClus4}{Purple}}
+\newcommand{\colboxgreen}{\colorbox{colClus2}{green}}
+\newcommand{\colboxGreen}{\colorbox{colClus2}{Green}}
+
+%NoColour Maybe?
+\newcommand{\Ncolboxcancer}{cancer}
+\newcommand{\NcolboxCancer}{Cancer}
+\newcommand{\Ncolboxstroma}{stroma}
+\newcommand{\NcolboxStroma}{Stroma}
+\newcommand{\Ncolboxadipose}{adipose}
+\newcommand{\NcolboxAdipose}{Adipose}
+\newcommand{\Ncolboxofftissue}{off-tissue}
+\newcommand{\NcolboxOfftissue}{Off-tissue}
+\newcommand{\NcolboxOffTissue}{Off-Tissue}
+
+\newcommand{\Ncolboxabsence}{absence}
+\newcommand{\NcolboxAbsence}{Absence}
+\newcommand{\Ncolboxpresence}{presence}
+\newcommand{\NcolboxPresence}{Presence}
+
+\newcommand{\Ncolboxsalmon}{salmon}
+\newcommand{\NcolboxSalmon}{Salmon}
+\newcommand{\Ncolboxcyan}{cyan}
+\newcommand{\NcolboxCyan}{Cyan}
+\newcommand{\Ncolboxpurple}{purple}
+\newcommand{\NcolboxPurple}{Purple}
+\newcommand{\Ncolboxgreen}{green}
+\newcommand{\NcolboxGreen}{Green}
+
+
+
+
+
+

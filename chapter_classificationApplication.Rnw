@@ -1,0 +1,1868 @@
+<<chapter_classificationApplication_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+In \refchap{classificationMethods} we introduced a
+variety of classification methods, as well as 
+discussing preprocessing and variable reduction of 
+\gls{maldi}-\gls{ims} data prior to classification.
+In this chapter we will consider the application of 
+these classification methods to the \gls{tma} data of 
+\refsec{endometrialDatasets} and in this context we 
+will discuss the effects various preprocessing 
+decisions have on classification performance.
+After presenting and discussing some initial results 
+using each of the data types we will consider (binary, 
+intensity, log-intensity, \gls{snr}, area)
+in \refsec{DAinitialResults}, we consider variations in 
+preprocessing, including dimension reduction 
+approaches, which could potentially improve the 
+classification performance.
+In \refsec{VRapplication} we apply the dimension 
+reduction approaches described in \refsec{VR}.
+In \refsec{varyingParams} we consider variations
+in other preprocessing options prior to classification, 
+including:
+\begin{itemize}
+  \item Making use of histopathological annotations to 
+  restrict spectra that are included in 
+  patient-averages to only spectra from cancerous 
+  tumour tissue, removing spectra from non-tumour 
+  tissue. 
+    
+  \item For the non-binary data we consider:
+  \begin{itemize}
+    \item Normalisation using the internal calibrants, 
+    as described in \refsec{normalisation}, and
+    \item An alternative method for treating absent 
+    peaks when averaging spectra from each patient.
+  \end{itemize}
+
+  \item For the binary data we consider the spatial
+  smoothing of \refsec{spatialSmooth}.
+\end{itemize}
+After having considered overall trends in the effects
+these preprocessing options have on classification 
+performance, we take a closer look at some of the
+results that achieved the best 
+\gls{loo}-misclassification in \refsec{opt_opt}, and 
+discuss how use of the \gls{cca}-based variable 
+ranking approach to dimension reduction has the added
+benefit of identifying variables (\gls{mz} values)
+important for the classification --- potential targets
+for follow up studies.
+In \refsec{DAstability} we introduce a heuristic that 
+lends some insight into the stability of linear 
+classification rules, analogous to the concept of 
+leverage from linear regression.
+
+In Sections 
+\ref{sec:DAinitialResults}-\ref{sec:DAstability} we
+present many results, but generally make only a few 
+sparse conclusions --- the primary goal in these 
+sections is to present the results.
+Having presented the results, we discuss overall trends
+and conclusions in \refsec{DAconclusions}.
+Ultimately our main conclusion is that the most 
+important factor in determining classification 
+performance is the choice of dimension reduction 
+approach, and that \gls{cca}-based variable selection 
+performs very well.
+A couple of other factors, particularly classification 
+method and data type also seem to have strong effects
+on classification performance, but with strong 
+interaction effects that make predicting which option 
+will perform well in any given situation somewhat 
+difficult.
+Ultimately, our recommendation is to try several 
+different variations to see which perform the best, but
+in our data \gls{cca}-\gls{lda} on the log-intensity 
+data seems to perform very well.
+
+The results presented in Sections 
+\ref{sec:DAinitialResults}-\ref{sec:DAstability} 
+use the endometrial data described in 
+\refsec{endometrialDatasets} to explore the trends 
+mentioned above, but it is of interest to explore if 
+these trends generalise to the analysis of \gls{maldi}-\gls{ims} \gls{tma} data, or if they are specific to 
+the endometrial data.
+To this end, we reproduced all analyses on the vulvar 
+data, also introduced in \refsec{endometrialDatasets}, 
+and these results are included in \refapp{vulvar}.
+Some of the lesser trends are contradicted in the 
+vulvar data.
+However, the main conclusions are all supported by the 
+vulvar data results: that dimension reduction plays the
+biggest role in determining classification performance,
+that \gls{cca}-based variable selection performs very 
+well, and that \gls{cca}-\gls{lda} on the log-intensity 
+data consistently performs very well.
+
+
+
+
+
+\section{Data Processing and Initial Results}
+\label{sec:DAinitialResults}
+
+As discussed in \refsec{endometrialDatasets}, the 
+endometrial cancer data consists of four datasets 
+total: two sections (technical replicates) of two 
+\glspl{tma} were analysed.
+In this analysis, we consider all four of these 
+datasets together --- making no distinction between 
+them.
+If there exist batch effects between these datasets,
+this could be problematic, but we believe the 
+methodology is sufficiently reproducible that any batch
+effects between datasets should be negligible.
+Furthermore, we are attempting to demonstrate that 
+\gls{maldi}-\gls{ims} methodology can be used to 
+predict patients \gls{lnm} status, and if the 
+methodology produces large batch effects such 
+prediction would likely be impossible regardless.
+As discussed in \refsec{endometrialDatasets}, after 
+consideration of the patient clinical data it was 
+determined that $43$ patients suitable for the study 
+are represented across the two \glspl{tma}.
+Of these $43$ patients, $16$ are lymph node metastasis
+positive, $27$ are negative.
+Details on the endometrial cancer project from which
+these data originate are available in 
+\cite{Mittal2016}.
+
+As discussed in \refsec{binning} we bin peaks with a 
+bin width of $0.25$ \gls{Da} and, as discussed in 
+\refsec{DApreprocessingVars}, all analyses are 
+replicated in parallel using bin locations shifted by 
+$-\frac{0.25}{3}$ \gls{Da} and $+\frac{0.25}{3}$ 
+\gls{Da} as in \refalg{wiggle} to compensate for the 
+fact that the binning is data-independent.
+We discussed the reasons why using multiple 
+shifted-bin analyses is important in \refsec{dipps},
+and details are included in \refsec{binwiggling}.
+The bins represent variables in these data.
+Initially, for each patient, all spectra were averaged 
+for each \gls{mz} bin.
+These averages are assembled into data matrices with 
+$n = 43$ columns corresponding to the patients 
+represented in the study, and $d = 4582$ rows 
+corresponding to non-empty \gls{mz} bins ($d = 4570$ and 
+$d = 4584$ in the two shifted-bin analyses 
+respectively).
+These matrices are \gls{hdlss} ($n < d$) and so, as 
+discussed in \refsec{DAmethods}, \gls{lda} cannot be 
+applied. \gls{nb} and \gls{dwd} can, however, and the
+\gls{loo} misclassification (as discussed in 
+\refsec{CV}) of applying these two classification 
+methods to these data are shown in 
+\reffig{classification_initial_results} for each of the 
+different data types mentioned in 
+\refsec{DApreprocessing}.
+As we are performing three shifted-bin analyses in 
+parallel, each result reported is the result of a
+majority `meta-classification' rule combining the 
+three classification results obtained from each of the 
+parallel analyses.
+
+
+<<classification_results>>=
+clas_mr <- read.csv('./matlab/output/Etma_majority_classification.txt')
+
+# Cleaning
+clas_mr$Dataset <- NULL
+clas_mr = subset(clas_mr,!is.na(Mloo))
+clas_mr = subset(clas_mr,minNcal == 0 & minNspecPerCore == 1 & minNspecPerBin == 1)
+clas_mr$minNcal <- NULL
+clas_mr$minNspecPerCore <- NULL
+clas_mr$minNspecPerBin <- NULL
+
+# Optimimum variable reduction choices
+clas_opt <- ddply(clas_mr, 
+                  .(VRmethod, DAmethod, DataType, 
+                    Normalisation, includeEmptyValues, 
+                    Smooth, CancerAnnotation), 
+                  summarise,
+                  n = which.min(Me),
+                  nloo = which.min(Mloo),
+                  Me = min(Me),
+                  Mloo = min(Mloo),
+                  N = unique(N))
+@
+
+<<classification_initial_results, dependson="classification_results", fig.cap="\\textbf{Classification Without Dimension Reduction.} \\gls{loo} misclassification on the $y$-axis using \\gls{dwd} or \\gls{nb} vs. data type on the $x$-axis.", fig.width=5, fig.height=5, fig.align='center', out.width="0.7\\linewidth">>=
+tab_temp <- subset(clas_opt,VRmethod == "None" & 
+                     Normalisation == 0 & includeEmptyValues == 1 & 
+                     Smooth == 0 & CancerAnnotation == 0)[,c("DAmethod","DataType","N","Me","Mloo")]
+
+# print(xtable(tab_temp, digits=0, caption="Initial Classification Results", label="tab:clas_initial_results"),
+#              size="footnotesize",
+#              include.rownames=FALSE,
+#              include.colnames=FALSE,
+#              caption.placement="top",
+#              hline.after=NULL,
+#              add.to.row = list(pos=list(-1,5,
+#                                         nrow(tab_temp)),
+#                                command = c(paste("\\toprule \n",
+#                                                  "Classification Method & Data Type & \\# Patients & Misclassification & LOO Misclassification \\\\ \n",
+#                                                  "\\midrule \n"),
+#                                            "\\midrule \n",
+#                                            "\\bottomrule \n")
+#                                )
+#       )
+
+p = ggplot(tab_temp,aes(x=DataType,y=Mloo,group=DAmethod,colour=DAmethod))
+p = p + geom_line(size=3)
+p = p + guides(size = FALSE,
+               color=guide_legend(title="Clas. Method"))
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(12,20,2))
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+print(p)
+@
+
+
+
+\reffig{classification_initial_results} shows that 
+\gls{dwd} strictly outperforms \gls{nb} in this
+\gls{hdlss} context.
+\gls{dwd} was specifically developed with the 
+shortcomings of classical methods such as \gls{nb} in 
+exactly such high-dimensional cases in mind, so the 
+fact that \gls{dwd} outperforms \gls{nb} here is 
+perhaps unsurprising.
+The other interesting feature of 
+\reffig{classification_initial_results} is that the 
+area and intensity data seem to outperform the other
+data types.
+% This is strange as we shall see in later results when 
+% various approaches to variable reduction are applied,
+% these are no longer the data types that achieve the 
+% best results.
+% {\highlightTextAs{incomplete}
+% I don't have an explanation for this.
+% }
+
+
+
+
+
+
+\section{Dimension Reduction}
+\label{sec:VRapplication}
+
+<<classification_vr, dependson="classification_results", fig.align='center', fig.cap="\\textbf{Classification of Dimension Reduced Data.} \\gls{loo} misclassification on the $y$-axis vs. the number of principal components on the $x$-axis for the \\gls{pca} dimension reduced data, or the number of variables retained for the \\gls{cca} variable reduced data. The results from using each classification method (\\gls{nb}, \\gls{lda}, and \\gls{dwd}) are shown in seperate panels. Within each panel, results from using each data type are identified by colour. The \\gls{loo} misclassification refers to the number of incorrectly classified patients out of $43$.", out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_mr,(VRmethod == "PCA" | VRmethod == "CCA") & 
+                            Normalisation == 0 & includeEmptyValues == 1 & 
+                            Smooth == 0 & CancerAnnotation == 0)[,c("DAmethod","DataType","N","Me","Mloo","nComponents","VRmethod")])
+
+p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=interaction(DataType,VRmethod),colour=DataType,linetype=VRmethod))
+p = p + geom_line(size=0.9,alpha=0.5)
+p = p + guides(size = FALSE, 
+               alpha = FALSE,
+               linetype=guide_legend(title="Dim. Reduction"), 
+               color=guide_legend(title="Data Type"))
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(5,35,10))
+p = p + facet_wrap(~DAmethod,ncol=1)
+print(p)
+@
+
+
+% <<classification_pca, dependson="classification_results", fig.cap="LOO Misclassification NB, LDA, and DWD on the PCA variable-reduced data plotted by the number of PC's retained.">>=
+% tab_temp <- subset(subset(clas_mr,VRmethod == "PCA" & 
+%                             Normalisation == 0 & includeEmptyValues == 1 & 
+%                             Smooth == 0 & CancerAnnotation == 0)[,c("DAmethod","DataType","N","Me","Mloo","nComponents")])
+% 
+% p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=DataType,colour=DataType))
+% p = p + geom_line()
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% p = p + scale_y_continuous(breaks=seq(5,40,5))
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% print(p)
+% @
+
+
+% 
+% <<classification_cca1, dependson="classification_results", fig.cap="LOO Misclassification NB, LDA, and DWD on the cca1 variable reduced data plotted by the number of variables retained.">>=
+% tab_temp <- subset(subset(clas_mr,(Method == "cca1NB" | Method == "cca1DWD" | Method == "cca1LDA") & Normalisation == 0 & includeEmptyValues == 1 & Smooth == 0 & CancerAnnotation == 0)[,c("Method","DataType","N","Me","Mloo","nComponents")])
+% 
+% p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=DataType,colour=DataType))
+% p = p + geom_line()
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% p = p + facet_wrap(~Method,ncol=1)
+% print(p)
+% @
+% 
+
+
+% <<classification_cca2, fig.cap="LOO Misclassification NB, LDA, and DWD on the CCA variable reduced data plotted by the number of variables retained.", dependson="classification_results">>=
+% tab_temp <- subset(subset(clas_mr,VRmethod == "CCA" & 
+%                             Normalisation == 0 & includeEmptyValues == 1 & 
+%                             Smooth == 0 & CancerAnnotation == 0)[,c("DAmethod","DataType","N","Me","Mloo","nComponents")])
+% 
+% p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=DataType,colour=DataType))
+% p = p + geom_line()
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% p = p + scale_y_continuous(breaks=seq(5,30,5))
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% print(p)
+% @
+
+In \refsec{VR} we introduced two methods for dimension
+reduction: \gls{pca}, where the centred 
+data are projected into the first $k$ principal 
+component directions (maximising variance) and 
+\gls{cca} variable ranking, where variables in the data
+are ranked according to their correlation to the class 
+labels (\gls{lnm} status in this case) and the first 
+$k$ `most important' variables are selected.
+\reffig{classification_vr} shows the application of 
+these two dimension reduction methods to the 
+endometrial data (representing results that use 
+\gls{pca} and \gls{cca} with solid and dashed lines 
+respectively), prior to classification by the three 
+methods introduced in \refsec{DAmethods}: \gls{lda}, 
+\gls{nb}, and \gls{dwd}. 
+\reffig{classification_vr} identifies results produced 
+using a given data type with a single colour, and shows 
+results for a range of values for the number of 
+dimensions to reduce too, $k$, from $1$ to $45$.
+In the \gls{pca} dimension reduced data, represented by
+dashed lines in \reffig{classification_vr}, $k$ is the 
+number of principal components as discussed in 
+\refsec{pca}.
+In the \gls{cca} variable selected data, represented by
+solid lines in \reffig{classification_vr}, $k$ is the 
+number of variables selected, as discussed in 
+\refsec{cca}.
+
+Note that \gls{lda} results exist for only $k \leq 40$, 
+this is not only the maximum $k$ such that $\hat{W}$ is 
+invertible in practice, but infact the theoretical 
+maximum for performing \gls{loo} \gls{cv}.
+In general, $\hat{W}$ is singular for $n - \kappa < d$,
+but when using \gls{loo} \gls{cv} $n$ is replaced with 
+$n-1$ as in each case one observation is `left-out' so, 
+for \gls{loo} \gls{cv}, $\hat{W}$ is singular when 
+$d > n - \kappa - 1 = 43 - 2 - 1 = 40$.
+Similarly note that the \gls{pca} dimension reduced 
+results exist for $k \leq 42$, as the \gls{pca} 
+dimension reduced data with $k = 42$ includes all 
+principal components and $100\%$ of the variance in 
+the original data is preserved.
+
+
+\gls{dwd} shows less variation as $k$ increases in its 
+\gls{loo} misclassification compared with the other two 
+classification methods, having quite stable 
+\gls{loo} misclassification for $k \geq 20$.
+For the \gls{pca} dimension reduced data (dashed lines) 
+in particular, the \gls{loo} misclassification 
+stabilises to a single
+value in several cases, specifically:
+\begin{itemize}
+  \item the \gls{pca} dimension reduced area data 
+  (dashed red line) achieves a stable minimum 
+  \gls{loo} misclassification by \gls{dwd} of 
+  $\Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='Area' & VRmethod == "PCA")$Mloo)}$ 
+  for 
+  $k \geq \Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='Area' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='Area' & VRmethod == "PCA")$Mloo))$nComponents)}$,
+  
+  \item and similarly the \gls{pca} dimension reduced 
+  intensity data (dashed green line) first achieves its 
+  minimum \gls{loo} misclassification by \gls{dwd} of 
+  $\Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='Intensity' & VRmethod == "PCA")$Mloo)}$ 
+  at 
+  $k = \Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='Intensity' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='Intensity' & VRmethod == "PCA")$Mloo))$nComponents)}$, 
+  and stabilises for 
+  $k \geq \Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='Intensity' & VRmethod == "PCA" & nComponents > 10 & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='Intensity' & VRmethod == "PCA")$Mloo))$nComponents)}$.  
+\end{itemize}
+This stable behaviour suggests that it suffices to 
+consider the parsimonious models with $k = 19$ and 
+$k = 20$ respectively in these cases.
+
+In contrast to these stable minima, the \gls{pca} 
+dimension reduced binary (yellow), log-intensity 
+(blue), and SN (purple) data achieve minimum values of 
+\gls{loo} misclassification by \gls{dwd} at less than 
+$10$ components, specifically:
+\begin{itemize}
+  \item the \gls{pca} dimension reduced binary data 
+  (dashed yellow line) achieves its minimum
+  \gls{loo} misclassification by \gls{dwd} of 
+  $\Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='Binary' & VRmethod == "PCA")$Mloo)}$ 
+  at
+  $k = \Sexpr{subset(tab_temp,DAmethod=='DWD' & DataType=='Binary' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='Binary' & VRmethod == "PCA")$Mloo))$nComponents}$,
+  
+  \item the \gls{pca} dimension reduced log-intensity 
+  data (dashed blue line) achieves its local minimum 
+  \gls{loo} misclassification by \gls{dwd} of 
+  $\Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='LogIntensity' & VRmethod == "PCA")$Mloo)}$ 
+  at
+  $k = \Sexpr{subset(tab_temp,DAmethod=='DWD' & DataType=='LogIntensity' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='LogIntensity' & VRmethod == "PCA")$Mloo))$nComponents}$, and
+
+  \item the \gls{pca} dimension reduced SN data 
+  (dashed purple line) achieves its minimum 
+  \gls{loo} misclassification by \gls{dwd} of 
+  $\Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA")$Mloo)}$ 
+  at 
+  $k = \Sexpr{subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA")$Mloo))$nComponents}$, 
+  and stabilises at a higher \gls{loo} misclassification of 
+  $\Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA" & nComponents > max(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA")$Mloo))$nComponents))$Mloo)}$ 
+  for 
+  $k \geq \Sexpr{min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA" & nComponents > 20 & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA" & nComponents > max(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='DWD' & DataType=='SN' & VRmethod == "PCA")$Mloo))$nComponents))$Mloo))$nComponents)}$.
+\end{itemize}
+
+In contrast to the \gls{dwd} results, \gls{nb} and 
+\gls{lda} exhibit relatively more instability as the 
+number of components, $k$, increases.
+Of particular note is the minimum 
+\gls{loo} misclassification of $7$ achieved by 
+\gls{lda} on the \gls{pca} dimension reduced data, with
+$k=35$ for both the binary and log-intensity data 
+(dashed yellow and blue lines respectively).
+% \begin{itemize}
+%   \item the \gls{pca} dimension reduced binary data 
+%   achieves a minimum \gls{loo}-misclassification by 
+%   \gls{lda} of 
+%   $\Sexpr{min(subset(tab_temp,DAmethod=='LDA' & DataType=='Binary' & VRmethod == "PCA")$Mloo)}$ 
+%   at
+%   $k = \Sexpr{subset(tab_temp,DAmethod=='LDA' & DataType=='Binary' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='LDA' & DataType=='Binary' & VRmethod == "PCA")$Mloo))$nComponents}$, 
+%   and 
+%    
+%   \item the \gls{pca} dimension reduced log-intensity 
+%   data achieves a local minimum 
+%   \gls{loo}-misclassification by \gls{lda} of 
+%   $\Sexpr{min(subset(tab_temp,DAmethod=='LDA' & DataType=='LogIntensity' & VRmethod == "PCA")$Mloo)}$ 
+%   at
+%   $k = \Sexpr{subset(tab_temp,DAmethod=='LDA' & DataType=='LogIntensity' & VRmethod == "PCA" & Mloo == min(subset(tab_temp,DAmethod=='LDA' & DataType=='LogIntensity' & VRmethod == "PCA")$Mloo))$nComponents}$.
+% \end{itemize}
+This \gls{loo} misclassification of $7$ is the best 
+result achieved using \gls{pca} dimension reduction 
+of all the results shown in \reffig{classification_vr}.
+
+
+The broad trend for \gls{cca} variable reduced results 
+is for the \gls{loo} misclassification to improve as 
+$k$ is increased until around $k=10$, at which point
+a somewhat unstable minimum is achieved.
+Overall, \gls{cca} variable selection seems to 
+outperform \gls{pca} dimension reduction, although in 
+some cases this is not entirely clear.
+\gls{cca} outperforming \gls{pca} can be clearly 
+observed in the \gls{lda} results of 
+\reffig{classification_vr}, where the \gls{cca} 
+results almost strictly outperform the \gls{pca} 
+results.
+\gls{cca} variable selection also achieves minimum 
+\gls{loo} misclassifications less than $7$, 
+achieving a minimum \gls{loo} misclassification of $6$
+using \gls{lda} with the area and SN data, and a 
+minimum \gls{loo} misclassification of $4$ using 
+\gls{nb} with the binary data.
+
+\reffig{classification_vr} contains an enormous amount
+of information and we are often only interested in the 
+`optimal result' that is the lowest 
+\gls{loo} misclassification.
+From here on, we will display dimension-reduced results 
+only for the optimal choice for the number of 
+dimensions, $k$, in each case --- the $k$ that achieves 
+the best \gls{loo} misclassification.
+In cases when there are multiple $k$ that achieve 
+equal best \gls{loo} misclassification, we choose the 
+smallest --- the most parsimonious.
+This will allow us to visualise the results we are 
+interested in, while not overly crowding figures.
+Using these `optimal results' will be useful in 
+visualising the effect of various preprocessing 
+options we will consider.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Varying Preprocessing Parameters}
+\label{sec:varyingParams}
+
+In this section, we will consider results achieved 
+using alternative preprocessing alternatives, prior to 
+dimension reduction and classification.
+First we will consider restricting to just spectra 
+annotated as cancer when averaging spectra for each 
+patient, as this is a preprocessing option for all the
+data types we consider.
+Next we consider some additional preprocessing 
+options which are specific to either the binary, or 
+non-binary data.
+For the binary data we consider spatial smoothing as 
+described in \refsec{spatialSmooth}.
+For the non-binary data types we consider 
+normalisation, as described in \refsec{normalisation}, 
+and alternative treatment of missing values when 
+averaging.
+
+\subsection{Cancer Annotation}
+
+
+
+% 
+% <<classification_initial_opt_results, dependson="classification_results", fig.cap="Optimimum result for each classification method on each dataType with each different variable reduction (VR) method.">>=
+% tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" &  
+%                             Normalisation == 0 & includeEmptyValues == 1 & 
+%                             Smooth == 0 & CancerAnnotation == 0)[,c("VRmethod","DAmethod","DataType","N","Me","Mloo","nloo")])
+% 
+% p = ggplot(tab_temp,aes(x=DataType,y=Mloo,group=VRmethod,colour=VRmethod))
+% p = p + geom_line(size=2)
+% p = p + guides(size = FALSE,
+%                color=guide_legend(title="Dim. Reduction"))
+% p = p + xlab("") + ylab("")
+% p = p + scale_y_continuous(breaks=seq(5,20,5))
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% print(p)
+% @
+
+
+<<classification_annot_opt_results, fig.cap="\\textbf{Classification With/ Without Restricting to only Cancer Annotated Spectra.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method used on the $x$-axis. The results from using all spectra and using only annotated tumour spectra are identified by use of solid and dashed lines respectively. The results from using each data type are identified by a single colour. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="classification_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" & 
+                            Normalisation == 0 & includeEmptyValues == 1 & 
+                            Smooth == 0)[,c("VRmethod","DAmethod","DataType","CancerAnnotation","N","Me","Mloo")])
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,
+                        group=interaction(VRmethod,CancerAnnotation,DataType),
+                        colour=DataType,
+                        linetype=CancerAnnotation))
+p = p + geom_line(size=1.3,alpha=0.7)
+p = p + guides(size = FALSE,
+               alpha = FALSE,
+               color=guide_legend(title="Data Type"),
+               linetype=guide_legend(title="Spectra"))
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(5,20,5))
+print(p)
+@
+
+% 
+% <<classification_annot_opt_results_alt, fig.cap="Alternate way of displaying the results of \\reffig{classification_annot_opt_results}. Although I prefer this display as it is simpler/ easier to understand, I am probably going to go with that of \\reffig{classification_annot_opt_results} as it is more consistent with later figures in this chapter as I continue.", dependson="classification_results">>=
+% tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" & 
+%                             Normalisation == 0 & includeEmptyValues == 1 & 
+%                             Smooth == 0)[,c("VRmethod","DAmethod","DataType","CancerAnnotation","N","Me","Mloo")])
+% 
+% tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+% levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+% levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+% 
+% p = ggplot(tab_temp,aes(x=DataType,
+%                         y=Mloo,
+%                         group=interaction(VRmethod,CancerAnnotation),
+%                         colour=VRmethod,
+%                         linetype=CancerAnnotation))
+% p = p + geom_line(size=1.3,alpha=0.7)
+% p = p + guides(size = FALSE,
+%                alpha = FALSE,
+%                color=guide_legend(title="Dim. Reduction"),
+%                linetype=guide_legend(title="Spectra"))
+% p = p + xlab("") + ylab("")
+% p = p + scale_y_continuous(breaks=seq(5,20,5))
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% print(p)
+% @
+
+The first preprocessing option we consider, which 
+applies in all data types, is whether to restrict 
+attention to the spectra from regions of tissue 
+annotated as tumour by the pathologist, or to include 
+all spectra when averaging spectra from each patient.
+All results shown in 
+Figures~\ref{fig:classification_initial_results} and 
+\ref{fig:classification_vr} include all spectra when 
+averaging, regardless of annotation.
+To recap, 
+\reffig{classification_initial_results} shows $10$ 
+results without any dimension reduction corresponding 
+to five different data types classified using
+\gls{nb} and \gls{dwd}. 
+\reffig{classification_vr} shows $30$ cases 
+corresponding to every combination of data type, 
+dimension reduction approach (\gls{pca} or \gls{cca})
+and classification method (\gls{lda}, \gls{nb}, or 
+\gls{dwd}).
+As discussed at the end of \refsec{VRapplication}, each 
+of these $30$ cases has an optimal choice for the 
+number of dimensions $k$.
+The $10$ cases with no dimension reduction combined 
+with the $30$ optimal cases corresponding to the cases
+represented in \reffig{classification_vr} constitute 
+the $40$ points connected with solid lines in 
+\reffig{classification_annot_opt_results}.
+For each of these $40$ cases, 
+\reffig{classification_annot_opt_results} also shows 
+the results when restricting to only annotated tumour 
+spectra, and these alternative results are identified 
+by being connected by dashed lines.
+% {\highlightTextAs{incomplete}
+% \reffig{classification_annot_opt_results_alt} is
+% an alternate version of 
+% \reffig{classification_annot_opt_results}.
+% I like \reffig{classification_annot_opt_results_alt}, 
+% as it preserves the results of
+% \reffig{classification_initial_results} as the two 
+% green lines.
+% However I am leaning towards 
+% \reffig{classification_annot_opt_results} as it is 
+% more consistent with later figures in this chapter.
+% }
+
+From \reffig{classification_annot_opt_results} we can 
+see that when using \gls{cca} variable selection, 
+restricting to only spectra from annotated tumour
+tissue seems to improve results --- the notable 
+exception to this being when \gls{nb} is used on either
+the binary and log-intensity data (yellow and blue 
+lines).
+When no dimension reduction step is included 
+restricting to only annotated tumour spectra seems to
+have no noticeable trend in its effect, but when 
+\gls{pca} dimension reduction is used restricting to 
+only annotated tumour spectra seems to worsen results 
+--- the exceptions being the intensity and area data
+(green and red lines).
+
+Another notable trend in 
+\reffig{classification_annot_opt_results} is that 
+\gls{lda} seems to perform better than \gls{nb} or 
+\gls{dwd} on the \gls{cca} variable reduced data, with 
+the the same two exceptions noted above --- \gls{nb} 
+performs better on both the binary and log-intensity 
+data, including all spectra (solid yellow and blue 
+lines).
+\citet[Section 13.3.3]{Koch2013} contains a discussion 
+of some intuition that may be of interest with 
+regards to the link between \gls{lda} and \gls{cca}. 
+It is also interesting that this trend of \gls{lda} 
+performing better than \gls{nb} and \gls{dwd} does not 
+apply to the \gls{pca} dimension reduced data however, 
+with the same exceptions --- the binary and 
+log-intensity data including all spectra (solid yellow 
+and blue lines).
+
+Overall there seems to be no conclusive trend in the 
+effect restricting to cancer annotated spectra only has
+on classification performance.
+However although not showing an overall effect this 
+variation does show interesting interactions with 
+choice of dimension reduction approach, classification 
+method, and data type.
+Dimension reduction approach, classification method, 
+and data type seem to be the most influential factors 
+on overall classification performance, and so it may be 
+worthwhile to investigate these interactions further by 
+designing new experiments with this goal specifically 
+in mind.
+As it is, however, these data are inconclusive as to 
+the effects restricting to cancer annotated spectra 
+have on classification.
+
+
+\subsection{Binary Data}
+
+
+% Smoothing
+% 
+% <<classification_smoothing_opt_results, fig.cap="LOO Misclassification vs Classification Method for Binary data with various smoothing parameters.", dependson="classification_results">>=
+% tab_temp <- subset(subset(clas_opt,DataType == "Binary" & VRmethod != "altCCA" &
+%                             CancerAnnotation == 0)[,c("VRmethod","DAmethod","DataType","Smooth","N","Me","Mloo")])
+% 
+% tab_temp$Smooth = factor(tab_temp$Smooth)
+% 
+% p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+%                         y=Mloo,group=Smooth,colour=Smooth))
+% p = p + geom_line(size=2)
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+% p = p + scale_y_continuous(breaks=seq(2,22,2))
+% print(p)
+% @
+
+<<classification_smooth_opt_results, fig.cap="\\textbf{Classification of Binary Data With/ Without Spatial Smoothing.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method selected on the $x$-axis. The results from using all spectra and using only annotated tumour spectra are identified by use of solid and dashed lines respectively. The results from using no smoothing ($\\tau = 0$), weak smoothing ($\\tau = 0.15$), or medium smoothing ($\\tau = 0.25$) are identified with colours. The smoothing is described in \\refsec{spatialSmooth}. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="classification_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" & DataType == "Binary" & 
+                            Normalisation == 0 & includeEmptyValues == 1)[,c("VRmethod","DAmethod","DataType","Smooth","CancerAnnotation","N","Me","Mloo")])
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+tab_temp$Smooth = factor(tab_temp$Smooth)
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,group=interaction(VRmethod,CancerAnnotation,Smooth),
+                        linetype=CancerAnnotation,colour=Smooth))
+p = p + geom_line(size=1.3, alpha = 0.7)
+p = p + guides(size = FALSE,
+               alpha = FALSE,
+               linetype=guide_legend(title="Spectra"))
+p = p + xlab("") + ylab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + scale_y_continuous(breaks=seq(2,22,2))
+print(p)
+@
+
+For the binary data, we consider the spatial smooth 
+discussed in \refsec{spatialSmooth} prior to 
+dimension reduction and classification.
+\reffig{classification_smooth_opt_results} shows the 
+results on the smoothed binary data, and of particular
+note \reffig{classification_smooth_opt_results} shows 
+that when we restrict to only cancer annotated spectra 
+and apply either level of smoothing ($0.15$ or $0.25$), 
+\gls{cca}-\gls{lda} achieved the best 
+\gls{loo} misclassification, one, that we have seen so 
+far.
+Overall, smoothing seems to improve performance when 
+combined with \gls{cca}-based variable selection, but 
+does not show any such clear trend of improvement when 
+used on the data with no dimension reduction or 
+the \gls{pca} dimension reduced data.
+
+
+\subsection{Non-Binary Data}
+
+% <<classification_normalisation_opt_results, fig.cap="LOO Misclassification vs Classification Method for various data types with/without normalisation.", dependson="classification_results">>=
+% tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" & DataType != "Binary" & 
+%                             includeEmptyValues == 1 &
+%                             Smooth == 0 & CancerAnnotation == 0)[,c("VRmethod","DAmethod","DataType","Normalisation","N","Me","Mloo")])
+% 
+% tab_temp$Normalisation = factor(tab_temp$Normalisation)
+% levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="0"] = "None"
+% levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="1"] = "Calibrant"
+% 
+% p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+%                         y=Mloo,group=interaction(Normalisation,DataType),
+%                         colour=DataType,linetype=Normalisation))
+% p = p + geom_line(size=1.3)
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+% p = p + scale_y_continuous(breaks=seq(2,22,2))
+% print(p)
+% @
+
+
+<<classification_normalisation_opt_results, fig.cap="\\textbf{Classification of Non-Binary Data With/ Without Normalisation --- Part 1: Including Zeroes for Missing Values.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method selected on the $x$-axis. The results from using each data type are shown in seperate panels. The results from using all spectra and using only annotated tumour spectra are identified by two colours respectively accross panels. The results from not using/ using normalisation are identified by use of solid and dashed lines respectively. All results shown include zeros for absent peaks when averaging. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="classification_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(subset(clas_opt,VRmethod != "altCCA" 
+                          & DataType != "Binary" & includeEmptyValues==1)[,c("VRmethod","DAmethod","DataType","Normalisation","CancerAnnotation","N","Me","Mloo")])
+
+tab_temp$Normalisation = factor(tab_temp$Normalisation)
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="0"] = "Without"
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="1"] = "With"
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+
+# tab_temp$includeEmptyValues = factor(tab_temp$includeEmptyValues)
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="0"] = "Ignore"
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="1"] = "Include"
+
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,
+                        group=interaction(Normalisation,CancerAnnotation,VRmethod),
+                        colour=CancerAnnotation,
+                        linetype=Normalisation))
+p = p + geom_line(size=1,alpha=0.7)
+p = p + guides(size = FALSE, 
+               alpha = FALSE,
+               colour=guide_legend(title="Spectra")
+               )
+p = p + xlab("") + ylab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + scale_y_continuous(breaks=seq(2,22,10))
+p = p + facet_wrap(~DataType,ncol=1)
+print(p)
+@
+
+
+
+
+<<classification_normalisation_not_including_absent_peaks_opt_results, fig.cap="\\textbf{Classification of Non-Binary Data With/ Without Normalisation --- Part 2: Not Including Missing Values.} \\gls{loo} misclassification on the $y$-axis vs. the combination of classification and dimension reduction method selected on the $x$-axis. The results from using each data type are shown in seperate panels. The results from using all spectra and using only annotated tumour spectra are identified by two colours respectively accross panels. The results from not using/ using normalisation are identified by use of solid and dashed lines respectively. All results shown do not include zeros for absent peaks when averaging. In cases that include a dimension reduction step (\\gls{pca} or \\gls{cca}), results are only shown for the optimal choice for the number of dimensions, $k$, that is the $k$ that achieves the lowest \\gls{loo} misclassification. In cases when there are multiple $k$ that achieve equal lowest \\gls{loo} misclassification, we choose the smallest --- the most parsimonous.", dependson="classification_results", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- subset(clas_opt,VRmethod != "altCCA" 
+                          & DataType != "Binary" & includeEmptyValues==0)[,c("VRmethod","DAmethod","DataType","Normalisation","CancerAnnotation","N","Me","Mloo")]
+
+tab_temp$Normalisation = factor(tab_temp$Normalisation)
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="0"] = "Without"
+levels(tab_temp$Normalisation)[levels(tab_temp$Normalisation)=="1"] = "With"
+
+tab_temp$CancerAnnotation = factor(tab_temp$CancerAnnotation)
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="0"] = "All"
+levels(tab_temp$CancerAnnotation)[levels(tab_temp$CancerAnnotation)=="1"] = "Annotated"
+
+# tab_temp$includeEmptyValues = factor(tab_temp$includeEmptyValues)
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="0"] = "Ignore"
+# levels(tab_temp$includeEmptyValues)[levels(tab_temp$includeEmptyValues)=="1"] = "Include"
+
+
+p = ggplot(tab_temp,aes(x=interaction(DAmethod,VRmethod),
+                        y=Mloo,
+                        group=interaction(Normalisation,CancerAnnotation,VRmethod),
+                        colour=CancerAnnotation,
+                        linetype=Normalisation))
+p = p + geom_line(size=1, alpha=0.7)
+p = p + guides(size = FALSE,
+               alpha = FALSE,
+               colour = guide_legend(title="Spectra"))
+p = p + xlab("") + ylab("")
+p = p + theme(axis.text.x = element_text(angle=90, hjust=1))
+p = p + scale_y_continuous(breaks=seq(2,22,10))
+p = p + facet_wrap(~DataType,ncol=1)
+print(p)
+@
+
+% 
+% 
+% <<classification_includeEmptyValues, fig.cap="Histogram of difference in \\gls{loo}-misclassification between including zeros for absent peaks when averaging and ignoring absent peaks for each of the $128$ cases shown in Figures~\\ref{fig:classification_normalisation_opt_results} and \\ref{fig:classification_normalisation_not_including_absent_peaks_opt_results} respectively. A positive value of this difference indicates that ignoring absent peaks achieves a worse \\gls{loo}-misclassification than the corresponding case but including zeros for absent peaks when averaging spectra.", out.width="0.6\\linewidth", fig.width=5, fig.height=5, fig.align='center', dependson="classification_results">>=
+% Hmm <- subset(clas_opt,
+%                    VRmethod != "altCCA" 
+% #                    VRmethod == "CCA" 
+%                    & DataType != "Binary")[,c("VRmethod","DAmethod","DataType","Normalisation","CancerAnnotation","includeEmptyValues","N","Me","Mloo")]
+% 
+% if(sum(subset(Hmm,includeEmptyValues==0)[,-c(6,7,8,9)] != subset(Hmm,includeEmptyValues==1)[,-c(6,7,8,9)]) > 0){
+%   print("HELP")
+% }
+% 
+% tab_temp = subset(Hmm,includeEmptyValues==0)[,-c(6,7,8,9)]
+% tab_temp$Mloo = subset(Hmm,includeEmptyValues==0)$Mloo - subset(Hmm,includeEmptyValues==1)$Mloo
+% 
+% o = -1*max(abs(min(tab_temp$Mloo)),abs(max(tab_temp$Mloo)))
+% 
+% p = ggplot(tab_temp,aes(x=Mloo, fill = VRmethod))
+% p = p + geom_histogram(binwidth=1,
+%                        origin=o-0.5)
+% p = p + guides(size = FALSE)
+% p = p + xlab("") + ylab("")
+% print(p)
+% @
+% 
+% 
+
+
+% \subsubsection{Normalisation}
+
+For the non-binary data types, we apply the 
+normalisation as described in \refsec{normalisation} in 
+an attempt to reduce the unwanted variability in the 
+non-binary measures of peak presence. 
+The effect of normalisation on these results is shown 
+in \reffig{classification_normalisation_opt_results}.
+\reffig{classification_normalisation_opt_results} shows
+that normalisation does seem to have a clear overall 
+effect on the \gls{loo} misclassification.
+However, one case of interest is when the normalised
+log-intensity data are used with \gls{cca}-\gls{lda}, 
+including all spectra.
+This case achieves the equal best 
+\gls{loo} misclassification of one observed so far.
+The other two results that achieved a 
+\gls{loo} misclassification of one corresponded to the
+use of the binary data with smoothing, mentioned in the 
+previous section.
+
+% \subsubsection{Alternative Treatment of Missing Values}
+
+The second preprocessing option specific to the 
+non-binary data that we will consider relates to the 
+averaging step --- in which spectra from each patient 
+are averaged on a per \gls{mz} bin basis.
+For non-binary data types we need to make a decision 
+about how we treat missing peaks. 
+So far, we have included zeroes for missing peaks when
+averaging spectra, but alternatively we could restrict 
+the averaging to only spectra that have peaks.
+We now compare these two ways of taking averages/
+treating missing peaks.
+\reffig{classification_normalisation_opt_results}
+shows $128$ cases corresponding to every combination of 
+non-binary data type, dimension reduction approach 
+(\gls{cca}, no dimension reduction, or \gls{pca}), 
+classification method (\gls{dwd}, \gls{lda}, and 
+\gls{nb}), spectra restriction (all spectra or only 
+annotated cancer spectra), and normalisation (with or 
+without).
+We include zeroes for absent peaks when averaging in 
+all $128$ of the cases shown in 
+\reffig{classification_normalisation_opt_results}.
+\reffig{classification_normalisation_not_including_absent_peaks_opt_results} 
+shows these same $128$ cases, but without including 
+zeros for absent peaks when averaging.
+\reffig{classification_normalisation_not_including_absent_peaks_opt_results}
+shows a similar lack of overall trend with respect to
+the effect of normalisation as in 
+\reffig{classification_normalisation_opt_results}. 
+
+Ignoring absent peaks when averaging (comparing 
+\reffig{classification_normalisation_opt_results} and
+\reffig{classification_normalisation_not_including_absent_peaks_opt_results}) also does not seem to have an overall effect on 
+classification performance, although it does seem to 
+dramatically effect the classification in some specific
+cases.
+In particular, ignoring absent peaks when averaging the
+\gls{cca} variable selected log-intensity data produces
+remarkably low misclassifications.
+Specifically, 
+\begin{itemize}
+  \item in five of these cases a 
+  \gls{loo} misclassification of zero is achieved, 
+  \begin{itemize}
+    \item four of which correspond to the use of 
+    \gls{nb} or \gls{dwd} with or without restricting 
+    to annotated tumour tissue spectra, and without 
+    normalisation,
+    \item the fifth corresponds to the use of \gls{nb} 
+    on the normalised data without restricting to 
+    annotated tissue.
+  \end{itemize}
+  
+  \item \gls{lda} achieves a 
+  \gls{loo} misclassification of one on these data 
+  without normalisation and restricting to only 
+  annotated spectra.
+\end{itemize}
+The fact that ignoring absent peaks when averaging 
+produces so many extremely low \gls{loo} 
+misclassification results warrants some further 
+investigation. 
+In \refsec{opt_opt} we consider the cases which
+achieved the best classification performance in more 
+detail, including the six cases mentioned in the dot 
+points above as well as the three other cases mentioned
+earlier.
+The preprocessing options used to achieve these nine
+cases are listed in \reftab{opt_opt}.
+
+% \reffig{classification_includeEmptyValues} shows the 
+% effect of ignoring absent peaks on 
+% \gls{loo}-misclassification by plotting the difference 
+% in \gls{loo}-misclassification between including zeros
+% for absent peaks when averaging and ignoring absent 
+% peaks when averaging for each of the $128$ results 
+% shown in 
+% \reffig{classification_normalisation_not_including_absent_peaks_opt_results}
+% and \reffig{classification_normalisation_opt_results}
+% respectively.
+% \reffig{classification_includeEmptyValues} shows that 
+% for $\Sexpr{sum(tab_temp$Mloo == 0)}$ of these 
+% $\Sexpr{nrow(tab_temp)}$ cases, ignoring absent peaks 
+% instead of including zeros for them when averaging has
+% no effect on the \gls{loo}-misclassification.
+% In $\Sexpr{sum(tab_temp$Mloo > 0)}$ of these $128$ 
+% cases, ignoring absent peaks results in worse
+% \gls{loo}-misclassification, and 
+% $\Sexpr{sum(tab_temp$Mloo < 0)}$ cases result in 
+% improved \gls{loo}-misclassification.
+% 
+% This is strange, as ignoring absent peaks improves 
+% \gls{loo}-misclassification in less than half the
+% number of cases for which it worsens results, but the 
+% minority of cases for which ignoring absent peaks 
+% improves the \gls{loo}-misclassification achieve the 
+% best \gls{loo}-misclassification (of zero) of any 
+% combination of preprocessing decisions we have tried. 
+% This raises some interesting, and possibly concerning, 
+% questions as to why this is the case --- are these 
+% results the genuine result of accurate prediction, in 
+% which case why does ignoring absent peaks worsen 
+% results in so many cases? Or are these results the 
+% result of introducing enough variability into the 
+% classification, and trying enough different approaches
+% that some eventually did well by random chance?
+% Additionally, all the cases which achieve this lowest 
+% \gls{loo}-misclassification result from the use of 
+% either \gls{nb} or \gls{dwd}, which broadly speaking
+% have tended to underperform when combined with 
+% dimension reduction as compared to \gls{lda}. 
+% {\highlightTextAs{incomplete}
+% These questions raise concerns that should be 
+% addressed, but which I do not have answers for.
+% }
+
+\section{The Lowest Misclassification Results}
+\label{sec:opt_opt}
+
+In \refsec{varyingParams} we presented a total of
+$304$ classification results, represented across 
+Figures~\ref{fig:classification_annot_opt_results}-\ref{fig:classification_normalisation_not_including_absent_peaks_opt_results}, 
+with some of these results being repeated from  
+\reffig{classification_initial_results} and 
+\reffig{classification_vr} respectively. 
+These $304$ cases result from every possible 
+combination of the following options:
+\begin{itemize}
+  \item \textbf{Dimension reduction approach} (\gls{pca}, 
+  \gls{cca}, or no dimension reduction),
+  
+  \item \textbf{Classification method} (\gls{nb}, 
+  \gls{lda}, or \gls{dwd}),  
+  \emph{Note: \gls{lda} cannot be used if no dimension 
+  reduction is performed, as discussed in 
+  \refsec{DAmethods}}.
+
+  \item \textbf{Spectra included in patient-averages} 
+  (all, or only annotated tumour spectra),
+  
+  \item \textbf{Data type} (area, binary, intensity, 
+  log-intensity, or \gls{snr}),
+  \begin{itemize}
+  
+    \item When non-binary data types are used,
+    \begin{itemize}
+      \item \textbf{Normalisation} (with, or without) 
+      as described in \refsec{normalisation}, and
+      
+      \item \textbf{Treatment of absent peaks when averaging}
+      (include as zeros, or ignore), 
+    \end{itemize}
+
+    \item When binary data is used, 
+    \textbf{Spatial smoothing} ($\tau = 0$, $\tau = 0.15$, 
+  or $\tau = 0.25$) as described in 
+  \refsec{spatialSmooth},
+
+  \end{itemize}
+\end{itemize}
+
+<<opt_opt, results="asis", dependson="classification_results">>=
+opt_subset = subset(clas_opt,VRmethod != 'altCCA' & Mloo < 2)
+opt_subset$ID = 1:nrow(opt_subset)
+opt_opt = opt_subset[,-c(1,8,10,12)]
+
+names(opt_opt)[7:8] = c("nloo_CCA","Mloo_CCA")
+opt_opt = merge(opt_opt,subset(clas_opt,VRmethod=='PCA')[,-c(1,8,10,12)])
+names(opt_opt)[10:11] = c("nloo_PCA","Mloo_PCA")
+opt_opt = merge(opt_opt,subset(clas_opt,VRmethod=='None')[,-c(1,8,9,10,12)],all.x = TRUE)
+
+opt_opt$DataType = levels(opt_opt$DataType)[as.numeric(opt_opt$DataType)]
+opt_opt[opt_opt$DataType == "LogIntensity","DataType"] = "log(I)"
+
+temp = rep("All",nrow(opt_opt))
+temp[opt_opt$CancerAnnotation == 1] = "Annot"
+opt_opt$CancerAnnotation = temp
+
+opt_opt[opt_opt$Smooth == 0,"Smooth"] = NA
+
+temp = rep("W/o",nrow(opt_opt))
+temp[opt_opt$Normalisation == 1] = "With"
+opt_opt$Normalisation = temp
+opt_opt[opt_opt$DataType == "Binary","Normalisation"] = NA
+
+temp = rep("Ignore",nrow(opt_opt))
+temp[opt_opt$includeEmptyValues == 1] = "Include"
+opt_opt$includeEmptyValues = temp
+opt_opt[opt_opt$DataType == "Binary","includeEmptyValues"] = NA
+
+print(xtable(opt_opt[,c("DAmethod","CancerAnnotation","DataType","Smooth","Normalisation","includeEmptyValues","Mloo","Mloo_PCA","nloo_PCA","Mloo_CCA","nloo_CCA","ID")], 
+             digits=c(0,0,0,0,2,0,0,0,0,0,0,0,0),
+             align=c('l','r','l','l','c','l','l','c','c','c','c','c','c'),
+             caption="Classification results that achieve a \\gls{loo} misclassification of zero or one. All results shown achieved said \\gls{loo} misclassification using \\gls{cca}-based variable selection, but we include the corresponding results when \\gls{pca} and no dimension reduction are used for comparison. In the cases when dimension reduction is used, the number of dimensions reduced too, $k$, is also included. The `ID' column is used to identify these results with those shown in \\reffig{opt_opt_vr}. Abbreviations follow. Norm: Normalisation. Annot: Annotated. log(I): log-intensity. W/o: Without.", 
+             label="tab:opt_opt"),
+      size="scriptsize",
+      include.rownames=FALSE,
+      include.colnames=FALSE,
+      caption.placement="top",
+      hline.after=NULL,
+      add.to.row = list(pos=list(-1,
+                                 nrow(opt_opt)),
+                        command = c(paste("\\toprule \n",
+                                          " & & Data & & & Absent & & \\gls{pca} & \\gls{pca} & \\gls{cca} & \\gls{cca} & \\\\ \n",
+                                          "Method & Spectra & Type & $\\tau$ & Norm & Peaks & \\gls{loo} & \\gls{loo} & $k$ & \\gls{loo} & $k$ & ID\\\\ \n",
+                                          "\\midrule \n"),
+                                    "\\bottomrule \n")
+      )
+)
+@
+
+Of these $304$ results, $\Sexpr{nrow(opt_opt)}$ achieve
+a \gls{loo} misclassification of zero or one, and these
+are shown in \reftab{opt_opt}.
+Each of these results was noted in the discussion of 
+\refsec{varyingParams}. 
+The only option that is the same across all 
+$\Sexpr{nrow(opt_opt)}$ of these best results is that 
+\gls{cca}-based variable selection was used.
+The results corresponding to using all the same options 
+except with alternative dimension reduction approaches 
+are also included in \reftab{opt_opt} for comparison.
+Such a comparison reveals the dramatic improvement 
+achieved by \gls{cca}-based variable selection compared
+to either \gls{pca} dimension reduction or no dimension
+reduction in these cases.
+None of the $\Sexpr{nrow(opt_opt)}$ cases shown in 
+\reftab{opt_opt} achieve a \gls{loo} misclassification 
+below $20$ when no dimension reduction is done prior to 
+classification --- out of a total of $43$ patients, this 
+is not much better than coin tossing.
+\gls{pca} dimension reduction performs slightly better
+than no dimension reduction --- achieving \gls{loo} 
+misclassifications as low as $9$ and $10$.
+As previously mentioned, all these cases 
+achieve \gls{loo} misclassifications of zero or one 
+using \gls{cca}-based variable selection.
+As discussed in \refsec{VRapplication}, it is perhaps 
+not entirely surprising that \gls{cca}-based variable 
+selection outperforms these other approaches, as it is 
+the only `supervised' approach to dimension reduction 
+we have considered --- i.e. it takes into account 
+information about the class labels --- but the degree to 
+which it outperforms these other approaches is still 
+surprising.
+Surprise aside, this supports the conclusion we made in 
+\citet{Winderbaum2016} --- that one of the most 
+important factors in determining classification 
+performance is the approach taken to dimension 
+reduction.
+
+In cases where dimension reduction is used the number 
+of dimensions to reduce too, $k$, needs to be chosen 
+and, as discussed in \refsec{VRapplication}, we 
+consider only the `optimal' $k$ --- the smallest $k$ 
+which minimises the \gls{loo} misclassification, 
+included in \reftab{opt_opt}.
+This simplification allows for us to represent the 
+results from more permutations and variations in a
+single plot, and has been useful in 
+\refsec{varyingParams}.
+However now that we are interested in a relatively 
+smaller number of cases we can consider these cases in 
+more detail by varying $k$.
+\reffig{opt_opt_vr} shows the \gls{loo} 
+misclassification as the number of \gls{cca} ranked 
+variables selected $k$ is varied, similarly to 
+\reffig{classification_vr}, for the $9$ best sets of 
+options as listed in \reftab{opt_opt}.
+\reffig{opt_opt_vr} shows the interesting pattern that 
+the \gls{dwd} and \gls{nb} \gls{loo} misclassification
+tend to reduce and stabilise at a minimum value as $k$
+increases, but the \gls{lda} 
+\gls{loo} misclassification seems to achieve a local 
+minima somewhere in the range $20 < k < 30$, rising 
+again for $k > 30$ --- note that there is one possible 
+exception to this trend (ID = $3$).
+In a traditional low-dimensional setting, it is typical 
+to expect adding variables to improve classification.
+However in \gls{hdlss} data such as this, it is not 
+unusual to observe that once a certain number of 
+dimensions is reached, here around the $20-30$ range,
+additional variables can begin to behave as noise and 
+worsen results.
+This change in behaviour allows for `optimal' choices
+to be made for the number of dimensions to reduce too.
+
+
+
+<<opt_opt_vr, dependson="classification_results", fig.cap="\\gls{loo} misclassification on the $y$-axis vs the number of variables, $k$, on the $x$-axis where $k$ is the number of variables retained in the \\gls{cca}-based variable selection step. Results using each of the combinations of preprocessing options listed in \\reftab{opt_opt} are shown. Each of these combinations of preprocessing options are identified by ID and colour, and separated into panels by classification method.", fig.align='center', out.width="0.9\\linewidth">>=
+tab_temp <- merge(clas_mr,opt_subset[c("VRmethod",
+                                       "DAmethod",
+                                       "DataType",
+                                       "Normalisation",
+                                       "includeEmptyValues",
+                                       "Smooth",
+                                       "CancerAnnotation",
+                                       "ID")])
+tab_temp$ID = factor(tab_temp$ID)
+
+p = ggplot(tab_temp,aes(x=nComponents,y=Mloo,group=ID,colour=ID))
+p = p + geom_line(size=0.9,alpha=0.5)
+p = p + guides(size = FALSE, 
+               alpha = FALSE)
+p = p + xlab("") + ylab("")
+p = p + scale_y_continuous(breaks=seq(5,20,5))
+p = p + facet_wrap(~DAmethod,ncol=1)
+print(p)
+@
+
+
+<<Etma_LC>>=
+snames = c('F020216','F020252','F020257')
+LCdf = data.frame()
+for(sname in snames){
+  temp = read.csv(paste('./data/Etma_LC/',sname,'.csv',sep=""),skip=67)
+  temp = temp[,c("prot_acc",
+                 "pep_calc_mr",
+                 "pep_expect",
+                 "pep_seq",
+                 "pep_var_mod",
+                 "pep_var_mod_pos")]
+#   temp$Search = sname
+  LCdf = rbind(LCdf,temp)
+}
+LCdf = ddply(LCdf,
+             c("prot_acc",
+               "pep_calc_mr",
+               "pep_seq",
+               "pep_var_mod",
+               "pep_var_mod_pos"),
+             summarise,
+             pep_expect = min(pep_expect)
+             )
+LCdf = subset(LCdf,pep_expect < 0.05)
+@
+
+
+<<cca_ranked_variables>>=
+cca_vars <- read.csv('./matlab/output/Etma_cca_ranked_variables.txt')
+
+# Cleaning
+cca_vars = subset(cca_vars,VRmethod=='CCA' & minNcal == 0 & minNspecPerCore == 1 & minNspecPerBin == 1)
+cca_vars$minNcal <- NULL
+cca_vars$minNspecPerCore <- NULL
+cca_vars$minNspecPerBin <- NULL
+cca_vars$VRmethod <- NULL
+
+# Add ID col
+cca_vars = cca_vars[order(cca_vars$Wiggle),]
+cca_vars$ID = rep(1:(nrow(cca_vars)/3),3)
+@
+
+<<opt_cca_vars, dependson='cca_ranked_variables'>>=
+opt_vars <- subset(cca_vars,(DataType=="Binary" & CancerAnnotation == 1 & Smooth != 0) | (DataType == "LogIntensity" & Normalisation == 0 & includeEmptyValues == 0) | (DataType == "LogIntensity" & Normalisation == 1 & CancerAnnotation == 0)) 
+# print(opt_vars[,c(1:6,length(names(cca_vars)))])
+# cca_group <- opt_vars[,6:length(names(cca_vars))]
+cca_group <- opt_vars[,c(6:36,52)]
+cca_group = melt(cca_group,
+                 id.vars=c("ID","Wiggle"),
+                 value.name="m.z",
+                 variable.name="rank")
+cca_group$rank = levels(cca_group$rank)[as.numeric(cca_group$rank)]
+cca_group$rank = as.numeric(substring(cca_group$rank,2))
+cca_group <- groupPeaks(cca_group,tol=0.2)
+group_sum <- ddply(cca_group,
+                   "PeakGroup",
+                   summarise,
+#                    cent = mean(min(m.z),max(m.z)),
+#                    margin = (0.25 + max(m.z) - min(m.z))/2,
+                   minMZ = min(m.z)-0.125,
+                   maxMZ = max(m.z)+0.125,
+                   N = length(m.z),
+                   minRank = min(rank),
+                   maxRank = max(rank))
+@
+
+<<LCmatching, dependson=c("opt_cca_vars","Etma_LC","data_tmas_readin")>>=
+peaklist_all = data.frame()
+for(dataset_name in c("EA1", "EA2","EB1", "EB2")){
+  tmp <- load_peaklist(dataset_name)
+  peaklist_all = rbind(peaklist_all,tmp)
+}
+group_sum$AWM = 0
+for(i in 1:nrow(group_sum)){
+  tmp = which((peaklist_all$m.z >= group_sum[i,"minMZ"]) & (peaklist_all$m.z <= group_sum[i,"maxMZ"]))
+  group_sum[i,"AWM"] = weighted.mean(peaklist_all[tmp,"m.z"],peaklist_all[tmp,"SN"])
+}
+LCdf$PeakGroup = 0
+for(i in 1:nrow(LCdf)){
+  idx = which((LCdf[i,"pep_calc_mr"]+1.0078 > group_sum$minMZ) & (LCdf[i,"pep_calc_mr"]+1.0078 < group_sum$maxMZ))
+  if(length(idx) == 1){
+    LCdf[i,"PeakGroup"] = group_sum[idx,"PeakGroup"]    
+  }
+}
+LCmatches = merge(group_sum,subset(LCdf,PeakGroup != 0))
+LCmatches$D = LCmatches$AWM - (LCmatches$pep_calc_mr + 1.0078)
+LCmatches$Dppm = LCmatches$D*1000000/(LCmatches$pep_calc_mr + 1.0078)
+@
+
+Another advantage of the \gls{cca} variable selection 
+approach is that it selects from existing variables, 
+thus preserving their interpretation as \gls{mz} bins.
+Thus, we can look into the rankings that produced 
+these best results, and find which \gls{mz} values are 
+highly ranked, as these could be potential targets for
+follow up validation studies.
+As choice of classification method does not influence 
+the variable ranking, there are $6$ unique sets of 
+preprocessing options represented amongst the $9$
+results of \reftab{opt_opt}.
+Each of these $6$ sets of preprocessing options will 
+produce different rankings, and each of these will have 
+three rankings produced from the three shifted-bin 
+analyses as discussed in \refsec{DApreprocessing}.
+Parallel \gls{lc}-\gls{ms} analyses were conducted on 
+tissue from the endometrial \glspl{tma} for protein 
+identifications, so that these identifications could
+then be matched to these highly ranked \gls{mz} bins in 
+order to infer proteins that could be important to 
+the classification of \gls{lnm} status. 
+Several proteins of interest were identified through 
+this matching, and follow up validation studies are 
+currently being undertaken to further investigate the 
+link between these proteins and \gls{lnm} in 
+endometrial cancer.
+As an example, one of the most consistently recurring 
+\gls{mz} values is that centred around
+$m/z = \Sexpr{round(subset(group_sum,PeakGroup==254)$AWM,3)}$, 
+which is ranked in the top $20$ variables for $6$ of 
+the $18$ rankings.
+The most likely parent protein identified from the 
+\gls{lc}-\gls{ms} for this peptide \gls{mz} is an Actin, 
+most likely aortic smooth muscle Actin (UniProtKB entry 
+name: {\tt ACTA\_HUMAN}). 
+Two other masses likely to be Actin peptides are also 
+highly ranked in several of the rankings, specifically
+those centred around
+$m/z = \Sexpr{round(subset(group_sum,PeakGroup==235)$AWM,3)}$
+and 
+$m/z = \Sexpr{round(subset(group_sum,PeakGroup==314)$AWM,3)}$.
+\reftab{LCactin} shows all potential matches from the 
+\gls{lc}-\gls{ms} identifications to these three 
+\gls{mz} values, notice that Actin is not the only 
+possible parent protein --- there are other 
+possibilities, and these are also being pursued in 
+follow-up work.
+% A complete list of the matchings to all highly ranked 
+% \gls{mz} bins is available in the source code.
+
+<<LCactin, results="asis", dependson="LCmatching">>=
+tab_temp = rbind(subset(LCmatches,(PeakGroup==254)),
+                 subset(LCmatches,(PeakGroup==235)),
+                 subset(LCmatches,(PeakGroup==314)))
+tab_temp[c(2:7,9:13,15:19),"AWM"] = NA
+
+print(xtable(tab_temp[,c("AWM","prot_acc","pep_seq","pep_var_mod","pep_var_mod_pos","pep_expect","D","Dppm")], 
+#              digits=c(0,0,0,0,2,0,0,0,0,0),
+             align=c('l','l','r','l','c','c','r','r','r'),
+             caption="LC matching to Actin peptides", 
+             label="tab:LCactin"),
+      size="footnotesize",
+      include.rownames=FALSE,
+      include.colnames=FALSE,
+      caption.placement="top",
+      hline.after=NULL,
+      add.to.row = list(pos=list(-1,7,13,nrow(tab_temp)),
+                        command = c(paste("\\toprule \n",
+                                          "\\gls{maldi} & UniProtKB & Peptide & & & MASCOT & error & error \\\\ \n",
+                                          "\\gls{mz} & Entry Name & Sequence &  & & expect & (\\gls{mz}) & (ppm) \\\\ \n",
+                                          "\\midrule \n"),
+                                    "\\midrule \n",
+                                    "\\midrule \n",
+                                    "\\bottomrule \n")
+      )
+)
+@
+
+
+
+\section{Measuring Stability/ Overfitting/ Leverage}
+\label{sec:DAstability}
+
+
+<<stab>>=
+stab_df <- read.csv('./matlab/output/Etma_detailed_LOOstability_results.txt')
+
+# Cleaning
+stab_df = subset(stab_df,VRmethod != 'altCCA' & minNcal == 0 & minNspecPerCore == 1 & minNspecPerBin == 1)
+stab_df$minNcal <- NULL
+stab_df$minNspecPerCore <- NULL
+stab_df$minNspecPerBin <- NULL
+@
+
+<<stab_opt, dependson=c("stab","opt_opt")>>=
+temp = opt_subset[,c("VRmethod","DAmethod","DataType","Normalisation","includeEmptyValues","Smooth","CancerAnnotation","nloo")]
+names(temp)[names(temp)=='nloo'] = 'nComponents'
+
+opt_stab = merge(temp,stab_df)
+opt_stab_long = opt_stab
+opt_stab_long = melt(opt_stab_long,id.vars=names(opt_stab)[1:9],variable.name='Patient',value.name='Stab')
+@
+
+% There where warnings here... should check that at 
+% some point...
+<<stab_da, warning=FALSE, dependson="stab_opt", fig.cap="Frequency histograms of stability heuristic values from the $9$ \\gls{cca} variable selection cases shown in \\reftab{opt_opt}. Each histogram is presented in a seperate panel labeled $1$-$9$ corresponding to the ID column of \\reftab{opt_opt}. Each histogram consists of $129$ stability heuristic values --- one for each of the $43$ patients for each of the three shifted-bin analyses.", fig.align='center', out.width="0.9\\linewidth">>=
+
+# opt_stab_long$w = 1
+# opt_stab_long[opt_stab_long$DAmethod == 'DWD','w'] = 1/(2*3*43)
+# opt_stab_long[opt_stab_long$DAmethod == 'LDA','w'] = 1/(4*3*43)
+# opt_stab_long[opt_stab_long$DAmethod == 'NB','w'] = 1/(3*3*43)
+
+opt_stab_long = merge(opt_stab_long,opt_subset[,-c(8,9,10,11,12)])
+
+p = ggplot(opt_stab_long,aes(x=acos(Stab)))
+# p = p + geom_histogram(binwidth=0.025)
+p = p + geom_histogram(binwidth=pi/128)
+# p = p + geom_histogram(binwidth=0.025,aes(weight = w))
+# p = p + facet_wrap(~DAmethod,ncol=1)
+p = p + facet_wrap(~ID,ncol=3)
+p = p + scale_y_continuous(breaks=seq(10,60,25))
+# p = p + scale_y_continuous(breaks=seq(0.1,0.4,0.1))
+# p = p + scale_x_continuous(breaks=seq(0.1,0.7,0.2),limits=c(0,0.75))
+p = p + scale_x_continuous(breaks=seq(pi/16,3*pi/16,pi/16),limits=c(0,0.75),labels=parse(text=c("pi /16","2 * pi /16","3 * pi /16")))
+p = p + xlab("") + ylab("")
+print(p)
+@
+ 
+
+% <<stab_zoom, dependson="stab_da", fig.cap="Close up of the peaks close to the value one as shown in \\reffig{stab_da}.", fig.align='center', out.width="0.9\\linewidth">>=
+% p = ggplot(subset(opt_stab_long,Stab>0.995),aes(x=acos(Stab)))
+% p = p + geom_histogram(binwidth=0.005,aes(weight = w))
+% p = p + facet_wrap(~DAmethod,ncol=1)
+% # p = p + scale_y_continuous(breaks=seq(0.1,0.2,0.1))
+% p = p + xlab("") + ylab("")
+% print(p)
+% @
+
+So far in this chapter, and in particular in 
+\refsec{varyingParams}, we have considered the results 
+of classification using a considerable array of 
+different options.
+We discuss the cases that resulted in the best 
+\gls{loo} misclassification in \refsec{opt_opt}.
+Due to the nature of our approach --- applying many 
+different combinations of processing options --- it can 
+be difficult to judge if these best results are due to 
+accurate prediction, or random chance combined with a
+sufficiently large number of permutations of 
+processing options.
+
+I introduce a heuristic measure of classification rule 
+stability in \refeqn{stab}, comparable to the ideas
+of leverage from regression \citep{Everitt2002}.
+Leverage measures the effect that removal of a single 
+observation has on the parameter estimates in 
+regression.
+Analogously the heuristic we introduce below is a 
+measure of the effect that removing a single 
+observation has on the direction vector $\bm{d}$ as 
+in the formulation of \refeqn{linearDA} for a linear 
+classification rule trained from the data.
+This idea also naturally follows from the ideas of 
+\gls{loo} \gls{cv}, where the analysis is repeated
+with each observation removed.
+If we let $\bm{d}$ be the direction vector of the 
+classification rule trained from all the data, and let 
+$\bm{d}_i$ be the direction vector of the 
+classification rule trained from the data with the 
+$i$th observation removed, then the heuristic we will 
+consider is the internal angle between the two vectors,
+\begin{equation}
+\arccos{\left( \frac{\bm{d} \cdot \bm{d}_i}{|\bm{d}||\bm{d}_i|}\right)}
+= \arccos{\left( \bm{d} \cdot \bm{d}_i \right)} \quad
+\text{ as typically } \quad |\bm{d}| = |\bm{d}_i| = 1,
+\label{eqn:stab}
+\end{equation}
+which is directly related to the cosine distance of 
+\refdef{Dcos}.
+The value of the heuristic defined in \refeqn{stab} can 
+be interpreted as an angle, indicating the change in 
+direction of the trained classification rule when the 
+$i$th observation is removed.
+An angle of zero indicates there is no difference 
+between the original direction vector and the direction 
+vector trained on the data with the $i$th observation 
+removed. 
+Larger values of this heuristic indicate larger changes 
+in the direction vector --- larger angles between the 
+two direction vectors.
+
+Although the heuristic of \refeqn{stab} does not 
+entirely address the difficulty mentioned above in 
+judging if results are due to accurate prediction or 
+random chance, it can nonetheless provide some insight 
+into the stability or sensitivity of these 
+classification methods to small changes in the data --- 
+specifically, to the removal of individual 
+observations.
+\reffig{stab_da} shows a histogram of these heuristic 
+values calculated for the $9$ cases of 
+\reftab{opt_opt}.
+Each of the $9$ results of \reftab{opt_opt} actually 
+consist of three shifted-bin analyses, and so each of
+the $9$ histograms represents $129$ heuristic values, 
+one for each of the $43$ patients for each of the three
+shifted-bin analyses.
+
+It can be seen from \reffig{stab_da} that all these
+cases have strongly right-skewed distributions with the 
+majority of values falling very close to zero.
+This is good as it indicates that overall in the 
+majority of these cases, the direction vector is not 
+very sensitive to the removal of individual 
+observations from the training dataset.
+Some notes on \reffig{stab_da}:
+\begin{itemize}
+  \item Three distinct distributions can be observed 
+  corresponding to the three classification methods: 
+  \gls{dwd} (ID = 1-2), \gls{lda} (ID = 3-6), and 
+  \gls{nb} (ID = 7-9).
+  
+  \item The distributions for the \gls{lda} cases 
+  have significantly thicker tails than the other cases 
+  --- seeming to demonstrate the most overall 
+  instability of the three methods.
+  \gls{lda} is also the only method of the three to 
+  show heuristic values above 
+% $\Sexpr{(max(acos(subset(opt_stab_long,DAmethod!='LDA')$Stab)))}$
+  $\frac{\pi}{8}$ radians 
+% ($\sim \Sexpr{ceiling(180*max(acos(subset(opt_stab_long,DAmethod!='LDA')$Stab))/pi)}$ 
+  ($22.5$ degrees), although only for a very small 
+  number of values.
+  
+  \item The distributions of the \gls{dwd} and \gls{nb}
+  cases show similar thickness tails, but different 
+  modes. 
+  The \gls{dwd} cases tend to have modes below 
+  $\frac{\pi}{64}$ radians, while the \gls{nb} cases
+  have modes above $\frac{\pi}{64}$ radians and infact 
+  do not have any heuristic values below 
+  $\frac{\pi}{128}$ radians at all.
+\end{itemize}
+% \gls{nb} on the other hand has a thinner tail than the 
+% other two methods, more consistently achieving low 
+% values of the heuristic, but not achieving any values 
+% less than 
+% $\Sexpr{(min(acos(subset(opt_stab_long,DAmethod=='NB')$Stab)))}$
+% radians ($\sim \Sexpr{(180*min(acos(subset(opt_stab_long,DAmethod=='NB')$Stab))/pi)}$ degrees) while the other two 
+% classification methods achieve their respective modes 
+% in this low 
+% ($< \Sexpr{round(180*min(acos(subset(opt_stab_long,DAmethod=='NB')$Stab))/pi,1)}$ 
+% degree) range.
+
+It is interesting to speculate on the possible link 
+between these stability heuristic results, and the 
+results shown in \reffig{classification_vr}, in which 
+it was noted that \gls{dwd} showed less variance in 
+\gls{loo} misclassification as the number of dimensions 
+$k$ was varied.
+Furthermore, there may be reason so consider 
+classification methods other than \gls{lda} --- despite 
+the fact that \gls{lda} tends to achieve the best 
+\gls{loo} misclassification results --- as \gls{lda} is
+also the most sensitive to small changes in the data 
+according to this heuristic, which is an undesirable 
+property in a classification rule.
+
+
+\section{Conclusions}
+\label{sec:DAconclusions}
+
+As summarised at the beginning of \refsec{opt_opt}, we 
+have presented results representing a considerable 
+array of different options for classification in 
+\refsec{varyingParams}.
+For convenience we repeat the options which we have 
+considered:
+\begin{itemize}
+  \item \textbf{Dimension reduction approach} (\gls{pca}, 
+  \gls{cca}, or no dimension reduction),
+  
+  \item \textbf{Classification method} (\gls{nb}, 
+  \gls{lda}, or \gls{dwd}),  
+  \emph{Note: \gls{lda} cannot be used if no dimension 
+  reduction is performed, as discussed in 
+  \refsec{DAmethods}}.
+
+  \item \textbf{Spectra included in patient-averages} 
+  (all, or only annotated tumour spectra),
+  
+  \item \textbf{Data type} (area, binary, intensity, 
+  log-intensity, or \gls{snr}),
+  \begin{itemize}
+  
+    \item When non-binary data types are used,
+    \begin{itemize}
+      \item \textbf{Normalisation} (with, or without) 
+      as described in \refsec{normalisation}, and
+      
+      \item \textbf{Treatment of absent peaks when averaging}
+      (include as zeros, or ignore), 
+    \end{itemize}
+
+    \item When binary data are used, 
+    \textbf{Spatial smoothing} ($\tau = 0$, $\tau = 0.15$, 
+  or $\tau = 0.25$) as described in 
+  \refsec{spatialSmooth},
+
+  \end{itemize}
+\end{itemize}
+
+
+Amongst these results, there are some general trends 
+and suggestions that can be made based on these trends.
+Ideally we would like to be able to make 
+recommendations on approaches, methods, and 
+preprocessing options that tend to be more effective 
+when classifying \gls{maldi}-\gls{ims} \gls{tma} data.
+However, of the results discussed in this chapter, no 
+single set of decisions seems to demonstrate 
+superior results over all other options.
+The best strategy may be to try several options and use 
+whichever performs best in any given circumstance. 
+That said, some decisions had a more pronounced effect 
+on classification performance than others.
+Summarising and discussing these effects is the focus 
+of this section.
+Overall, the factor that seems to have the biggest 
+effect on classification performance is the 
+\textbf{Dimension reduction approach} taken, with 
+\gls{cca} variable ranking performing very well.
+\textbf{Classification method} and \textbf{Data type} 
+also seemed to have significant effects on 
+classification performance, and in particular seemed to 
+have strong interaction effects with each other and 
+choice of \textbf{Dimension reduction approach}.
+The remaining preprocessing variants we considered 
+did not seem to have a consistent effect on 
+classification performance.
+These options are: \textbf{Spectra included in 
+patient-averages} (all or only annotated tumour 
+spectra), \textbf{Spatial Smoothing} of the binary 
+data, \textbf{Normalisation} and \textbf{Treatment of 
+absent peaks when averaging} in the non-binary data.
+
+Furthermore, it is also of interest if these trends 
+extend to classification of \gls{maldi}-\gls{ims} 
+\gls{tma} data in general, or if they are artefacts of 
+the endometrial data we have considered here.
+In order to investigate this possibility we have 
+replicated all the analyses in this chapter using a 
+different dataset --- relating to vulvar cancer, as 
+mentioned briefly at the end of 
+\refsec{endometrialDatasets}.
+The results of classification on the vulvar data are 
+included as \refapp{vulvar}, in which 
+Figures~\ref{fig:VTMAappendix_initial_results}-\ref{fig:VTMAappendix_normalisation_not_including_absent_peaks_opt_results}
+mirror 
+Figures~\ref{fig:classification_initial_results}-\ref{fig:classification_normalisation_not_including_absent_peaks_opt_results} 
+in a one-to-one fashion but for the vulvar data.
+
+
+\subsubsection{Dimension Reduction Approach}
+First and foremost, the clearest trend and strongest 
+conclusion from these results is that the
+\gls{cca}-based variable ranking performs very well.
+The importance of dimension reduction, and the 
+superiority of the \gls{cca}-based variable ranking 
+approach are also very clear in the vulvar data
+analyses of \refapp{vulvar}.
+Furthermore, the \gls{cca}-based variable ranking 
+method has the additional (very significant) advantage 
+of interpretability --- selected variables correspond 
+directly to analytes of biological interest, as 
+discussed in \refsec{opt_opt}.
+
+\subsubsection{Classification Method}
+
+Overall, \gls{cca}-\gls{lda} seemed to achieve the best 
+results in most circumstances, with a few exceptions 
+noted in \reftab{opt_opt}. 
+However based on our heuristic stability analysis of 
+\refsec{DAstability}, \gls{lda} showed the worst 
+stability.
+This instability of the \gls{lda} method could 
+contribute to higher variance in \gls{loo} 
+misclassification, and this could potentially explain 
+the better results achieved with \gls{loo}.
+The results discussed are largely those chosen from a 
+range of possible dimension-reductions, with the 
+dimension-reduction chosen such that the minimum 
+\gls{loo} misclassification is achieved.
+If the \gls{lda} method is more sensitive to small 
+changes in the data, as the results of the heuristic 
+stability analysis in \refsec{DAstability} suggest, 
+this could mean the results would vary more as the 
+number of dimensions used is varied.
+Higher variance in the \gls{loo} misclassification 
+combined with the `optimality selection' of choosing 
+the dimension that minimises the \gls{loo}
+misclassification could be biasing the results to show
+\gls{lda} performing better. 
+This raises questions of how to appropriately measure 
+the performance of classification methods in such 
+cases, but does not conclusively answer any such 
+questions.
+\gls{dwd} demonstrated the best stability in the 
+heuristic analysis of \refsec{DAstability}, and this 
+may indicate that more consistent results could be 
+achieved with \gls{dwd}.
+It is difficult to say with any certainty either way, 
+and so although choice of classification method is 
+clearly very important, it is nonetheless difficult to 
+recommend a single classification method as being 
+superior to all others.
+Instead we recommend using several options and 
+selecting that which performs best or combining the 
+results of a number of good options in a sensible way.
+
+
+
+\subsubsection{Data Type}
+Overall, the log-intensity data achieved very good 
+\gls{loo} misclassification results, with the binary 
+data also achieving some notable local optimums, as 
+noted in \reftab{opt_opt}.
+This is also true of the vulvar data results in 
+\refapp{vulvar}.
+As such we suggest that the log-intensity data serves 
+as a good starting point for classification of these 
+data, but exploration of alternative data types, 
+including the binary data, may also yield improvement 
+and should be pursued if optimising results is of 
+interest.
+
+The distribution of intensity values in a typical
+\gls{maldi}-gls{ims} dataset well approximates an 
+exponential distribution, which could contribute to 
+why the log-intensity values achieve good results using 
+these linear classification methods. 
+It should be noted that other non-binary data types, 
+such as \gls{snr}, also follow a similar exponential 
+decay distribution of values typically, and so 
+considering their log-transformed analogues may also be 
+of interest.
+
+
+\subsubsection{Cancer Annotation}
+In principle, restricting to a single tissue type 
+should reduce the within-patient variability and 
+thereby facilitate more accurate prediction.
+However, the results do not support this hypothesis --- 
+showing no consistent effect to this restriction. 
+This same lack of consistent trend is apparent in the 
+vulvar cancer results of \refapp{vulvar}.
+There are several possible, not mutually exclusive, 
+explanations that could account for this, including:
+\begin{itemize}
+  \item Restricting to annotated spectra reduces the 
+  total amount of spectra used in the analyses, and 
+  this could lead to more noisy patient-averages as 
+  each average is obtained from a smaller number of 
+  observations (spectra).
+  It is possible that restricting to annotated spectra
+  does reduce the variability in the data by 
+  restricting to a single tissue type, but that 
+  reducing the total number of spectra also increases 
+  the variability of the averages, and these two
+  competing effects cancel each other out, resulting in 
+  no net effect on the classification performance.
+  
+  \item There may exist characteristics of the 
+  surrounding non-tumour stroma tissue that are
+  important in the prediction of \gls{lnm}, and that 
+  this information is lost when restricting to only
+  tumour tissue. 
+  Similarly this could compete with the effect of 
+  reducing the variability due to multiple tissue types
+  being considered, and result in no net change being 
+  observable. 
+  There is some evidence to support this hypothesis, 
+  specifically \citet{Oppenheimer2010} demonstrated that
+  tissue adjacent to a tumour, histologically 
+  classified as non-tumour, can share molecular 
+  characteristics with the tumour tissue.
+  \citet{Oppenheimer2010} suggested that this phenomena 
+  could be involved in tumour recurrence post 
+  resection, but the same phenomena could also be 
+  involved in explaining why restricting to 
+  histologically annotated tumour regions does not 
+  produce a consistent improvement in classification 
+  performance.
+\end{itemize}
+These points, particularly the second dot point above,
+warrant further investigation in future research.
+
+
+\subsubsection{Smoothing}
+In most of the cases considered for the binary data, 
+and particularly those cases that achieved the best 
+results, it seems that spatial smoothing has a good
+net effect on \gls{loo} misclassification.
+This is unsurprising, as the smoothing should reduce the 
+noise, and thus allow signals to be more easily 
+detected.
+For future research, pursuing spatial smoothing 
+techniques for the non-binary data, such as simple 
+kernel density smoothing, could be of interest.
+
+\subsubsection{Normalisation}
+It makes intuitive sense that normalisation should 
+reduce the variability in the data, facilitating more
+accurate classification.
+However, the results do not support this --- \gls{loo} 
+misclassification shows no obvious trend related to the
+use of normalisation prior to classification.
+Infact, overall, classification performance tends to be 
+worse when normalisation is used.
+This worsening of the classification performance when 
+normalisation is used can, for example, be seen in the 
+results using area and intensity data in
+Figures~\ref{fig:classification_normalisation_opt_results}
+and \ref{fig:classification_normalisation_not_including_absent_peaks_opt_results}.
+Despite this overall trend however, some of the results 
+achieving the overall best \gls{loo} misclassification
+shown in \reftab{opt_opt} include use of normalisation. 
+One possible explanation for this seeming contradiction
+is that using normalisation could introduce additional 
+degrees of freedom in preprocessing decisions, and this
+could allow for the `optimality selection' bias effect 
+to find better minima.
+We discussed this optimality bias effect previously, in 
+relation to classification methods and the heuristic 
+stability measure.
+Further investigation could be of use in elucidating 
+explanations for this behaviour, but ultimately our 
+results are inconclusive on the effect of 
+normalisation.
+
+
+\subsubsection{Absent Peaks}
+
+Similarly to normalisation, the overall trend seems to 
+be that ignoring absent peaks when averaging worsens 
+\gls{loo} misclassification more often that not, but
+the minority of results contradicting this trend 
+achieve some of the overall best \gls{loo} 
+misclassification results (shown in \reftab{opt_opt}).
+However, this trend is not replicated in the vulvar 
+cancer results shown in \refapp{vulvar}.
+In the vulvar cancer results of \refapp{vulvar}, 
+ignoring absent peaks has no obvious net effect on 
+classification performance, suggesting that the minor 
+downward trend in the endometrial cancer results may 
+simply be an artefact of these data.
+Another possible explanation for this downward trend is 
+that considering multiple options for how to treat 
+absent peaks when averaging introduces an additional 
+degree of freedom in the preprocessing decisions 
+considered, and thereby contributes to the `optimality 
+bias' as discussed above in regards to normalisation.
+Similarly to the normalisation, these hypotheses 
+warrant further investigation, but ultimately our 
+results are inconclusive on the effect of ignoring 
+absent peaks when averaging.
+
+% 
+% \pagebreak
+% %\bibliographystyle{abbrv}
+% \bibliographystyle{plainnat}
+% %\bibliographystyle{harvard}
+% \bibliography{references}
+% \pagebreak

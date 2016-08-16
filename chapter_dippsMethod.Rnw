@@ -1,0 +1,3130 @@
+<<chapter_dippsMethod_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+
+
+\gls{maldi}-\gls{ims} can produce large amounts of 
+data \citep{Bonnel2011}.
+It also has a uniquely complicated structure.
+The development of novel statistical tools is required 
+in order to analyse and interpret \gls{maldi}-\gls{ims} 
+results as many standard methods are 
+inappropriate.
+\citet{Deininger2008}, \citet{Bonnel2011}, 
+\citet{Alexandrov2013}, and references therein have 
+suggested a number of approaches to the exploratory 
+analyses of \gls{maldi}-\gls{ims} data.
+Here we suggest an approach based on feature selection
+from the binary data.
+Our approach is based entirely on the peaklist data.
+Dealing only with the peaklist data, as opposed to the 
+full spectrum data, provides a reduction in the 
+quantity of information involved in computations by 
+several orders of magnitude.
+Our approach provides easily interpretable results, 
+fast computation, and we suggest it for use as an 
+`initial pass' for quality control as well as a 
+starting point for more in-depth follow-up analyses.
+The approach we suggest, and its application discussed 
+in \refsec{datasetComparisons}, has been published as 
+\citet{Winderbaum2015}.
+Here, we take the opportunity to discuss the ideas 
+in more detail.
+
+This chapter introduces and illustrates methods for:
+\begin{itemize}
+  \item Representing \gls{maldi}-\gls{ims} datasets as 
+  data matrices in a way that is robust and useful, 
+  facilitating further analyses.
+	\item Separating meaningful subsets in the data by
+  the use of clustering methods.
+  \item Characterising subsets of the data in an easily
+  interpretable way using the \gls{dipps}.
+\end{itemize}
+Addressing the first of these dot points, binning as a 
+method for representing \gls{maldi}-\gls{ims} data in 
+binary binned form is reviewed in \refsec{binning}, 
+accompanied by details and related concepts in 
+\refapp{binning}.
+$k$-means clustering is reviewed in \refsec{clustering} 
+as an exploratory method that can be used to 
+investigate structure in these data.
+The $k$-means clustering approach we discuss can be 
+seen as an alternative to the so-called 
+`semi-supervised' methods of 
+\cite{Deininger2008,Alexandrov2010} and 
+\cite{Bonnel2011} who cluster \gls{maldi}-\gls{ims} 
+data using principal component analysis, hierarchical 
+clustering, and Gaussian mixture models.
+In \refsec{prelimAnalysis} the binning and $k$-means
+methods are illustrated and practical concerns related
+to their use are discussed in detail.
+In \refsec{clusCharMethods} I introduce the 
+\gls{dipps}, and how it can be used to extend and 
+further investigate the results of $k$-means clustering
+of the binary data.
+We use the \gls{dipps} in a feature selection approach 
+conceptually similar to that of \cite{Jones2011}, but 
+taking a very different approach in practice, focusing 
+on the binary data in a way that allows for the result
+to be visualised in a single, easy to interpret, image.
+In \refsec{spatialSmooth} I introduce a novel spatial
+smoothing algorithm for binary data that can aid in the 
+analysis and  visualisation of binary data and for 
+sparse data can even act as a dimension reduction step.
+In \refsec{clusCharAnalysis} I illustrate the use of 
+the \gls{dipps}, as introduced in 
+\refsec{clusCharMethods}, for investigating the ovarian 
+cancer data and demonstrate how the \gls{dipps} is of 
+practical use due to its intuitive and powerfully 
+simple interpretation.
+
+The methods in this chapter do not only apply to 
+\gls{maldi}-\gls{ims} data but can be used more 
+generally on any binary presence/ absence data as 
+introduced in \refdef{presAbsData}.
+In order to clarify the generality of these methods, I 
+introduce methods in a general sense and then motivate
+them with examples from the \gls{maldi}-\gls{ims} 
+application in separate sections.
+For example, I introduce the $k$-means method generally
+in \refsec{kmeans} and provide motivating applications 
+of $k$-means to \gls{maldi}-\gls{ims} in 
+\refsec{p44kmeansResults}.
+Similarly I introduce the general concepts underlying 
+the \gls{dipps} and related ideas in 
+\refsec{clusCharMethods}, motivating these ideas with 
+examples in the \gls{maldi}-\gls{ims} context in 
+\refsec{clusCharAnalysis}.
+
+Throughout this chapter I will use the dataset A3 as a 
+motivating example of the ovarian cancer datasets of 
+\refsec{ovarianDatasets} when illustrating the 
+application of methods to \gls{maldi}-\gls{ims} data.
+All analyses illustrated on dataset A3 in this chapter 
+have been duplicated on all the ovarian cancer 
+datasets, but results will often only be shown for 
+the motivating dataset A3 because the focus of this 
+chapter is on single-dataset analyses. 
+Comparisons between multiple datasets is the focus in 
+\refsec{datasetComparisons}, where the results for the 
+remainder of the ovarian cancer datasets are 
+summarised and discussed.
+
+
+
+
+
+
+
+
+
+%%% --------------------------------------------- %%% 
+%%% ------------ Preliminary Methods ------------ %%%
+%%% --------------------------------------------- %%% 
+
+
+\section{Binning}
+\label{sec:binning}
+
+% Introduce Binning, and related concepts.
+% Motivate the use of binning by the natural extension to comparisons between datasets.
+
+In this section I discuss binning as it
+applies to peaklist \gls{maldi}-\gls{ims} data.
+As discussed in \refsec{statsBackground}, peaklist data
+does not fit into the standard statistical paradigm of 
+`variables' and `observations.
+Binning, in the context that I will use it, is a method 
+for constructing variables from peaklist data.
+As mentioned in \refsec{statsBackground}, this 
+construction of variables is achieved by discretising
+the \gls{mz} range into intervals and grouping peaks whose 
+\gls{mz} values fall in the same interval.
+Binning corresponds to a particular choice of 
+discretisation --- equal width intervals that partition 
+the \gls{mz} range.
+We choose the bin locations arbitrarily, i.e. 
+data-independently, and as such any dataset we analyse 
+will have the same bins.
+The data-independent nature of this binning allows for 
+single-dataset analyses to be extended to 
+multiple-dataset comparisons in a natural way as 
+the datasets will have the same variables, the 
+variables having been constructed from the same bins.
+
+Because of its data-independent nature, the binning we 
+suggest (\refalg{binning}) has the inherent 
+disadvantage of sometimes placing bins in the `wrong'
+place.
+Alternative, data-dependent, methods can improve on 
+this by using the data to inform decisions on where to 
+place bins.
+We introduce a data-dependent discretisation method and
+mention some alternatives in \refsec{dataDependant},
+and apply this approach to the glycan data.
+However, the extension of such data-dependent methods 
+from single to multiple dataset analyses is not as 
+intuitive and can be more computationally intensive 
+than it is for binning.
+Comparison of multiple datasets is the main interest in 
+the ovarian cancer data introduced in 
+\refsec{ovarianDatasets}, and is often important in 
+the context of \gls{maldi}-\gls{ims} data more 
+broadly, and so we favour the data-independent
+binning approach for these data.
+ 
+Binning is widely used, but for completeness and to 
+avoid ambiguity I include explicit definitions in 
+\refapp{binning}, as well as some extended notation 
+that will be of use in the discussion to follow. 
+One such discussion point is how to make sensible 
+choices about the size of bins, which we consider in 
+\refsec{binSizeChoice} through the exploration of the 
+motivating dataset A3.
+
+
+
+
+
+\section{$k$-means Clustering}
+\label{sec:clustering}
+
+Often it is of interest to separate subsets of a 
+dataset that are `different' from each other in some 
+sense.
+For example in a \gls{maldi}-\gls{ims} dataset there 
+could be a number of different tissue types 
+represented.
+Mass spectra collected from the same tissue type 
+should, in principle, be relatively similar while 
+spectra from different tissue types should be 
+relatively less similar.
+A natural first step in the analysis of such data is to 
+verify that this intuitive statement is supported by 
+the data --- i.e. to pose the questions:
+	``Is it possible to separate groups of similar spectra?''
+and if it is, 
+  ``How do these groups compare with the different 
+  tissue types we expect to see based on the histology?''.
+The similarity, or conversely dissimilarity/ distance, 
+between two spectra is fundamentally important in 
+addressing such questions.
+We discussed some of the ideas relating to measuring 
+similarity/ distance in \refsec{statsBackgroundClus},
+and we will continue to use these ideas here.
+There are many approaches to clustering, as discussed 
+in \refsec{statsBackground}, and here we review the
+$k$-means approach.
+$k$-means is an iterative method that attempts to find
+a partition of the observations into groups such that 
+the variability within groups is as small as possible.
+One of the keys to measuring such within-group 
+variability is that a representative `centroid' vector 
+can be found for any set of vectors, and then the 
+`variability' of that set can be measured by the sum of 
+distances from individual vectors to their centroid.
+
+This section is organised as follows.
+First I introduce the definition of a centroid, and its 
+form in the context of some common distances.
+Secondly I will introduce the $k$-means clustering 
+algorithm explicitly, and discuss some of the decisions
+that must be made in implementing it.
+The application of $k$-means to the ovarian cancer 
+data will be discussed in \refsec{prelimAnalysis}.
+
+
+\subsection{Centroids}
+\label{sec:centroids}
+
+As mentioned above, $k$-means attempts to find a 
+partition of the observations into groups such that the 
+variability within groups is as small as possible. 
+The concept of a distance (\refdef{distance}) gives us 
+a way to quantify the dissimilarity of two vectors.
+One way of quantifying the variability in a group of 
+observations is to find a `centroid' vector, 
+representative of that group, and sum the distances 
+from each observation in the group to the centroid 
+vector.
+% An alternative way to quantify the variability in a 
+% group of observations is to sum all pairwise distances, 
+% but this is $O(n^2)$, while summing the distances from 
+% each observation to the centroid is only $O(n)$.
+% For many choices of distance, including the Euclidean 
+% distance, these two measures of variability are 
+% actually proportional to each other, and so using 
+% centroids is strictly favourable in these cases.
+% As such, we 
+
+\newcommand{\vCentroid}{\bm{x}^*}
+\begin{defn}
+	\emph{\textbf{Centroid:}}	
+	Given a distance $D$ and a $d \times n$ matrix $\mData$ with columns denoted $\vDataCol{j}$, the centroid, $\vCentroid$, of the $\vDataCol{j}$ is
+	\begin{equation*}
+	 \vCentroid = \argmin{\bm{x} \in \mathbb{R}^d}\left\{ \sum_{j=1}^{n}{D(\bm{x},\vDataCol{j}}) \right \}.
+	\end{equation*}
+\label{def:centroid}	
+\end{defn}
+The interpretation of a centroid will vary depending on 
+the distance used, for example for a set of real-valued 
+vectors: 
+\begin{itemize}
+  \item When using the Euclidean distance the centroid 
+  is the component-wise arithmetic mean of the vectors.
+  \item When using the cosine distance the centroid is
+  the mean of the vectors after having been normalised
+  to be equal length.
+  \item When using the Hamming distance, the centroid 
+  is the component-wise median of the vectors. 
+  Note that we limit the domain of the Hamming distance 
+  to binary vectors, see \refdef{Dham}.
+\end{itemize}
+A centroid need not be unique.
+The centroid when using the Euclidean distance is 
+unique, and when the number of vectors in the set is 
+odd, the centroid for the Hamming distance is unique.
+The centroid when using the cosine distance however is 
+only unique up to multiplication by a constant.
+As mentioned above, the centroid can be used to 
+quantify the variability in a set of vectors as the sum 
+of distances, or squared distances, from the centroid. 
+It is interesting to note that such a sum is unique, 
+even when the centroid is not. 
+
+%The sum of centroid distances (\refdef{SCD}) can be used as a measure for total dissimilarity in a set of vectors.
+%
+%\begin{defn}
+	%\emph{\textbf{Sum of Centroid Distances:}}
+	%
+	%Given a distance $D$, a $d \times n$ matrix $\mData$ with columns denoted $\vDataCol{j}$, let $\bm{x}^*$ denote the centroid of the columns of $\mData$. The sum of centroid distances of the columns of $\mData$ is then,
+	%
+	%\begin{equation*}
+		%SCD(\mData) = \sum_{j=1}^{n}{D(\bm{x}^*,\vDataCol{j})}
+	%\end{equation*}
+%
+%\label{def:SCD}
+%\end{defn}
+
+
+%There are a number of ways of measuring the similarity of a set of vectors to each other. One such way is by considering the sum of distances from the centroid.  a distance and its associated centroid. , in particular we measure the dissimilarity of a subset of the observations $\sColSubset$ by the sum of the distances between all observations in $\sColSubset$ and the appropriate centroid of $\sColSubset$. Then to find clusters, we aim to minimise this summed measure of dissimilarity. Here I introduce three such distances; Euclidean, Cosine, Hamming, and the appropriate centroid for each. Later I will introduce more as I need them. 
+
+%\subsubsection{Euclidean Distance}
+%
+%%The classical and easily most widely used {\color{red} reference?} distance for clustering is the Euclidean distance (or equivalently squared Euclidean distance). For two (column) vectors $\bm{x}$ and $\bm{y}$ the squared Euclidean distance between them is
+%%
+%%\begin{equation*}
+%%	(\bm{x} - \bm{y})^T(\bm{x} - \bm{y})
+%%\end{equation*}
+%%
+%%The Euclidean distance is the square root of this, and as these values are by definition non-negative the square root operation is strictly monotonic, and thus the two will be equivalent in differentiating dissimilarities between points. When the squared (or unsquared) distance is used, the appropriate centroid is the mean of the observations in the cluster. That is for a $d \times n$ data matrix $\mData$ and an $n$-Index subset, or cluster, $\sColSubset$ with binary vector dual $\vColSubset$ and size $|\sColSubset| = n_\sColSubset$ the centroid of cluster $\sColSubset$ would be
+%
+%The appropriate centroid when using the Euclidean distance is the arithmetic mean of the vectors, i.e.
+%
+%\begin{equation*}
+%	\frac{1}{n_\sColSubset} \mData \mSubsetTransform{\vColSubset} \bm{1}_{n_\sColSubset \times 1}	
+%\end{equation*}
+%
+%
+%
+%\subsubsection{Hamming Distance (binary data only)}
+%
+%When dealing with binary data (vectors containing only ones and zeros) the Hamming distance is the number of positions at which two vectors differ.
+%
+%When using Hamming distance, the appropriate centroid is the component-wise median. 
+%
+%
+%\subsubsection{Cosine Distance}
+%
+%
+%Let $\vDataCol{1},\vDataCol{2},\hdots,\vDataCol{n}$ denote the columns of $\mData$. Let $\vDataCol{j}'$ be the normalised $\vDataCol{j}$ (scaled to have length $1$), i.e. 
+%
+%\begin{equation*}
+%	\vDataCol{j}' = \frac{1}{\sqrt{\vDataCol{j}^T\vDataCol{j}}} \vDataCol{j} \quad \text{for} \quad j = 1,2,\hdots,n \quad \quad \text{and let} \quad \quad \mData' = \left[ \vDataCol{1}',\vDataCol{2}',\hdots,\vDataCol{n}' \right ]
+%\end{equation*}
+%
+%The appropriate centroid when using the cosine distance is the arithmetic mean of the normalised vectors, i.e.
+%
+%\begin{equation*}
+%	\frac{1}{n_\sColSubset} \mData' \mSubsetTransform{\vColSubset} \bm{1}_{n_\sColSubset \times 1}	
+%\end{equation*}
+%
+%%This can easily be justified by considering how the cosine is a measure of the angle between two vectors, but does not involve their length, so when averaging a number of vectors it does not make sense to weight them by their lengths, and as such their lengths are first normalised, and the average of the normalised vectors is used. 
+
+\subsection{$k$-means Algorithm}
+\label{sec:kmeans}
+
+
+$k$-means, as described in 
+\citet[Section 6.3]{Koch2013}, is a method for 
+partitioning $n$ vectors into $k$ `clusters' such that 
+the vectors in each cluster are similar by some 
+distance. 
+% $k$-means could perhaps more accurately be described as 
+% ``$k$-centroids'', but is generally referred to as 
+% $k$-means due to the prevalence of the use of the 
+% Euclidean distance (where the centroid is the mean).
+Here we discuss the implementation of $k$-means 
+clustering,
+\begin{alg} \textbf{\emph{$k$-means:}}
+Given a $d \times n$ matrix $\mData$ with $j$th column denoted $\vDataCol{j}$ a distance $D$, and $k$ initial cluster seeds $\vCentroid_{1[0]},\vCentroid_{2[0]},\hdots,\vCentroid_{k[0]}$, perform the following steps at the $s^{\text{th}}$ iteration:
+\begin{enumerate}
+	\item Calculate $c_j = \argmin{\kappa} \left \{  D(\vDataCol{j},\vCentroid_{\kappa[s-1]}) \right \}$ for $j = 1,2,\hdots,n$.
+	\item Calculate the centroids $\vCentroid_{\kappa[s]}$ of $\left \{ \vDataCol{j} \, | \, c_j = \kappa \right \} \forall \kappa = 1,\hdots,k$, see \refdef{centroid} in \refsec{centroids}.
+\end{enumerate}
+Stop when $\vCentroid_{\kappa[s]} = \vCentroid_{\kappa[s-1]} \, \forall \kappa \in \{1,2,\hdots,k\}$. The $c_j$ of the last iteration denote the resulting cluster membership of the observations $\vDataCol{j}$.
+\label{alg:kmeans}
+\end{alg}
+
+\refalg{kmeans} can be sensitive to the choice of the 
+initial cluster centroids. 
+For different choices of initial seeds, the algorithm 
+can converge to different solutions. 
+This is due to the algorithm getting ``stuck'' in local 
+minima. 
+There are two approaches to addressing this:
+\begin{enumerate}
+	\item Use \refalg{kmeans} many times with different,
+  random, initial cluster seeds and use the solution 
+  with minimum sum of to-centroid distances.
+	\item Fix the initial cluster seeds. 
+  If the initial cluster seeds can be justified, this 
+  is often an attractive option due to the 
+  deterministic reproducibility of results.
+\end{enumerate}
+Note that when using Euclidean distance in the 
+context of $k$-means we have actually used the 
+squared Euclidean distance, but these are actually
+equivalent for many purposes. 
+The sum of to-centroid distances as in point 1. above 
+is one of the only things this choice actually affects 
+in a meaningful way.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%% --------------------------------------------- %%% 
+%%% ----------- Preliminary Analyses ------------ %%%
+%%% --------------------------------------------- %%% 
+
+\section{Preliminary Analysis of Dataset A3}
+\label{sec:prelimAnalysis}
+
+<<A3_load, dependson="data_imaging_readin">>=
+dataset_name <- "A3"
+peaklist_all <- load_peaklist(dataset_name)
+LXY <- load_LXY(dataset_name)
+fExists <- load_fExists(dataset_name)
+@
+
+
+In this section I present an exploratory analysis of 
+dataset A3, applying binning and $k$-means as 
+reviewed in \refsec{binning} and \refsec{clustering}
+respectively. 
+In \refsec{binSizeChoice} I discuss the application of 
+binning in practice, in particular choice of bin size.
+In order to interpret the results of $k$-means 
+clustering, spatial patterns should be considered.
+Thus, in \refsec{spatialDist} I introduce how to 
+represent the results of clustering spatially. 
+Finally, in \refsec{p44kmeansResults} I consider the
+results of $k$-means clustering on dataset A3.
+I use the $k$-means method as both an exploratory 
+technique and also as a means to assess different 
+options for proceeding with the analysis of these data.
+Specifically, I use the $k$-means results presented in 
+\refsec{p44kmeansResults} to discuss two major choices 
+that I will carry through all analyses that follow for 
+the ovarian cancer datasets:
+\begin{itemize}
+  \item The data type to use: binary data, or 
+  non-binary data such as intensity, area or \gls{snr}. 
+  I conclude that using the binary data is appropriate 
+  for the analysis of the ovarian cancer datasets, 
+  although I revisit this choice in 
+  \refsec{DApreprocessing} for the endometrial cancer
+  datasets.
+  
+  \item The distance to use in the $k$-means 
+  clustering: I consider Euclidean, Hamming, and cosine 
+  distances as options and conclude that the cosine 
+  distance produces the most stable results overall.
+\end{itemize}
+
+%\subsection{Results that Motivate the Use of Binary Data}
+
+
+\subsection{Choice of Bin Size}
+\label{sec:binSizeChoice}
+
+The first step in our approach to the analysis of 
+\gls{maldi}-\gls{ims} peaklist data is the 
+discretisation of the \gls{mz} domain.
+This discretisation allows for distinct variables to be 
+constructed from the continuous \gls{mz} range by 
+grouping peaks that are nearby in \gls{mz}. 
+Here we will use binning --- specifically 
+\refalg{binning} --- for this discretisation.
+\refalg{binning} requires a bin size parameter $b$ to 
+be chosen, which specifies the width of each \gls{mz} 
+region, or bin, in \gls{Da}.
+Here we explore different choices for the bin size $b$, 
+ultimately reaching the conclusion that $b = 0.25$ is a 
+reasonable choice for these peptide 
+\gls{maldi}-\gls{ims} data. 
+Analyses that follow on from this section use this bin 
+size of $0.25$.
+
+Choosing an appropriate bin size is a balance between 
+two competing objectives:
+\begin{enumerate}
+  \item Peaks originating from different molecular 
+  species should be placed in different bins.
+  The smaller the bin size, the more likely we are to 
+  achieve this objective.
+  
+  \item Peaks originating from the same molecular 
+  species should be placed in the same bin.
+  The larger the bin size, the more likely we are to 
+  achieve this objective.
+\end{enumerate}
+The same molecular species should not have more than 
+one peak per spectrum, so we can assume that two peaks
+from the same spectrum should originate from different 
+molecular species.
+We can use the minimum distances between peaks within 
+the same spectrum to estimate the minimum distance 
+between peaks from different molecular species.
+If we then select a bin size smaller than the minimum 
+distance between peaks originating from different 
+molecular species, we are guaranteed to achieve the 
+first objective.
+We will then choose a bin size as large as possible in
+order to maximise the chance of achieving the second 
+objective as well.
+
+{\highlightTextAs{notation} 
+In order to consider the distances between peaks within
+spectra more closely, let us denote the set of these 
+intra-spectrum differences 
+\begin{equation}
+\mathbb{D} = \left \{ m_{(i)j} - m_{(i-1) j} \, | \, i \in [2,N_j] , \, j \in [1,n] \right \},
+\label{eqn:adjD}
+\end{equation}
+where $N_j$ denotes the number of peaks in 
+spectrum $j$ and $m_{(i)j}$ denotes the \gls{mz} of the 
+$i$th peak in spectrum $j$, where the peaks are sorted
+in increasing order of \gls{mz} within each spectrum.
+Let $d_t$ be the number of intra-spectrum differences 
+$m \in \mathbb{D}$ below a threshold $t$, so
+\begin{equation}
+  d_t = |\{m \in \mathbb{D} | m < t \}|,
+	\label{eqn:ct}
+\end{equation}
+given the notation for $\mathbb{D}$ in \refeqn{adjD}.
+Note that $d_t$ in \refeqn{ct} denotes the cardinality
+or size of the set $\{m \in \mathbb{D} | m < t \}$.
+}
+\reffig{figure_A3_cumulative_mz_differences} shows 
+$d_t$ for small values of $t$ in the dataset A3.
+<<A3_gaps, dependson="A3_load">>=
+  peaklist_all <- peaklist_all[order(peaklist_all$Acquisition,peaklist_all$m.z),]
+  spec_info <- cU(peaklist_all$Acquisition)
+  gaps_df <- data.frame(Acquisition = rep(0,nrow(peaklist_all)-nrow(spec_info)),
+                        Gap_no      = rep(1,nrow(peaklist_all)-nrow(spec_info)),
+                        Gap         = rep(-1,nrow(peaklist_all)-nrow(spec_info))
+                        )
+  for (spec_idx in 1:nrow(spec_info)){
+    if (spec_info[spec_idx,]$N > 1){
+      if (spec_idx == 1){
+        peak_min <- 1
+      } else {
+        peak_min <- sum(spec_info[1:(spec_idx-1),]$N) + 1
+      }
+      peak_max <- sum(spec_info[1:spec_idx,]$N)
+      gap_min <- peak_min - spec_idx + 1
+      gap_max <- peak_max - spec_idx
+      gaps_df[gap_min:gap_max,"Acquisition"] <- spec_info[spec_idx,]$x
+      gaps_df[gap_min:gap_max,"Gap_no"]      <- 1:(spec_info[spec_idx,]$N-1) 
+      gaps_df[gap_min:gap_max,"Gap"]         <- (peaklist_all[(peak_min+1):peak_max,"m.z"] 
+                                                 - peaklist_all[peak_min:(peak_max-1),"m.z"])
+    }
+  }
+@
+
+<<figure_A3_cumulative_mz_differences, dependson="A3_gaps", fig.width=4, fig.height=4, out.width="0.6\\linewidth", fig.align='center', fig.cap= "Plot of $d_t$ on the $y$-axis, as defined in \\refeqn{ct}, against $t$ on the $x$-axis for dataset A3.">>=
+small_gaps <- sort(subset(gaps_df,Gap < 0.35)$Gap)
+x = c(0,as.vector(sapply(small_gaps[1:(length(small_gaps)-1)],
+                         function(x){return(rep(x,2))})),
+      small_gaps[length(small_gaps)])
+y = as.vector(sapply(0:(length(small_gaps)-1),function(x){return(rep(x,2))}))
+print(qplot(x,y,geom="line") + ylab("") + xlab(""))
+@
+
+<<A3_binning, dependson="A3_load">>=
+binSize = 0.25
+min_mz = min(peaklist_all$m.z)
+max_mz = max(peaklist_all$m.z)
+peaklist_all$Bin = cut(peaklist_all$m.z,seq(binSize*(floor(min_mz/binSize)-0.5),binSize*(ceiling(max_mz/binSize)+0.5),binSize))
+levels(peaklist_all$Bin) = seq(binSize*floor(min_mz/binSize),binSize*ceiling(max_mz/binSize),binSize)
+@
+
+Although these data are of very high quality, allowing 
+for a small rate of false positive peaks is still
+reasonable. 
+In this context, a false positive peak would be a peak 
+resulting from instrument or chemical noise --- not 
+originating from a molecular species in the sample --- 
+or appearing at an incorrect \gls{mz}.
+% {\highlightTextAs{incomplete} 
+% particularly when considering a discussion of peak picking algorithms? include S/N ratio histogram? I think I am going to opt to omit detailed discussion of peakpicking algorithms.
+% }. 
+If we consider that $\mathbb{D}$ contains 
+$\Sexpr{nrow(gaps_df)}$ differences, we see that 
+$d_{0.25} = \Sexpr{sum(small_gaps < binSize)}$ is a 
+comparatively tiny number, and so it is reasonable to 
+say that using a bin size of $0.25$ (almost) achieves 
+the first objective of peaks from different molecular 
+species always occurring in different bins.
+Consideration of 
+\reffig{figure_A3_cumulative_mz_differences} leads to 
+the impression that there is an `elbow' in the 
+cumulative number of differences ($d_t$) at 
+approximately $\Sexpr{binSize}$, meaning that if a bin
+size is increased much beyond $\Sexpr{binSize}$, the 
+number of intra-spectrum peak-pairs that will be in the 
+same bin will rapidly increase.
+Given these two heuristic arguments, we conclude that 
+using a bin size of $0.25$ is a reasonable compromise 
+between the two competing objectives.
+Despite this justification for the choice of bin size, 
+all analyses that follow in this chapter have been 
+replicated with a range of bin sizes, and these results
+are quite robust to changing the choice of bin size 
+within the range $0.05-3$. 
+
+It is interesting to note how this heuristic approach 
+relates to the discussion of 
+\refsec{binarysummedbinaryequivalence}:
+\begin{itemize}
+  \item \refdef{binarysummedbinaryequivalence} 
+  corresponds to no two peaks from the same spectrum 
+  being placed in the same bin.
+  
+  \item \refdef{bthreshold}, which guarantees 
+  \refdef{binarysummedbinaryequivalence} for bin sizes
+  less than $b^*$, in this context is
+  \begin{equation*}
+  b^* = \argmax{t} \left \{ d_t | d_t = 0 \right \} = \Sexpr{min(gaps_df$Gap)},  
+  \end{equation*}
+  i.e. the maximum $t$ such that $d_t = 0$, as seen in 
+  \reffig{figure_A3_cumulative_mz_differences}.
+\end{itemize}
+
+
+
+%   For small bin sizes the number of dimensions 
+%   becomes very large, and computations can become very 
+%   expensive. 
+  %For the dataset A3, using a bin size of $0.05$, \refalg{binning} produces $68,543$ bins (dimensions, or rows of $\mData$). This is excessive, considering there is only $14,035$ observations (spectra). Even when only considering the $10,056$ non-empty bins, computations involving $10056 \times 14035$ matrices can be slow (requiring RAM handling of objects on the order or larger than $500$MB).
+
+
+\subsection{Visualising spatial distribution of an imaging dataset}
+\label{sec:spatialDist}
+
+As discussed in \refsec{maldiims}, \gls{maldi}-\gls{ims} 
+is the process of acquiring spectra from many spatially
+distributed points across the surface of a tissue 
+sample.
+In order to interpret results we will want to represent 
+the results spatially.
+Representing results spatially will allow us to compare
+results with histological features; for example finding
+differences between tumour tissues and healthy tissues
+as these will be spatially separated and visible in the
+histology.
+\reffig{figure_A3_spatialDistribution} shows the 
+spatial distribution of the positions from which 
+spectra have been acquired in dataset A3.
+In dataset A3, and in all the \gls{maldi}-\gls{ims} 
+datasets we consider, spectra were 
+collected from a regular grid across the tissue.
+In large droplet analyses, such as that considered by
+\citet{Gustafsson2015}, it is common for positions to
+be unevenly distributed across the tissue, in order to 
+represent the tissue types being targeted.
+However, in the high lateral resolution spray approach 
+to \gls{maldi}-\gls{ims} that we consider, the whole 
+tissue section is systematically mapped and so the 
+locations from which spectra are acquired are 
+systematically distributed in a regular grid.
+I will use the spatial distribution of 
+\reffig{figure_A3_spatialDistribution} to visualise 
+results in the following sections. 
+For example, the result of clustering is a cluster 
+membership for each spectra in the dataset. 
+These types of results can be visualised spatially by 
+plotting the pixels shown in 
+\reffig{figure_A3_spatialDistribution}, and colouring 
+them according to the cluster membership --- pixels of 
+the same colour belonging to the same cluster, pixels
+of different colours belonging to different clusters. 
+Such a plot can then easily be compared with stained 
+tissue images, and relationships between the cluster 
+membership and tissue morphology inferred, as in 
+\reffig{figure_A3_binary_cos_clustering}.
+
+In \refsec{binSizeChoice} I briefly mentioned the 
+number of adjacent peak pairs within spectra in dataset 
+A3, $d_{\infty} = \Sexpr{nrow(gaps_df)}$.
+$d_t$ was 
+defined in \refeqn{ct}. 
+This number can be seen to originate from the fact that
+dataset A3 consists of 
+$\Sexpr{nrow(peaklist_all)}$ peaks detected over 
+$\Sexpr{nrow(spec_info)}$ spectra, as noted in 
+\reftab{imgBasicStats}, and 
+$d_{\infty} = \Sexpr{nrow(peaklist_all)} - \Sexpr{nrow(spec_info)}$.
+In actual fact, spectra were collected from 
+$\Sexpr{nrow(LXY)}$ locations, but no peaks were 
+detected in $\Sexpr{nrow(LXY) - nrow(spec_info)}$ of 
+these spectra, also noted in \reftab{imgBasicStats}. 
+In the context of cluster membership results these 
+$\Sexpr{nrow(LXY) - nrow(spec_info)}$ empty spectra 
+mentioned above would be greyed out as they are not 
+assigned a cluster membership. 
+If you look very closely you will notice 
+$\Sexpr{nrow(LXY) - nrow(spec_info)}$ interior grey 
+pixels in \reffig{figure_A3_spatialDistribution} --- 
+these correspond to the 
+$\Sexpr{nrow(LXY) - nrow(spec_info)}$ so-called `empty'
+spectra in which no peaks were detected.
+
+
+
+
+% [1:25,195:dim(fExists)[2]]
+\begin{figure}
+  \vspace{-2.4cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \draw (10,0) node {
+        <<figure_A3_spatialDistribution, dependson="A3_gaps", fig.width=3, out.width="0.45\\linewidth">>=
+          minX = min(LXY$X)
+          minY = min(LXY$Y)
+          spec_info$Acquisition <- spec_info$x
+          spec_info$dist <- 1
+          p <- (spatialPlot(spec_info, 
+                           fExists, 
+                           plot_var="dist", 
+                           plot_var_type="categorical",
+                           minX_in = minX,
+                           minY_in = minY,
+                           display_pixel_borders=FALSE,
+                           display_legend=FALSE)
+                + ylab("")
+                + xlab("")
+          )
+          suppressMessages(print(p + scale_x_continuous(breaks=seq(350, 400, 50)) + scale_y_reverse(breaks=seq(50, 200, 50))))
+        @
+      };
+      \draw (3.4,1) node {
+        <<figure_A3_spatialDistribution_zoomed, dependson="figure_A3_spatialDistribution", fig.width = 3, out.width="0.47\\linewidth">>=
+          p <- spatialPlot(spec_info, 
+                           fExists[1:25,195:dim(fExists)[2]], 
+                           plot_var="dist", 
+                           plot_var_type="categorical",
+                           minX_in = minX,
+                           minY_in = minY,
+                           display_pixel_borders=TRUE,
+                           display_legend=FALSE)
+          print(p + ylab("") + xlab(""))
+        @
+      };
+      \draw[thick] (8.305,-3.53) -- (9.465,-3.53) -- (9.465,-4.74) -- (8.305,-4.74) -- cycle;
+      \draw[thick] (1.63,3.76) -- (6.22,3.76) -- (6.22,-1.02) -- (1.63,-1.02) -- cycle;
+      \draw[thick] (8.6,-3.53) -- (5.7,-1.02);
+    \end{tikzpicture}
+	\end{center}
+  \vspace{-2.4cm}
+	\caption{Spatial distribution of spectra in dataset A3. Coloured pixels indicate X-Y coordinates from which spectra were collected. The zoom-in highlights that the coloured region consists of square pixels arranged in a regular grid, each pixel at X-Y coordinates where a spectrum was collected. \label{fig:figure_A3_spatialDistribution}}
+\end{figure}
+
+
+
+\subsection{Results of $k$-means clustering}
+\label{sec:p44kmeansResults}
+
+In this section I will present results of $k$-means 
+clustering, as described in \refsec{kmeans}, for 
+dataset A3. 
+I will use these $k$-means clustering results to 
+compare and discuss the choice of which form of the
+data, binary or various non-binary forms, and which 
+distance to use.
+%, finally 
+% concluding that the most appropriate choices in this 
+% context are:
+% \begin{itemize}
+% 	\item The binary representation of these data, and
+% 	\item The cosine distance.
+% \end{itemize}
+In order to conduct these $k$-means clusterings a 
+number of other choices must be made, specifically: 
+\begin{itemize}
+	\item Bin size,
+	\item Number of clusters,
+	\item Initial cluster seeds, and
+  \item How to deal with formation of empty clusters.
+\end{itemize}
+and so first we will provide a brief discussion for our
+choices regarding these four points.
+
+In \refsec{binSizeChoice} I discussed the reasoning for 
+choosing a bin size of $\Sexpr{binSize}$, and I 
+continue with this choice of bin size here and in all 
+following analyses.
+Nevertheless, we repeated all analyses with a variety of 
+bin sizes in the range $0.05$--$3$ in order to verify
+robustness to small changes in bin size, and saw no 
+noticeable effect.
+It has previously been shown that four is an 
+appropriate number of clusters for these data --- see
+\citet[Example 6.12, Section 6.5.3]{Koch2013}.
+Based on the histology, as shown in the \gls{he} stain 
+of \reffig{figure_A3_binary_cos_clustering}, it is 
+expected that three broadly different tissue types 
+should be observed in this dataset, corresponding 
+to cancer, adipose and stroma.
+Off-tissue spectra makes for four broadly different 
+spatial regions.
+I will present results here using number of clusters 
+$k=4$. 
+Analyses where the value of $k$ is varied 
+have also been considered, but are omitted for brevity. 
+In the interest of reproducibility I choose initial 
+cluster seeds from the observations in a deterministic,
+automated manner that selects observations that achieve 
+extrema when projected into the first few principal 
+component directions.
+\gls{pca} is described in more detail in \refsec{pca}. 
+Similarly to the other choices, the robustness of 
+results was established by considering clustering on 
+the basis of different seeds --- for example, the 
+clustering results shown in \citet{Winderbaum2015} are
+generated by performing $100$ $k$-means clusterings 
+in parallel each with initial cluster seeds chosen from 
+the observations at random, and using the clustering 
+that resulted in the lowest sum of to-centroid 
+distances of the $100$ resulting clusterings.
+Sometimes all observations will be allocated to a 
+strict subset of clusters in step 1. of 
+\refalg{kmeans}, causing 
+$\left \{ \vDataCol{j} \, | \, c_j = \kappa \right \}$ 
+to be empty for some $\kappa$. 
+This is a problem, as it causes \refalg{kmeans} to 
+fail at the following step 2.
+We solve this problem by introducing a `singleton' 
+cluster of a single observation corresponding to the 
+observation with the greatest to-centroid distance
+whenever an empty cluster is formed. 
+This solution also guarantees that \refalg{kmeans} will
+always produce a cluster membership with exactly $k$ 
+clusters, and is implemented in the MATLAB {\tt kmeans}
+function.
+
+As discussed in \refsec{spatialDist} I will represent 
+the results of $k$-means clustering as spatial maps of 
+the cluster-membership using colours to distinguish
+clusters --- each spectrum represented as a coloured 
+pixel at its X-Y coordinates. 
+The results of $k$-means clustering on the binary 
+representation of the data, using three different 
+distances, are shown in 
+\reffig{figure_A3_binary_clusterings}. 
+The results of $k$-means clustering on three different
+types of non-binary data are shown in 
+\reffig{figure_A3_non_binary_euc_clusterings} using the
+Euclidean distance, and in 
+\reffig{figure_A3_non_binary_cos_clusterings} using the
+cosine distance. 
+
+% NOTE: this chunk depends on some matlab code that does the clustering having 
+% produced the file `A3_binary_4means_clusterings.csv'.
+<<clus_A3_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+clus_A3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_A3$V1 <- factor(clus_A3$V1)
+clus_A3$V2 <- factor(clus_A3$V2)
+clus_A3$V3 <- factor(clus_A3$V3)
+clus_A3$V4 <- factor(clus_A3$V4)
+setnames(clus_A3,'V1','Acquisition')
+setnames(clus_A3,'V2','Binary.Cosine')
+setnames(clus_A3,'V3','Binary.Hamming')
+setnames(clus_A3,'V4','Binary.Euclidean')
+@
+
+<<figure_A3_binary_clusterings, dependson=c("clus_A3_binary","A3_load"), fig.show='hold', results='hide', out.width="0.9\\linewidth", fig.width=6, fig.height=4, fig.cap= "The results of $4$-means clustering (\\refalg{kmeans}) on the dataset A3. Analysis was done using the cosine (left), Euclidean (centre) and Hamming (right) distances on the binned (bin size $0.25$) binary data. Apart from minor speckling effects, spatially localised clusters that well separate the main tissue types are apparent in all three clustering results.", fig.align='center'>>=
+mI.m <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Binary.Cosine',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+mI.m$plot <- 1
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Binary.Euclidean',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 2
+mI.m = rbind(mI.m,temp)
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Binary.Hamming',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 3
+mI.m = rbind(mI.m,temp)
+
+mI.m$plot <- factor(mI.m$plot)
+
+p = (ggplot(mI.m,aes(X,Y))
+     + facet_grid(. ~ plot)
+     + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+     + guides(alpha = FALSE,fill=FALSE)
+     + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+     + coord_fixed()
+     + scale_x_continuous(breaks=seq(350, 400, 50))
+     + scale_y_reverse(breaks=seq(50, 200, 50))
+     + theme(strip.text.x = element_blank(), strip.background = element_blank())
+     + ylab("")
+     + xlab("")
+)
+print(p)
+@
+
+We expect cluster memberships to be spatially localised 
+due to the nature by which the data was collected --- 
+adjacent spectra are collected from adjacent areas of 
+tissue, and are expected to be more similar than 
+spectra from arbitrary locations. 
+It can be seen in \reffig{figure_A3_binary_clusterings} 
+that the clusters produced using the binary data are 
+quite spatially localised.
+The clusters produced using the Euclidean and cosine on
+the binary data (\reffig{figure_A3_binary_clusterings})
+agree well and seem to, despite a small amount of 
+``speckling'', match up with the morphology of the 
+tissue as shown by the \gls{he} stain in 
+\reffig{figure_A3_binary_cos_clustering}, colours 
+roughly corresponding to: \colboxcancer, \colboxstroma, 
+\colboxadipose, and \colboxofftissue. 
+Interpretation of the clusters produced by the Hamming 
+distance is less clear, combining most of the \Ncolboxcancer{}
+regions with the \Ncolboxofftissue{}.
+The Hamming distance could be detecting the cancer 
+tissue as being similar to the \Ncolboxofftissue{} regions 
+due to the spectra acquisition being poor on cancer
+areas of tissue and less signals being detected --- 
+causing there to be similarity between the two by their 
+shared \emph{absence} of many signals. 
+We pursue the discussion of the cancer regions being 
+characterised by the absence of certain signals further 
+in \refsec{clusCharAnalysis}.
+Although the Euclidean and cosine clusterings appear to 
+be similar based on this visual inspection of
+\reffig{figure_A3_binary_clusterings}, comparisons 
+across the remainder of the ovarian cancer datasets 
+show that the cosine distance clustering tends to pick 
+out regions corresponding to tissue types more 
+consistently, and I will continue to use the cosine 
+distance in further analyses.
+The results of applying the cosine clustering to the 
+remainder of the ovarian cancer datasets are discussed 
+in \refsec{datasetComparisons}.
+
+
+% NOTE: this chunk depends on some matlab code that does the clustering having 
+% produced the file `A3_Bin25_binary_euc_4means_clusterings.csv'.
+<<clus_A3_non_binary_euc, dependson="clus_A3_binary",include=FALSE>>=
+clusType = 'euc'
+clus_temp <- read.csv(paste('./matlab/output/',
+                            dataset_name,
+                            '_Bin',toString(100*binSize),
+                            '_non_binary_',
+                            clusType,"_",
+                            toString(K),'means_clusterings.csv',
+                            sep=""),
+                      header=FALSE
+                      )
+clus_A3$Intensity.Euclidean <- factor(clus_temp$V2)
+clus_A3$Area.Euclidean <- factor(clus_temp$V3)
+clus_A3$SN.Euclidean <- factor(clus_temp$V4)
+@
+
+
+
+<<figure_A3_non_binary_euc_clusterings, dependson=c("clus_A3_non_binary_euc","A3_load"), fig.show='hold', results='hide', out.width="0.9\\linewidth", fig.width=6, fig.height=4, fig.cap= "The results of $4$-means clustering (\\refalg{kmeans}) on the dataset A3. Analysis was done using the Euclidean distance on binned (bin size $0.25$); intensity (left), area (centre) and \\gls{snr} (right) data. All three clustering results show spatially de-localised clusters. Although the clustering results show various degrees of success at separating certain features of the tissue, all fail to separate the main tissue types present in the tissue section.", fig.align='center'>>=
+mI.m <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Intensity.Euclidean',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+mI.m$plot <- 1
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Area.Euclidean',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 2
+mI.m = rbind(mI.m,temp)
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'SN.Euclidean',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 3
+mI.m = rbind(mI.m,temp)
+
+mI.m$plot <- factor(mI.m$plot)
+
+p = (ggplot(mI.m,aes(X,Y))
+     + facet_grid(. ~ plot)
+     + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+     + guides(alpha = FALSE,fill=FALSE)
+     + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+     + coord_fixed()
+     + scale_x_continuous(breaks=seq(350, 400, 50))
+     + scale_y_reverse(breaks=seq(50, 200, 50))
+     + theme(strip.text.x = element_blank(), strip.background = element_blank())
+     + ylab("")
+     + xlab("")
+)
+print(p)
+@
+
+
+
+% NOTE: this chunk depends on some matlab code that does the clustering having 
+% produced the file `A3_Bin25_binary_cos_4means_clusterings.csv'.
+<<clus_A3_non_binary_cos, dependson="clus_A3_non_binary_euc",include=FALSE>>=
+clusType = 'cos'
+clus_temp <- read.csv(paste('./matlab/output/',
+                            dataset_name,
+                            '_Bin',toString(100*binSize),
+                            '_non_binary_',
+                            clusType,"_",
+                            toString(K),'means_clusterings.csv',
+                            sep=""),
+                      header=FALSE
+                      )
+clus_A3$Intensity.Cosine <- factor(clus_temp$V2)
+clus_A3$Area.Cosine <- factor(clus_temp$V3)
+clus_A3$SN.Cosine <- factor(clus_temp$V4)
+@
+
+
+
+
+
+<<figure_A3_non_binary_cos_clusterings, dependson=c("clus_A3_non_binary_cos","A3_load"), fig.show='hold', results='hide', out.width="0.9\\linewidth", fig.width=6, fig.height=4, fig.cap= "The results of $4$-means clustering (\\refalg{kmeans}) on the dataset A3. Analysis was done using the cosine distance on binned (bin size $0.25$); intensity (left), area (centre) and \\gls{snr} (right) data.", fig.align='center'>>=
+mI.m <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Intensity.Cosine',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+mI.m$plot <- 1
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Area.Cosine',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 2
+mI.m = rbind(mI.m,temp)
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'SN.Cosine',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 3
+mI.m = rbind(mI.m,temp)
+
+mI.m$plot <- factor(mI.m$plot)
+
+p = (ggplot(mI.m,aes(X,Y))
+     + facet_grid(. ~ plot)
+     + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+     + guides(alpha = FALSE,fill=FALSE)
+     + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+     + coord_fixed()
+     + scale_x_continuous(breaks=seq(350, 400, 50))
+     + scale_y_reverse(breaks=seq(50, 200, 50))
+     + theme(strip.text.x = element_blank(), strip.background = element_blank())
+     + ylab("")
+     + xlab("")
+)
+print(p)
+@
+
+
+
+
+
+
+
+We are interested in comparing the results obtained 
+from binary and non-binary data.
+\reffig{figure_A3_non_binary_euc_clusterings} shows the
+results of $k$-means clustering by Euclidean distance 
+on three variants of non-binary: intensity, area, and 
+\gls{snr} data.
+By considering 
+\reffig{figure_A3_non_binary_euc_clusterings}, it is 
+immediately clear that the clusters produced using the 
+Euclidean distance on the non-binary data fail to
+separate the tissue types known to be present in the 
+tissue. 
+This failure strongly contrasts the results on the 
+binary data shown in 
+\reffig{figure_A3_binary_clusterings}.
+At first glance this may seem worrying, as the 
+non-binary data contain strictly more information than 
+the binary representation.
+The fact that the non-binary data fail to separate 
+tissue types could be a cause of serious concern about 
+data quality.
+On further consideration however, the fact that the 
+binary data contains a strict subset of the information 
+in the non-binary data, and successfully separates 
+tissue types, seems to indicate that the additional 
+information contained in the non-binary data adds 
+`noise' that obscures the information capable of 
+separating tissue types.
+Methods for the removal of this unwanted `noise' could
+be considered, such as that discussed in 
+\refsec{normalisation} for the endometrial cancer data.
+For the ovarian cancer data however, using the binary 
+representation of these data bypasses the issue of 
+noisy measurements, and we will consider the binary 
+data in further analyses.
+The results of $k$-means clustering using the cosine 
+distance on the same three types of non-binary data are
+shown in 
+\reffig{figure_A3_non_binary_cos_clusterings}.
+The cosine distance results of 
+\reffig{figure_A3_non_binary_cos_clusterings} show much
+improvement over their Euclidean distance counterparts
+shown in \reffig{figure_A3_non_binary_euc_clusterings}, 
+able to separate some of the tissue types.
+The non-binary cosine distance results of 
+\reffig{figure_A3_non_binary_cos_clusterings} still 
+separate tissue types worse than the binary data 
+results of \reffig{figure_A3_binary_clusterings},
+despite the cosine distance showing much improved 
+performance in comparison to the Euclidean distance.
+The performance of the cosine distance in 
+\reffig{figure_A3_non_binary_cos_clusterings} 
+contributes to our decision to use the cosine distance, 
+as well as the binary data, in further analyses.
+
+
+
+
+
+
+
+% {\highlightTextAs{incomplete}
+% I include \reffig{figure_A3_non_binary_cos_clusterings}
+% in this draft to demonstrate that I think the argument 
+% made above (in this section) is misleading -- i.e. 
+% including the euclidean distance clustering results for 
+% the non-binary data, but not the cosine seems... bad. 
+% I don't like it. I don't feel like it provides a 
+% legitimate argument for using the binary data.
+% Not sure what to do about it though.
+% I could omit \reffig{figure_A3_non_binary_cos_clusterings}
+% and pretend as though what is said here is legitimate 
+% (which it is not), or I could include 
+% \reffig{figure_A3_non_binary_cos_clusterings}
+% and use it to further justify the use of the cosine distance, 
+% but just gloss over how we justify using the binary 
+% data (as given this fuller perspective there is actually
+% no legitimate reason for doing so).
+% Not sure. Either way I am either lying, or admitting 
+% that what we did makes no sense. Not sure which is 
+% worse, but I am leaning towards admitting that it makes 
+% no sense.
+% }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Feature Extraction for Binary Data}
+\label{sec:clusCharMethods}
+
+Often we know that a given subset of data is 
+particularly interesting or has some meaningful 
+interpretation.
+For example, as in \refsec{prelimAnalysis}, we may 
+discover that a cluster seems to correspond to 
+cancerous tissue, and want to further investigate it. 
+It can be desirable to identify variables that 
+distinguish or characterise such a subset.
+In this section we introduce our approach to 
+identifying such variables, as published in 
+\citet{Winderbaum2015}, specifically:
+\begin{itemize}
+%   \item Proportions of occurrence.
+	\item The \acrfull{dipps}.
+	\item A heuristic cut-off value for the \gls{dipps} 
+  that allows variable ranking by \gls{dipps} to be 
+  used to automate feature extraction of meaningful 
+  subsets of variables.
+\end{itemize}
+In \refsec{clusCharAnalysis} we will demonstrate and 
+further motivate these concepts through their 
+application to dataset A3, including how easily 
+interpretable and concise heatmap visualisations of 
+such selected subsets of variables can be constructed 
+and used for the interpretation of 
+\gls{maldi}-\gls{ims} data.
+First I introduce some notation for subsets of data in 
+\refsec{subsetNotation}.
+Then I introduce the concepts relating to the 
+\gls{dipps} as summarised above in \refsec{dippsSS}.
+
+\subsection{Subset Notation}
+\label{sec:subsetNotation}
+
+Given that rows and columns of matrices are usually 
+assigned a unique index between $1$ and $n$, where $n$ 
+is the number of rows or columns respectively, using an 
+$n$-index subset (\refdef{IndexSubset}) to denote 
+subsets of rows or columns is convenient.
+\begin{defn} \textbf{\emph{$n$-Index Subset:}}
+  A set $\sColSubset$ is an $n$-index subset if and only if $\sColSubset \subset \{1,2,\hdots,n\}$.% for $n \in [1,\infty)$.
+  \label{def:IndexSubset}
+\end{defn}
+A useful duality exists between $n$-index subsets and 
+binary vectors of length $n$, see \refdef{BinVecDual}.
+This dual notation will be useful for writing many 
+subset operations in a concise matrix form.
+\begin{defn}
+	\textbf{\emph{Binary Vector Dual (of an $n$-Index Subset):}}
+	 Let $\sColSubset$ be an $n$-index subset as in \refdef{IndexSubset}. $\vColSubset$ is the binary vector dual of $\sColSubset$ if $\vColSubset$ is a length $n$ binary vector with the value $1$ at every location whose index is contained in $\sColSubset$ and value $0$ elsewhere. 
+	\label{def:BinVecDual}
+\end{defn}
+
+Binary vectors are prominent in this work, and it is 
+interesting to note that operations on these binary 
+objects could also be formulated in terms of their
+set dual and boolean algebras, but this idea is not 
+explored here as it does not contribute to the 
+objective of our work.
+
+Let the $n$-index subset $\sColSubset$ correspond to 
+a subset of the columns of a data matrix $\mData$.
+There exists a transformation matrix such that when 
+post-multiplied by $\mData$, the resulting matrix 
+is the corresponding sub-matrix of $\mData$, see
+\refdef{T}.
+\begin{defn}
+	\textbf{\emph{Subset Transformation Matrix:}} Let $\sColSubset$ be a $n$-index subset as in \refdef{IndexSubset}. Let $\vColSubset$ be the binary vector dual of $\sColSubset$ as in \refdef{BinVecDual}. Let the number of ones contained in $\vColSubset$ be denoted $n_{\sColSubset}$, and let the $n_{\sColSubset}$ non-zero entries of $\vColSubset$ occur at indices $i_k$ for $k = 1,2,\hdots,n_{\sColSubset}$.
+	
+	 The subset transformation matrix $\mSubsetTransform{\vColSubset}$ for the $n$-index subset $\sColSubset$ is the $n \times n_{\sColSubset}$ binary matrix such that the $k^{th}$ column of $\mSubsetTransform{\vColSubset}$ contains the value $1$ in the $i_k^{th}$ position and zeros elsewhere.
+	\label{def:T}
+\end{defn}
+Notice that
+\begin{equation*}
+\vColSubset = \mSubsetTransform{\vColSubset} 1_{n_{\sColSubset} \times 1}.
+\end{equation*}
+We use this $n$-index subset notation to represent 
+sub-matrices.
+
+
+\subsection{\gls{dipps}}
+\label{sec:dippsSS}
+% \subsection{Proportions of Occurrence}
+
+In this section we introduce \gls{dipps} and related 
+concepts in a general context. 
+We motivate these ideas briefly and in a general 
+setting in order to emphasise that the \gls{dipps}
+approach is general and could be applied to any data of 
+a presence/ absence binary type.
+Often \gls{maldi}-\gls{ims} observations will
+correspond to spectra, variables to \gls{mz} bins.
+In the particular application we will use to illustrate 
+these ideas --- the ovarian cancer data of 
+\refsec{ovarianDatasets} --- the subset of interest will 
+usually be the cancer tissue, its complement being 
+surrounding non-tumour healthy tissues and off-tissue 
+spectra. 
+These ideas and how they can be interpreted in these 
+specific cases are explored in more detail in 
+\refsec{clusCharAnalysis}, but in this section we aim
+to introduce the concepts in general without this 
+specific context.
+
+First we define a couple of terms.
+% starting with \refdef{presAbsData}.
+\begin{defn} \emph{\textbf{Presence/ absence data}}
+is any binary data whose two values, numerically coded 
+one and zero, can be interpreted as the presence or 
+absence of some characteristic.
+\label{def:presAbsData}
+\end{defn}
+Binary binned \gls{maldi}-\gls{ims} data as produced by 
+\refalg{binning} is presence/ absence as per 
+\refdef{presAbsData} --- the two values coding for the 
+presence/ absence of some characteristic (a peak) in a 
+given variable (\gls{mz} bin) and observation 
+(spectrum).
+
+A natural question to ask of presence/ absence data is
+`how many observations demonstrate presence of a 
+particular characteristic?'.
+Proportions of occurrence are a natural way to measure 
+this in a way such that allows sets of different sizes 
+to be comparable.
+\begin{defn} \emph{\textbf{Proportion of Occurrence}}
+The mean of a set of presence/ absence observations can
+be interpreted as the proportions of the observations 
+in which the characteristic is present.
+\label{def:propOcc}
+\end{defn}
+
+In the same way that proportions of occurrence measure
+how many observations exhibit presence of a 
+characteristic, \gls{dipps} measures the degree to 
+which a subset of observations differs from its 
+complement in the proportion of occurrence of some 
+characteristic.
+Let us consider a $d \times n$ presence/ absence data 
+matrix $\mData$ in which we are interested in finding 
+variables that distinguish between a particular subset 
+of observations, 
+$\mData \mSubsetTransform{\vColSubset}$, 
+and the rest of the data, 
+$\mData \mSubsetTransform{(\bm{1}_{d \times 1} - \vColSubset)}$.
+\gls{dipps} is the difference between the proportions 
+of occurrence in these two subsets of the data.
+\begin{defn} \emph{\textbf{\acrfull{dipps}}}
+Let $\mData$ be a $d \times n$ binary data matrix.
+Let $\sColSubset$ be an $n$-index subset with binary vector dual $\vColSubset$ and size $n_{\sColSubset}$.
+The \gls{dipps} for a row of $\mData$ is the 
+corresponding element of the $d \times 1$ vector 
+\begin{equation*}
+\bm{\rho}(\sColSubset) =	\left ( \frac{1}{n_\sColSubset} \mData \vColSubset \right ) - \left ( \frac{1}{n - n_\sColSubset} \mData \left ( \bm{1}_{d \times 1} - \vColSubset \right ) \right ) 
+\end{equation*}
+\label{def:diffPropOcc}
+\end{defn}
+
+The first term of $\bm{\rho}$ in \refdef{diffPropOcc}, 
+$\frac{1}{n_\sColSubset} \mData \vColSubset$, is the 
+vector of proportions of occurrence within the subset 
+of interest, $\mData \mSubsetTransform{\vColSubset}$. 
+The second term, 
+$\frac{1}{n - n_\sColSubset} \mData \left ( \bm{1}_{d \times 1} - \vColSubset \right )$, 
+is the vector of proportions of occurrence for its 
+complement, 
+$\mData \mSubsetTransform{(\bm{1}_{d \times 1} - \vColSubset)}$.
+If you think of the `presence' value as predicting 
+membership in the subset of interest of an observation, 
+then these two terms can be thought of as measures of 
+sensitivity and specificity respectively.
+From this prediction perspective, each of the $d$ 
+\gls{dipps} in \refdef{diffPropOcc} is a combined 
+measure of both sensitivity and specificity for the 
+corresponding variable.
+This can be thought of as a cost function for which 
+false positives and false negatives are weighted
+equally, and this special equally-weighted case is 
+sometimes called the informedness --- see 
+\citet{Powers2011,Fawcett2006} and references therein.
+Variables, or rows of $\mData$, with a higher 
+proportion of occurrence in the subset of interest than 
+in its complement will have positive \gls{dipps}. 
+Variables with a higher proportion of occurrence 
+outside of the subset of interest than in it will have 
+negative \gls{dipps}.
+{\highlightTextAs{notation} 
+These variables can be referred to as 
+\emph{positive indicators} (where the `presence' value 
+predicts membership) and \emph{negative indicators} 
+(where the `absence' value predicts membership) for the 
+subset of interest $\sColSubset$ respectively.
+}
+A variable that has the same proportion of occurrence 
+in the subset of interest as outside of it will have a 
+\gls{dipps} of zero.
+
+
+
+% \subsection{DIPPS Cutoffs}
+
+The \gls{dipps} of \refdef{diffPropOcc} provides an 
+intuitive ranking of variables by their ability to 
+characterise/ predict a given subset of observations 
+$\sColSubset$.
+Choosing a cut-off value allows us to select a subset 
+of variables using this ranking by selecting variables
+with \gls{dipps} above the cut-off. 
+We suggest a heuristic for choosing an appropriate 
+cut-off in \refdef{DIPPSthreshold}, but first we need 
+some notation for which variables are selected using a 
+given cutoff, and for that we use the concept of a 
+\gls{dipps}-template. 
+{\highlightTextAs{notation}
+\begin{defn} \emph{\textbf{\gls{dipps}-Template:}}
+	Let $\sColSubset$ be an $n$-index subset, and 
+  $\bm{\rho}$ be the corresponding vector of 
+  \gls{dipps} as in \refdef{diffPropOcc}. 
+  For a given cut-off value $a$, the positive 
+  (negative) \gls{dipps}-template $\posDiffPropOcc{a}$ 
+  ($\negDiffPropOcc{a}$) is a $d \times 1$ binary 
+  vector, each element of which is $1$ if the 
+  corresponding element of $\bm{\rho}$ is $\geq a$ 
+  ($\leq -a$) and $0$ otherwise. 
+	\label{def:DIPPStemplate}
+\end{defn}
+}
+
+Note that although $\bm{\rho}$, $\negDiffPropOcc{a}$,
+and $\posDiffPropOcc{a}$ of \refdef{DIPPStemplate} are 
+functions of $\sColSubset$, I omit this dependence as 
+in this context $\sColSubset$ is assumed to be fixed.
+Without loss of generality I will discuss positive 
+\gls{dipps}-templates.
+Given a cutoff value $a$ for the \gls{dipps} ranking of 
+the variables in some $d \times n$ data, the positive
+\gls{dipps}-template is the $d \times 1$ vector of 
+indicator variables for the \gls{dipps} of the 
+corresponding variables being above the cutoff $a$.
+The variables selected are those whose proportion of 
+occurrence in $\sColSubset$ are least $a$ greater than 
+the proportion of occurrence in the complement of 
+$\sColSubset$.
+One way to interpret this is that a randomly chosen 
+observation from $\sColSubset$ is `at least $a$ more 
+likely' to exhibit presence than a randomly chosen 
+observation from the complement of $\sColSubset$.
+Extending this thinking, the \gls{dipps}-template
+can be thought of as a `representative' 
+observation from $\sColSubset$ --- exhibiting presence 
+in variables for which the \gls{dipps} is at least $a$.
+Recalling the concept of a centroid from 
+\refsec{centroids}, which is a general approach to 
+constructing a `representative' vector for a set of 
+vectors, but not restricted to being binary in general.
+The idea behind the heuristic \gls{dipps}-threshold is 
+that we choose $a$ such that these two approaches to 
+constructing representative vectors are the most 
+similar --- i.e. so that the \gls{dipps}-threshold is as 
+similar to the centroid of $\sColSubset$ as possible.
+{\highlightTextAs{notation}
+\begin{defn} \emph{\textbf{\gls{dipps}-Threshold:}}
+Given: a $d \times n $ binary data matrix $\mData$; an 
+$n$-index subset $\sColSubset$ (with binary vector dual 
+$\vColSubset$); and a distance $D$ (\refdef{distance}), 
+let $\bm{c}$ denote the centroid (\refdef{centroid}) of 
+the subset of interest 
+($\mData \mSubsetTransform{\vColSubset}$), then for 
+positive (negative) indicators, the 
+\gls{dipps}-threshold $a_*^+$ ($a_*^-$) is defined as:
+\begin{align*}
+	\text{For positive indicators} &:& a_*^+ &= \argmin{a} \Bigl \{ D \bigl ( \bm{c},\posDiffPropOcc{a} \bigr ) \Bigr \} \\
+	\text{For negative indicators} &:& a_*^- &= \argmin{a} \Bigl \{ D \bigl ( \bm{c},\bm{1}_{d \times 1} - \negDiffPropOcc{a} \bigr ) \Bigr \}
+\end{align*}
+	\label{def:DIPPSthreshold}
+\end{defn}
+}
+
+The \gls{dipps}-threshold of \refdef{DIPPSthreshold} 
+provides a natural way of obtaining a set of positive
+indicators for $\sColSubset$ (variables with 
+\gls{dipps} $\geq a_*^+$) and a set of negative 
+indicators for $\sColSubset$ (variables with 
+\gls{dipps} $\leq -a_*^-$). 
+These sets of variables are identified by the entries 
+of $\bm{t}_{a_*^+}$ and $\bm{t}_{a_*^-}$ equal to one
+respectively.
+These sets are useful as they quickly and easily 
+provide a shortlist of variables that distinguish the 
+subset of interest and can be investigated further in 
+follow-up analyses.
+We explore the use of \gls{dipps} in generating 
+shortlists of variables for follow-up analyses in 
+\refsec{clusCharAnalysis}.
+In \refsec{datasetComparisons} we consider another use 
+of \gls{dipps} --- comparing the sets of indicators 
+generated from different datasets in order to separate
+within-patient from between-patient variability.
+
+The \gls{dipps}-threshold of \refdef{DIPPSthreshold} 
+has interesting properties when particular distances 
+are used, but in general attempts to maximise the 
+similarity between the \gls{dipps}-template of 
+\refdef{DIPPStemplate} and the centroid of the subset
+$\sColSubset$ of the data.
+If we begin with the empty set the corresponding 
+\gls{dipps}-template would be 
+$\posDiffPropOcc{\infty} = \bm{0}_{d \times 1}$.
+Usually adding the variable with the highest 
+\gls{dipps}, and then the second highest, and so on 
+decreases the distance between the \gls{dipps}-template
+and the centroid $\bm{c}$.
+Eventually adding more variables will begin increasing 
+this distance, and the \gls{dipps}-threshold of 
+\refdef{DIPPSthreshold} attempts to find the cutoff,
+and corresponding \gls{dipps}-template/ subset of 
+variables that achieves the local optimum for which the
+template to centroid distance is minimised.
+
+In order to clarify the concept of the 
+\gls{dipps}-threshold of \refdef{DIPPSthreshold}, I 
+will briefly consider how it applies when the cosine 
+distance is used.
+The cosine distance is the distance we focus on 
+following from the discussion of 
+\refsec{p44kmeansResults}, and so this choice will be 
+particularly relevant.
+I also limit attention to the positive indicator 
+case $a_*^+$, as this will be the one we focus on and 
+as the positive indicator case is equivalent to the 
+negative indicator case up to swapping ones/ zeros or
+presence/ absence.
+
+% \subsubsection{The squared Euclidean distance}
+% 
+% When the squared Euclidean distance is used (i.e. $D = D^2_{Euc}$), $\bm{c} = \bm{\propOcc}^{\sColSubset}$ and
+% 
+% \begin{align*}
+% 	D^2_{Euc} \bigl ( \bm{c},\posDiffPropOcc{a} \bigr ) &= || \posDiffPropOcc{a} - \bm{\propOcc}^{\sColSubset} ||^2 \\
+% \end{align*}
+% 
+% Thus as $a$ approaches $0$ from above each time $\posDiffPropOcc{a}$ changes,  $D^2_{Euc} \bigl ( \bm{c},\posDiffPropOcc{a} \bigr )$ will decrease if the element of $\bm{\propOcc}^{\sColSubset}$ corresponding to the element of $\posDiffPropOcc{a}$ that changed is $<0.5$ and will increase if it is $>0.5$.
+
+
+% \subsubsection{The cosine distance}
+
+When the cosine distance is used (i.e. $D = D_{cos}$), 
+%the centroid (\refdef{centroid}) is:
+%\begin{align*}
+%	\bm{c} &= \frac{1}{||\frac{1}{n}\sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}}||}\frac{1}{n}\sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}} \\
+%	&= \frac{1}{\sqrt{\frac{1}{n^2}\sum_{k=1}^{n}{\sum_{j=1}^{n}{\frac{1}{\sqrt{N_k N_j}}}\vDataCol{k}^T\vDataCol{j}^{{\color{white}T}}}}}\frac{1}{n}\sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}} \\
+%	&= \frac{1}{\sqrt{\sum_{k=1}^{n}{\sum_{j=1}^{n}{\frac{1}{\sqrt{N_k N_j}}}\vDataCol{k}^T\vDataCol{j}^{{\color{white}T}}}}}\sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}} \\
+%\bm{c} &= \frac{1}{A}\sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}} \quad \text{where} \quad A = \sqrt{\sum_{k=1}^{n}{\sum_{j=1}^{n}{\frac{1}{\sqrt{N_k N_j}}}\vDataCol{k}^T\vDataCol{j}^{{\color{white}T}}}}
+%\end{align*}
+
+%\begin{equation*}
+	%\bm{c} &= \frac{1}{n}\sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}}
+%\end{equation*}
+%
+%and so 
+\begin{align*}
+	D_{cos} \bigl ( \bm{c},\posDiffPropOcc{a} \bigr ) &= 1 - \frac{\posDiffPropOcc{a}^T \bm{c} }{||\bm{c}||.||\posDiffPropOcc{a}||} \\
+	%&= 1 - \frac{\posDiffPropOcc{a}^T \sum_{j=1}^{n}{\frac{1}{\sqrt{N_j}}\vDataCol{j}} }{n.||\bm{c}||.||\posDiffPropOcc{a}||}
+\end{align*}
+
+Let $n_a$ denote the number of non-zero entries of 
+$\posDiffPropOcc{a}$ and let $b_2 < b_1$ such that 
+$n_{b_2} = n_{b_1} + 1$. 
+As the cutoff $a$ becomes smaller, changing from $b_1$ 
+to $b_2$, 
+$D_{cos} \bigl ( \bm{c},\posDiffPropOcc{a} \bigr )$ 
+will decrease if 
+$(\posDiffPropOcc{b_2} - \posDiffPropOcc{b_1})^T \bm{c} < \left ( \posDiffPropOcc{b_1}^T \bm{c} \right ) \left ( \sqrt{\frac{n_{b_2}}{n_{b_1}}} - 1  \right )$ 
+and will increase if 
+$(\posDiffPropOcc{b_2} - \posDiffPropOcc{b_1})^T \bm{c} > \left ( \posDiffPropOcc{b_1}^T \bm{c} \right ) \left ( \sqrt{\frac{n_{b_2}}{n_{b_1}}} - 1  \right )$.
+The left-hand side of these expressions is the entry of
+the centroid $\bm{c}$ corresponding to the variable 
+added when changing the cutoff from $b_1$ to $b_2$.
+The right-hand side is a function of the total number 
+of variables selected so far, $n_{b_1}$.
+As $n_{b_1}$ increases, 
+$\left ( \sqrt{\frac{n_{b_2}}{n_{b_1}}} - 1  \right )$ 
+approaches zero and when this term becomes sufficiently 
+small reducing the cutoff $a$ further only increases 
+the distance 
+$D_{cos} \bigl ( \bm{c},\posDiffPropOcc{a} \bigr )$.
+This limiting behaviour is what allows for a local 
+minima to be found.
+
+\section{Spatial Smoothing for Binary Data}
+\label{sec:spatialSmooth}
+
+All of the methods introduced so far completely ignore 
+the spatial information present in 
+\gls{maldi}-\gls{ims} datasets.
+One way to incorporate such distance meta-data is 
+through a spatial smooth, however when smoothing binary
+data it is desirable to maintain the binary form of the 
+data through the smoothing process.
+Many common smoothing algorithms, such as most kernel 
+and polynomial spline smooths for example, do not 
+preserve the binary nature of the data.
+In this section I propose a spatial smooth 
+(\refalg{spatialSmooth}) that preserves the binary 
+nature of the data through use of cellular automata.
+For a broader perspective and history on cellular 
+automata see \citet{Mitchell1996,Wolfram1984} and 
+references therein.
+The approach I propose to smoothing is to our knowledge 
+novel, and has now been published in 
+\citet{Winderbaum2015}.
+ 
+{\highlightTextAs{notation}
+We represent the spatial information associated with 
+a $d \times n$ binary data matrix $\mData$ as a 
+$n \times n$ distance meta-data matrix $\mathfrak{D}$, 
+whose rows and columns correspond to the same 
+observations represented by the columns of $\mData$.  
+A distance meta-data matrix $\mathfrak{D}$ is a 
+symmetric matrix such that the $(i,j)^{th}$ entry of 
+$\mathfrak{D}$ is the value of a distance $D$ between the $i^{th}$ and $j^{th}$ observations in the dataset, i.e.
+$D(\vDataCol{i},\vDataCol{j})$.
+} 
+This implies that the diagonal of $\mathfrak{D}$ is 
+filled with zeroes, as 
+$D(\vDataCol{i},\vDataCol{i}) = 0 \,\, \forall i$. 
+In \gls{maldi}-\gls{ims} data, we will choose the 
+distance to be the Euclidean distance between the X-Y 
+coordinates of spectra, so the physical distance 
+between the spatial locations of two spectra.
+We use the lateral resolution, i.e. the minimum 
+distance between two spectra or the width of a pixel in 
+spatial maps such as in \refsec{spatialDist}, as the 
+unit of measurement. 
+The smooth we propose in \refalg{spatialSmooth} looks 
+at a spatial neighbourhood around each observation or
+spectrum and if enough of the neighbouring observations 
+differ the value is changed to agree with the 
+neighbourhood.
+This process is then repeated iteratively until a 
+stable state is found in which every neighbourhood 
+meets the minimum agreement criteria.
+This iterative process thus guarantees the resulting 
+data will meet a minimum level of `smoothness'.
+
+\begin{alg} \textbf{\emph{Spatial Smooth:}}
+	Given: a smoothing parameter $0 \leq \tau < \frac{1}{2}$; a distance cutoff $\delta > 0$; a stopping point $\tilde{k}$; a binary $d \times n$ data matrix $\mData$, and a $n \times n$ distance meta-data matrix $\mathfrak{D}$. Initially let $\mData^{(0)} = \mData$. For $k = 1,2,\hdots$ construct $\mData^{(k)}$ by the following steps:
+	\begin{enumerate}
+		\item For all $j$, find the $1 \times n$ binary vector $\vColSubset_j$ such that each element of $\vColSubset_j$ is one if the corresponding element of the $j^{th}$ row of $\mathfrak{D}$ is $\leq \delta$ and zero otherwise.
+		\item $x_{ij}^{(k)} = \left \{ \begin{array}{ll} 
+              x_{ij}^{(k-1)} & \text{if} \quad \left ( 
+                  1 - x_{ij}^{(k-1)} + \left (2x_{ij}^{(k-1)} - 1 \right ) \frac{\vDataRow{i}^{(k-1)} \vColSubset_j^T - x_{ij}^{(k-1)}}{\bm{1}_{1 \times n} \vColSubset_j^T - 1} \right ) > \tau \\ 
+              1 - x_{ij}^{(k-1)} & \text{if} \quad \left ( 
+                  1 - x_{ij}^{(k-1)} + \left (2x_{ij}^{(k-1)} - 1 \right ) \frac{\vDataRow{i}^{(k-1)} \vColSubset_j^T - x_{ij}^{(k-1)}}{\bm{1}_{1 \times n} \vColSubset_j^T - 1} \right ) \leq \tau \end{array} \right . $
+	\end{enumerate}
+	
+	 Stop when either $k = \tilde{k}$ or $\mData^{(k)} = \mData^{(k-1)}$. When one of the stopping conditions is reached, $\mData^{(k)}$ is the spatially smoothed data.
+	
+\label{alg:spatialSmooth}
+\end{alg}
+
+\textbf{Remarks on \refalg{spatialSmooth}}:
+\begin{itemize}
+\item  The term 
+$\left ( 1 - x_{ij}^{(k-1)} + \left (2x_{ij}^{(k-1)} - 1 \right ) \frac{\vDataRow{i}^{(k-1)} \vColSubset_j^T - x_{ij}^{(k-1)}}{\bm{1}_{1 \times n} \vColSubset_j^T - 1} \right )$ 
+in step 2. is the proportion of observations in a 
+$\delta$-neighbourhood of the $j^{th}$ observation
+$\vDataCol{j}^{(k-1)}$ that have the same value as 
+$\vDataCol{j}^{(k-1)}$ for their $i^{th}$ variable. 
+If there is an insufficient proportion of neighbouring 
+similar observations (specifically $< \tau$), 
+the value $x_{ij}^{(k-1)}$ is `smoothed' to agree with 
+the majority of its neighbours, i.e. 
+$x_{ij}^{(k)} = 1-x_{ij}^{(k-1)}$.
+Otherwise, $x_{ij}^{(k-1)}$ remains unchanged at the 
+$k$th step, i.e. 
+$x_{ij}^{(k)} = x_{ij}^{(k-1)}$.
+
+\item We choose $\delta = \sqrt{2}$ which results in a 
+range $1$ \emph{Moore neighbourhood}. 
+See \cite{Gray2003}.
+This neighbourhood is used in the cellular automata 
+literature including \cite{Conway1970}.
+It is worth noting that acquiring the range $1$ Moore 
+neighbourhood by using the Euclidean distance and 
+$\delta = \sqrt{2}$ is equivalent to using the 
+Tchebychev distance ($L^{\infty}$ or sup-norm), and 
+$\delta = 1$ so long as the observations lie on a 
+regular grid.
+It is important to deal with the special case of empty
+$\delta$-neighbourhoods, in which case we leave the 
+data unmodified.
+However it is always possible to select $\delta$ 
+sufficiently large such that there are no empty 
+$\delta$-neighbourhoods, and in our case 
+$\delta=\sqrt{2}$ is sufficiently large to satisfy this 
+condition.
+Alternative neighbourhoods could be selected by 
+choosing different combinations of cutoff $\delta$ and 
+distance $D$, but we have not explored these 
+possibilities.
+
+\item The smoothing parameter $\tau$ defines the 
+proportion of neighbouring spectra needed to agree in 
+order for the value of an observation to remain 
+unchanged at any given step, as discussed in the first
+point above.
+Small values of $\tau$ smooth less ($\tau = 0$ leaves 
+the data unmodified), while larger values smooth more.
+The limit $\tau \rightarrow \frac{1}{2}$ results in 
+maximum smoothing, and is equivalent to the intuitive 
+median smooth. 
+The median smooth tends to yield over-smoothed data in 
+the case of \gls{maldi}-\gls{ims} data, and often fails 
+to converge.
+We choose an intermediate smoothing parameter, 
+$\tau = \frac{1}{4}$, for these analyses.
+For data on a regular grid results will not 
+significantly change if $\tau$ is within the same 
+$\frac{1}{8}$-wide interval, as changing $\tau$ within 
+these intervals will affect only spectra on the 
+boundary of the acquisition region (spectra with less 
+than $8$ neighbours). 
+The values $\frac{1}{8}$ and $\frac{3}{8}$ could also 
+be used, but in \refsec{clusCharAnalysis} and 
+\refsec{datasetComparisons} we present results using 
+the intermediate value $\tau = \frac{1}{4}$.
+  
+
+\item Alternative smoothing options include kernel 
+methods \citep{Wand1995} which apply to the more 
+general class of continuous data. 
+These methods typically produce continuous values when 
+applied to binary data, for which there is no clear 
+interpretation. 
+Our method produces binary smoothed data --- maintaining 
+the interpretability of the binary values.
+As one of the main strengths of using the binary data 
+is its simple interpretation as `presence/ absence' 
+data, the ability to preserve this interpretation is
+important.
+
+\item At each smoothing iteration $k$, variables are 
+smoothed independently, and within each variable all 
+observations are smoothed simultaneously at each step. 
+This means that it is possible to parallelise the 
+smoothing algorithm, making relatively efficient use of 
+computational resources.
+
+\item In practice the stopping point $\tilde{k}$ is not 
+usually necessary, as typically convergence is reached 
+in $<20$ iterations. 
+However it is good practice to include $\tilde{k}$ in 
+case convergence is not reached, as we cannot easily 
+guarantee convergence. 
+An alternative use for $\tilde{k}$ is to improve 
+computation speed --- by choosing a small $\tilde{k}$, 
+such as $2$ or $3$ for example, computation could be 
+performed very quickly. 
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Characterisation of Cancer in Dataset A3}
+\label{sec:clusCharAnalysis}
+
+Here we illustrate the methods and ideas introduced in
+Sections~\ref{sec:clusCharMethods} and 
+\ref{sec:spatialSmooth} by applying these ideas to the 
+motivating dataset A3 from the ovarian cancer data of 
+\refsec{ovarianDatasets}.
+I will demonstrate the usefulness of these methods in 
+the exploration of \gls{maldi}-\gls{ims} data, 
+focussing on the interpretation of results.
+More specifically I will show how \gls{dipps} can be 
+used to find variables (\gls{mz} bins) that are important 
+in distinguishing clusters, how such information can be 
+presented as heatmaps and how these heatmaps visualise 
+clustering results in a way that is easier to interpret 
+than simply plotting the cluster membership.
+
+Continuing on from the analyses of dataset A3 in 
+\refsec{prelimAnalysis}, I will consider the $4$-means 
+clustering by cosine distance of the binary binned
+data, shown in 
+\reffig{figure_A3_binary_cos_clustering} side-by-side 
+with an image of the same section of tissue after 
+\gls{he} staining.
+As mentioned in \refsec{prelimAnalysis}, a notable 
+feature of \reffig{figure_A3_binary_cos_clustering} is 
+that through comparison with the histological staining, 
+experts concluded that the clusters roughly correspond 
+to the different tissue types present, specifically: 
+\colboxofftissue, \colboxadipose, \colboxcancer, and 
+\colboxstroma.
+In \refsec{propOcc} I begin with some discussion and 
+exploratory analysis of how presence/ absence data and
+proportions of occurrence, as in \refdef{presAbsData} 
+and \refdef{propOcc} respectively, apply in this 
+context.
+I will then consider the extraction of variables by 
+use of \gls{dipps} in \refsec{dipps}.
+Finally in \refsec{dippsHeatmapsA3} I will show how 
+heatmaps representing these extracted variables can 
+provide a representation for the clustering results 
+that allows for intuitive and meaningful conclusions to 
+be easily drawn.
+
+<<clus_A3_smoothed_cos, dependson="clus_A3_non_binary_cos",include=FALSE>>=
+smoothParam = 0.25
+clusType = 'cos'
+clus_A3_smoothed <- read.csv(paste('./matlab/output/',
+                            dataset_name,
+                            '_Bin',toString(100*binSize),
+                            '_',toString(100*smoothParam),'smooth_',
+                            clusType,"_",
+                            toString(K),'means_clustering.csv',
+                            sep=""),
+                      header=FALSE
+                      )
+clus_A3_smoothed$V2 <- factor(clus_A3_smoothed$V2)
+setnames(clus_A3_smoothed,'V1','Acquisition')
+setnames(clus_A3_smoothed,'V2','Smoothed.Cosine')
+clus_A3$Smoothed.Cosine <- factor(clus_A3_smoothed[match(clus_A3$Acquisition,clus_A3_smoothed$Acquisition),'Smoothed.Cosine'])
+@
+
+
+\begin{figure}[hb]
+\vspace{-4cm}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {
+\includegraphics[height=6.05cm,trim= 15cm 0cm 14.5cm 0cm,clip=true]{./miscImages/HEstains_contrast/Slide_4_p44.pdf}
+};
+\draw (5.8,-0.15) node {
+<<figure_A3_binary_cos_clustering, dependson=c("clus_A3_smoothed_cos","A3_load"), message=FALSE, fig.width=3.6, out.width="0.518\\linewidth">>=
+mI.m <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Binary.Cosine',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+mI.m$plot <- 1
+temp <- spatialPlot(clus_A3,fExists,
+                    plot_var = 'Smoothed.Cosine',
+                    plot_var_type = 'categorical',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 2
+mI.m = rbind(mI.m,temp)
+
+
+mI.m$plot <- factor(mI.m$plot)
+p = (ggplot(mI.m,aes(X,Y))
+     + facet_grid(. ~ plot)
+     + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+     + guides(alpha = FALSE,fill=FALSE)
+     + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+     + coord_fixed()
+     + scale_x_continuous(breaks=seq(350, 400, 50))
+     + scale_y_reverse(breaks=seq(50, 200, 50))
+     + theme(strip.text.x = element_blank(), strip.background = element_blank())
+     + ylab("")
+     + xlab("")
+)
+print(p)
+@
+};
+\draw (-1.3,2.4) node {(a)};
+\draw (2.7,2.4) node {(b)};
+\draw (1,-2.85) node {5mm};
+\draw[line width = 6pt] (0.276,-3.2) -- (1.670,-3.2);
+\draw[->,very thick] (0.8,0.4) -- (0.4,0);
+\draw[->,very thick] (0.85,1) -- (0.45,0.6);
+\draw[->,very thick] (0.6,-0.3) -- (0.2,-0.7);
+\draw[->,very thick] (1.45,2.15) -- (1.05,1.75);
+\end{tikzpicture}
+\end{center}
+\vspace{-4cm}
+\caption{ (a) \gls{he} stained tissue section with 
+arrows indicating the four visible tumours and 
+(b) cluster membership resulting from $4$-means 
+clustering (\refalg{kmeans}) by cosine distance on the 
+binary binned (bin size $\Sexpr{binSize}$) A3 data 
+(\refalg{binning}) with smoothing ($\tau = 0.25$, 
+right) and without smoothing ($\tau = 0$, left). 
+Note that the left image in (b) reproduces the 
+left-most image in 
+\reffig{figure_A3_binary_clusterings}. 
+\label{fig:figure_A3_binary_cos_clustering}}
+\end{figure}
+
+
+
+\subsection{Proportions of Occurrence}
+\label{sec:propOcc}
+
+
+
+
+
+
+
+
+
+<<A3_propOcc, dependson="A3_binning">>=
+prop_occ <- ddply(peaklist_all,"Bin",summarise,
+                  prop_occ = length(unique(Acquisition))
+)
+prop_occ$prop_occ <- prop_occ$prop_occ/length(unique(peaklist_all$Acquisition)) 
+@
+
+In this section we present exploratory analyses of 
+dataset A3 in order to develop familiarity with 
+properties of these data so that we might interpret 
+further results in appropriate context.
+
+I begin by considering the distribution of proportions 
+of occurrence (\refdef{propOcc}) in the form of a 
+histogram, as shown in 
+\reffig{figure_A3_proportions_of_occurrence_histogram}.
+The proportion of occurrence for each of the 
+$\Sexpr{nrow(prop_occ)}$ variables of the binned data 
+were calculated, and 
+\reffig{figure_A3_proportions_of_occurrence_histogram} 
+shows a histogram of these proportions for the 
+$\Sexpr{nrow(prop_occ)}$ variables.
+\reffig{figure_A3_proportions_of_occurrence_histogram} 
+shows a heavily right skewed distribution, with a large 
+number of variables having a very low proportion of 
+occurrence. 
+This type of heavily right skewed distribution is 
+typical for \gls{maldi}-\gls{ims} datasets such as 
+this.
+To be explicit about the degree of right skew, 
+$\Sexpr{sum(prop_occ$prop_occ < 0.005)}$ 
+or $ \sim \Sexpr{round(100*sum(prop_occ$prop_occ < 0.005)/nrow(prop_occ))}\%$ 
+of $\Sexpr{nrow(prop_occ)}$  variables have a 
+proportion of occurrence less than $0.005$ or $0.5\%$ --- 
+that is to say that 
+$\sim \Sexpr{round(100*sum(prop_occ$prop_occ < 0.005)/nrow(prop_occ))}\%$
+of non-empty bins contain peaks in less than
+$\Sexpr{ceiling(0.005*nrow(spec_info))}$ of 
+$\Sexpr{nrow(spec_info)}$ spectra. 
+%The immediate question is ``are any of these low occurrence bins important?'', 
+A natural question to ask is: 
+\begin{center}
+  ``What happens to the clustering results if I remove 
+  these low-occurrence bins?''
+\end{center}
+% NOTE: These numbers come from comparing the clustering results directly in the MATLAB output, where I did the clustering in the first place.
+If we construct a new data matrix $\mData^*$ from 
+$\mData$ by removing the rows of $\mData$ corresponding 
+to bins with proportion of occurrence $<0.005$ and 
+perform a $4$-means clustering on the modified matrix 
+(using the same starting points) the results are almost 
+indistinguishable --- differing from the clustering 
+results on the full unsmoothed data shown in 
+\reffig{figure_A3_binary_cos_clustering} by only $10$, 
+or $0.07\%$, of $14050$ pixels.
+A continuous range of thresholds for cutting off the 
+proportions of occurrence was considered but this 
+illustrative example is sufficient to demonstrate the 
+point that most of the low proportions of occurrence 
+bins can be removed without significantly affecting the 
+clustering.
+
+<<figure_A3_proportions_of_occurrence_histogram, dependson= "A3_propOcc", fig.width=4, fig.height=4, out.width="0.6\\linewidth", fig.cap= "Histogram of the proportions of occurrence of the bins in the binary binned (bin size $0.25$) A3 data. Proportion of occurrence is represented on the $x$-axis, relative frequency (relative to the total of $4294$ bins) on the $y$-axis. The distribution shown is fairly typical for this type of data -- heavily right skewed.",fig.pos='hb', fig.align='center'>>=
+p <- (ggplot(prop_occ,aes(x=prop_occ))
+      + geom_histogram(binwidth=0.05,aes(y=(..count..)/sum(..count..)))
+      + ylab("") + xlab("")
+)
+print(p)
+@
+	
+	
+
+
+Low proportion of occurrence variables seem not to be 
+important in successfully distinguishing tissue types 
+by clustering.
+A large number of variables have a low proportion of 
+occurrence, and this suggests that there exists a small 
+subset of variables that can effectively distinguish 
+tissue types. 
+% {\highlightTextAs{incomplete} This naturally leads to a discussion of variable reduction, which I have not included here, but might be interesting to include somewhere? Including comparisons to methods like PCA?}
+In order to understand what distinguishes tissue types 
+in these data and identify potential subsets of 
+variables that can do so, let us begin by considering 
+the high proportion of occurrence variables.
+\reffig{figure_high_proportions_of_occurrence_bins} 
+shows the spatial distribution of occurrence for each 
+of the $8$ highest proportion of occurrence variables.
+The \gls{mz} values that these images correspond to and 
+their proportions of occurrence are included in the 
+figure caption. 
+Similarly to the representation of cluster-membership, 
+I use the spatial distribution discussed in 
+\refsec{spatialDist} to visualise the occurrence in a 
+variable by using colour to distinguish the binary 
+\colboxpresence / \colboxabsence values in the variable 
+of interest. 
+
+% $3137$ of $4294$ non-empty bins in dataset A3 have a proportion of occurrence less than $0.00356$ which is to say they occur in less than $50$ of $14035$ spectra. It is reasonable to assume that such low-occurrence bins are not of interest, and it is common practice in the field to remove them prior to any analysis. Sure enough, if these $3137$ bins are removed, and $4$-means clustering (\refalg{kmeans}) is performed on the remaining $1157$ bins the clustering results differ from those produced from the full $4294$ bins only in the cluster membership of $3$ spectra (of $14035$). So it is clear that the bins that differentiate these clusters have higher proportions of occurrence. 
+
+
+<<A3_high_propOcc_bins, dependson= "A3_propOcc">>=
+high_prop_occ_bins <- sort(prop_occ$prop_occ,decreasing=TRUE,index.return=TRUE)
+bins_of_interest <- ddply(peaklist_all,"Acquisition",summarise,
+                          high_prop_occ_1 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][1],]$Bin)>0),
+                          high_prop_occ_2 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][2],]$Bin)>0),
+                          high_prop_occ_3 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][3],]$Bin)>0),
+                          high_prop_occ_4 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][4],]$Bin)>0),
+                          high_prop_occ_5 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][5],]$Bin)>0),
+                          high_prop_occ_6 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][6],]$Bin)>0),
+                          high_prop_occ_7 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][7],]$Bin)>0),
+                          high_prop_occ_8 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][8],]$Bin)>0),
+                          high_prop_occ_9 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][9],]$Bin)>0),
+                          high_prop_occ_10 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][10],]$Bin)>0),
+                          high_prop_occ_11 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][11],]$Bin)>0),
+                          high_prop_occ_12 = (sum(Bin == prop_occ[high_prop_occ_bins[[2]][12],]$Bin)>0)
+)
+bins_of_interest$high_prop_occ_1 <- factor(bins_of_interest$high_prop_occ_1)
+bins_of_interest$high_prop_occ_2 <- factor(bins_of_interest$high_prop_occ_2)
+bins_of_interest$high_prop_occ_3 <- factor(bins_of_interest$high_prop_occ_3)
+bins_of_interest$high_prop_occ_4 <- factor(bins_of_interest$high_prop_occ_4)
+bins_of_interest$high_prop_occ_5 <- factor(bins_of_interest$high_prop_occ_5)
+bins_of_interest$high_prop_occ_6 <- factor(bins_of_interest$high_prop_occ_6)
+bins_of_interest$high_prop_occ_7 <- factor(bins_of_interest$high_prop_occ_7)
+bins_of_interest$high_prop_occ_8 <- factor(bins_of_interest$high_prop_occ_8)
+bins_of_interest$high_prop_occ_9 <- factor(bins_of_interest$high_prop_occ_9)
+bins_of_interest$high_prop_occ_10 <- factor(bins_of_interest$high_prop_occ_10)
+bins_of_interest$high_prop_occ_11 <- factor(bins_of_interest$high_prop_occ_11)
+bins_of_interest$high_prop_occ_12 <- factor(bins_of_interest$high_prop_occ_12)
+@
+
+
+
+\begin{figure}[p]
+	\begin{center}
+      <<figure_high_proportions_of_occurrence_bins, dependson="A3_high_propOcc_bins", out.width="\\linewidth">>=
+      mI.m <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_1',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      mI.m$plot <- "(a)"
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_2',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(b)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_3',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(c)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_4',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(d)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_5',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(e)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_6',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(f)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_7',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(g)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_8',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(h)"
+      mI.m = rbind(mI.m,temp)
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_9',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(i)"
+      mI.m = rbind(mI.m,temp)
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                          plot_var = 'high_prop_occ_10',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          return_mI.m = TRUE)
+      temp$plot <- "(j)"
+      mI.m = rbind(mI.m,temp)
+      
+      mI.m$plot <- factor(mI.m$plot)
+      
+      p = (ggplot(mI.m,aes(X,Y))
+           + facet_wrap( ~ plot, ncol = 5)
+           + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+           + guides(alpha = FALSE,fill=FALSE)
+           + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+           + coord_fixed()
+           + scale_x_continuous(breaks=seq(350, 400, 50))
+           + scale_y_reverse(breaks=seq(50, 200, 50))
+           + ylab("")
+           + xlab("")
+      )
+      print(p)
+      @    
+	\end{center}
+\captionsetup{singlelinecheck=off}
+\caption[foo bar]{Occurrence maps for high occurrence \gls{mz} bins in dataset A3. Spatial maps indicate the \colboxpresence / \colboxabsence of peaks in each pixel (spectrum). Shown are the $0.25$ \gls{Da} wide bins centred at \gls{mz}: \label{fig:figure_high_proportions_of_occurrence_bins}
+	\begin{center}
+	\begin{multicols}{2}
+	\begin{enumerate}[(a)]
+		\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][1],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][1],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][2],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][2],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][3],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][3],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][4],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][4],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][5],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][5],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][6],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][6],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][7],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][7],digits=3)}$,
+  	\item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][8],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][8],digits=3)}$,
+    \item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][9],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][9],digits=3)}$,
+    \item $\Sexpr{prop_occ[high_prop_occ_bins[[2]][10],]$Bin}$ with occurrence $\Sexpr{round(high_prop_occ_bins[[1]][10],digits=3)}$.
+	\end{enumerate}
+	\end{multicols}
+	\end{center}
+}
+\end{figure}
+
+As mentioned in \refsec{maldiims} four internal 
+calibrants \citep{Gustafsson2012} were sprayed onto the 
+tissue during sample preparation, for mass-calibration
+purposes.
+These calibrants should appear at known \gls{mz} values 
+equally across the entire tissue section.
+\reffig{figure_high_proportions_of_occurrence_bins} 
+(a), (b), (d), and (i) correspond to these 
+calibrants.
+\reffig{figure_high_proportions_of_occurrence_bins}
+(c) and probably (g) are similarly trypsin autolysis 
+products resulting from the trypsin sprayed evenly onto 
+the tissue during sample preparation.
+Notice how the last of these calibrants,
+\reffig{figure_high_proportions_of_occurrence_bins} 
+(i), exhibits a systematic \Ncolboxabsence{} for high 
+Y-coordinate values (that is in the lower part of the 
+image) and thus is not amongst the very highest 
+proportion of occurrence \gls{mz} bins.
+Such a systematic absence indicates a problem, and the 
+detection of such problems is part of the reason these 
+internal calibrants are included --- in order to further 
+improve the methods used to acquire these data. 
+This particular problem has as yet eluded explanation.
+This absence could potentially be an example of what I 
+will refer to as `false negative' measurements.
+These `false negatives' could be caused by insufficient 
+matrix being deposited, resulting in insufficient ions 
+being produced and no peaks being detected.
+Peaks being mistaken for noise by the peak-picking 
+algorithm could also account for false negatives.
+Essentially any situation where the molecule of 
+interest is present in the sample, but not detected as 
+a peak in the mass spectrum. 
+
+\reffig{figure_high_proportions_of_occurrence_bins} 
+(f), (h), and (j) are interesting when considering the 
+differentiation of tissue types, as their spatial 
+distributions, visually, seem to match that of the 
+\Ncolboxcancer{} cluster in 
+\reffig{figure_A3_binary_cos_clustering}. 
+The visual match between the occurrence in the bins of 
+\reffig{figure_high_proportions_of_occurrence_bins} 
+(f), (h), and (j), and the cluster membership of 
+\reffig{figure_A3_binary_cos_clustering} is that of a 
+negative indication for the cancer cluster --- 
+that is the \emph{\Ncolboxabsence{}} of peaks in those 
+bins seems to correspond to the cancer cluster. 
+Positive indicators of cancer are far more useful than 
+negative indicators, for two reasons:
+\begin{itemize}
+	\item As briefly mentioned above, there is the issue 
+  of what I refer to as `false negative' measurements, 
+  which make negative indicators somewhat dubious. 
+  `False positive' measurements however are very rare, 
+  due to the fundamental nature of the data as 
+  described in \refchap{intro}, and so positive 
+  indicators are much more reliable.
+
+\item More importantly however, positive indicators 
+  for cancer are more useful from a \emph{biochemical} 
+  perspective, as they have more potential as possible 
+  diagnostic and predictive tools, as tests for 
+  positive indicators can be devised with relative ease.
+  Developing tests for the \emph{absence} of something 
+  is somewhat more complicated and difficult, and the 
+  results would typically be less useful or 
+  informative. 
+\end{itemize}
+So although these three negative indicators for the 
+\Ncolboxcancer{} are interesting, and could be pursued by
+matching to \gls{lc} data for identification and 
+follow-up studies, we prioritise our efforts on 
+pursuing positive indicators.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{DIPPS-based Feature Extraction in Dataset A3}
+\label{sec:dipps}
+
+In \refsec{propOcc} we mention that it is possible to 
+distinguish tissue types on the basis of a small subset 
+(less than a quarter) of the variables.
+We also discuss how a binary variable that 
+characterises a cluster can do so in one of two ways: 
+as a positive indicator, or a negative indicator.
+I will consider positive indicators, but all the 
+methods introduced are general, and with minor 
+modifications could be applied to negative indicators, 
+or all indicators.
+In this section I demonstrate how the ideas introduced 
+in \refsec{clusCharMethods} can be applied to find a 
+subset of variables that characterise a cluster as 
+positive indicators.
+I will show how such a subset of variables can be 
+visualised in a useful way, and how this allows for a 
+more interpretable representation of the clustering 
+results than just the clustering results themselves.
+
+
+
+
+
+
+
+
+
+<<A3_dipps, dependson= c("clus_A3_binary","A3_binning")>>=
+# DIPPS
+LXY$Group = 0
+LXY[match(subset(clus_A3,Binary.Cosine!=4)$Acquisition,LXY$Acquisition),"Group"] = 1;
+LXY[match(subset(clus_A3,Binary.Cosine==4)$Acquisition,LXY$Acquisition),"Group"] = 2;
+
+LXY_d = subset(LXY,(Group %% 3) == 1)
+LXY_u = subset(LXY,(Group %% 3) == 2)
+nSpec_d = nrow(LXY_d)
+nSpec_u = nrow(LXY_u)
+
+peaklist_all <- transform(peaklist_all,Group = LXY[match(peaklist_all$Acquisition,LXY$Acquisition),]$Group)
+
+# Produce seperate peaklists for groups.
+peaklist_u = subset(peaklist_all,(Group %% 3) == 2)
+peaklist_d = subset(peaklist_all,(Group %% 3) == 1)
+
+# Calculate summary statistics for each peakgroup (proportions of occurrence, and thereby DIPPS in this case).
+Summary_u <- ddply(peaklist_u,"Bin",summarise,
+                   propOcc = length(unique(Acquisition))
+)
+Summary_u$propOcc <- Summary_u$propOcc/nSpec_u
+Summary_d <- ddply(peaklist_d,"Bin",summarise,
+                   propOcc = length(unique(Acquisition))
+)
+Summary_d$propOcc <- Summary_d$propOcc/nSpec_d
+
+Summary_merged = merge(Summary_u,Summary_d,
+                       by = "Bin",all.x = TRUE,all.y = TRUE,
+                       suffixes=c(".u",".d")
+)
+Summary_merged = replace(Summary_merged,is.na(Summary_merged),0)
+Summary_merged$DIPPS = Summary_merged$propOcc.u - Summary_merged$propOcc.d
+@
+
+<<A3_high_dipps_bins, dependson= c("A3_dipps","A3_high_propOcc_bins")>>=
+high_dipps_bins <- sort(Summary_merged$DIPPS,decreasing=TRUE,index.return=TRUE)
+temp <- ddply(peaklist_all,"Acquisition",summarise,
+              high_dipps_1 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][1],]$Bin)>0),
+              high_dipps_2 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][2],]$Bin)>0),
+              high_dipps_3 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][3],]$Bin)>0),
+              high_dipps_4 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][4],]$Bin)>0),
+              high_dipps_5 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][5],]$Bin)>0),
+              high_dipps_6 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][6],]$Bin)>0),
+              high_dipps_7 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][7],]$Bin)>0),
+              high_dipps_8 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][8],]$Bin)>0),
+              high_dipps_9 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][9],]$Bin)>0),
+              high_dipps_10 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][10],]$Bin)>0),
+              high_dipps_11 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][11],]$Bin)>0),
+              high_dipps_12 = (sum(Bin == Summary_merged[high_dipps_bins[[2]][12],]$Bin)>0)
+)
+bins_of_interest <- merge(bins_of_interest,temp)
+bins_of_interest$high_dipps_1 <- factor(bins_of_interest$high_dipps_1)
+bins_of_interest$high_dipps_2 <- factor(bins_of_interest$high_dipps_2)
+bins_of_interest$high_dipps_3 <- factor(bins_of_interest$high_dipps_3)
+bins_of_interest$high_dipps_4 <- factor(bins_of_interest$high_dipps_4)
+bins_of_interest$high_dipps_5 <- factor(bins_of_interest$high_dipps_5)
+bins_of_interest$high_dipps_6 <- factor(bins_of_interest$high_dipps_6)
+bins_of_interest$high_dipps_7 <- factor(bins_of_interest$high_dipps_7)
+bins_of_interest$high_dipps_8 <- factor(bins_of_interest$high_dipps_8)
+bins_of_interest$high_dipps_9 <- factor(bins_of_interest$high_dipps_9)
+bins_of_interest$high_dipps_10 <- factor(bins_of_interest$high_dipps_10)
+bins_of_interest$high_dipps_11 <- factor(bins_of_interest$high_dipps_11)
+bins_of_interest$high_dipps_12 <- factor(bins_of_interest$high_dipps_12)
+@
+ 
+
+\begin{figure}[p]
+  \begin{center}
+      <<figure_high_dipps_bins, dependson="A3_high_dipps_bins", out.width="\\linewidth">>=
+      mI.m <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_1',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      mI.m$plot <- "(a)"
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_2',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(b)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_3',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(c)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_4',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(d)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_5',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(e)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_6',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(f)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_7',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(g)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_8',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(h)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_9',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(i)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(bins_of_interest,fExists,
+                       plot_var = 'high_dipps_10',
+                       plot_var_type = 'categorical',
+                       minX_in = minX,
+                       minY_in = minY,
+                       return_mI.m = TRUE)
+      temp$plot <- "(j)"
+      mI.m = rbind(mI.m,temp)
+      
+      mI.m$plot <- factor(mI.m$plot)
+      
+      p = (ggplot(mI.m,aes(X,Y))
+           + facet_wrap( ~ plot, ncol = 5)
+           + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+           + guides(alpha = FALSE,fill=FALSE)
+           + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+           + coord_fixed()
+           + scale_x_continuous(breaks=seq(350, 400, 50))
+           + scale_y_reverse(breaks=seq(50, 200, 50))
+           + ylab("")
+           + xlab("")
+      )
+      print(p)
+      @    
+	\end{center}
+\captionsetup{singlelinecheck=off}
+\caption[foo bar]{Occurrence maps for high difference in occurrence \gls{mz} bins in dataset A3. Spatial maps indicate the \colorbox{colOcc1}{presence} / \colorbox{colOcc0}{absence} of peaks in each pixel (spectrum). Shown are the $0.25$ \gls{Da} wide bins centred at \gls{mz}: \label{fig:figure_high_dipps_bins}
+	\begin{center}
+	\begin{multicols}{2}
+	\begin{enumerate}[(a)]
+		\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][1],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][1],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][2],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][2],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][3],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][3],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][4],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][4],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][5],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][5],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][6],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][6],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][7],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][7],digits=3)}$,
+  	\item $\Sexpr{Summary_merged[high_dipps_bins[[2]][8],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][8],digits=3)}$,
+    \item $\Sexpr{Summary_merged[high_dipps_bins[[2]][9],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][9],digits=3)}$,
+    \item $\Sexpr{Summary_merged[high_dipps_bins[[2]][10],]$Bin}$ with \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][10],digits=3)}$.
+	\end{enumerate}
+	\end{multicols}
+	\end{center}
+}
+\end{figure}
+
+
+
+
+
+
+
+<<A3_dipps_cutoffs, dependson= "A3_dipps">>=
+
+# Calculate the cosine centroid of the up-regulated group.
+u_matrix = dcast(peaklist_u,Acquisition+Peaklist~Bin,value.var="m.z")
+specID = u_matrix[,1:2]
+u_matrix = as.matrix(u_matrix[,c(-1,-2)])
+u_matrix[!is.na(u_matrix)] = 1
+u_matrix[is.na(u_matrix)] = 0
+specID$nPeaks = rowSums(u_matrix)
+u_matrix = u_matrix/sqrt(specID$nPeaks)
+centroid_u = colMeans(u_matrix)
+centroid_u = centroid_u/sqrt(sum(centroid_u^2))
+temp = match(colnames(u_matrix),Summary_merged$Bin)
+Summary_merged$centroid.u = 0
+Summary_merged[temp,]$centroid.u = centroid_u
+
+# Find data-driven cutoff according to the DIPPS method using cosine distance.
+curMinCosD = 10
+sortedDIPPS = sort(Summary_merged$DIPPS,index.return=TRUE)
+# vN = 1:floor(nrow(Summary_merged)/2)
+vN = 1:sum(sortedDIPPS$x > 0)
+cosD = vN
+for (n in vN){
+  Summary_merged$t = 0
+  Summary_merged[tail(sortedDIPPS$ix,n),]$t = 1/sqrt(n)
+  cosD[n] = 1 - sum(Summary_merged$t * Summary_merged$centroid.u)
+}
+nStar = vN[which.min(cosD)]
+nStar_original = nStar
+@
+
+The \gls{dipps} of \refdef{diffPropOcc} takes values
+between $-1$ and $1$. 
+If variables are listed in decreasing order of 
+\gls{dipps}, this ordering will rank variables from 
+the best positive indicator to the worst positive 
+indicator, or best negative indicator.
+Variables in the middle of this ranking, with 
+\gls{dipps} near zero, do not correlate with the 
+cluster of interest. 
+If we choose the cluster of interest to be the 
+\Ncolboxcancer{} cluster of the unsmoothed clustering 
+shown in \reffig{figure_A3_binary_cos_clustering}, then 
+\reffig{figure_high_dipps_bins} shows variables with 
+high \gls{dipps}, i.e. good positive indicators 
+for the \Ncolboxcancer{} cluster --- \Ncolboxpresence{} 
+correlating with the \Ncolboxcancer{} regions.
+Note that we could apply this \gls{dipps}-based 
+approach, and produce all the same results that follow 
+from it in \refsec{dippsHeatmapsA3} to any of the 
+clusters of \reffig{figure_A3_binary_cos_clustering}.
+We choose the \Ncolboxcancer{} cluster from the unsmoothed 
+result because we are particularly interested in the 
+cancer, and this serves as an illustrative example. 
+In \refsec{datasetComparisons} we consider the 
+application of this approach in a more systematic way 
+to all clusters, and we will limit our attention to the
+smoothed results. 
+In general, considering spatial plots of all the 
+variables in a \gls{maldi}-\gls{ims} dataset is 
+tedious, and even for a shortlist such as this 
+considering each image in detail is time consuming and
+does not yield meaningful interpretations.
+We present a method for combining the images of 
+\reffig{figure_high_dipps_bins} into a single heatmap 
+in \refsec{dippsHeatmapsA3}, and once follow-up 
+analyses have been carried out on individual proteins
+then it is possible to come back and consider the 
+individual spatial distributions of peptides 
+originating from proteins known to be of interest.
+In order to obtain a subset of variables from this 
+ranking, we use a threshold and take all variables with 
+\gls{dipps} above this threshold.
+We suggest a heuristic threshold, $a_*^+$, in 
+\refdef{DIPPSthreshold}. 
+For the unsmoothed \Ncolboxcancer{} cluster of 
+\reffig{figure_A3_binary_cos_clustering} this heuristic
+$a_*^+ = \Sexpr{round(rev(sortedDIPPS$x)[nStar],4)}$. 
+\reffig{figure_A3_dipps_cutoffs} shows the dependence 
+of $D(\bm{c},\posDiffPropOcc{a})$ on $a$, and the local 
+minima at $a_*^+$.
+In dataset A3, $\Sexpr{nStar}$ variables have a
+\gls{dipps} greater than or equal to 
+$a_*^+ = \Sexpr{round(rev(sortedDIPPS$x)[nStar],4)}$.
+
+As mentioned in \refsec{binning} and discussed further
+in \refsec{binSizeChoice} there are two main conditions
+we attempt to satisfy when we bin our data with 
+\refalg{binning}:
+\begin{itemize}
+  \item Peaks originating from different molecular 
+  species are placed in different bins, and
+  
+  \item Peaks originating from the same molecular 
+  species are placed in the same bin.
+\end{itemize}
+Realistically, due to the data-independent nature of 
+\refalg{binning}, the second of these two goals can 
+never be guaranteed to be completely satisfied.
+Either of these goals not being met can result in
+molecular species that would otherwise be detected as 
+good positive indicators not being detected.
+We can address this issue by repeating the same 
+analysis in parallel, but using \refalg{wiggle} to 
+shift the bin locations by half a bin-width.
+This ensures that each molecular species that ought to 
+be detected will be detected in at least one of the two 
+parallel analyses. 
+We did this for dataset A3, and there are a number of 
+things to note about the results of these shifted-bin
+analyses:
+% NOTE: These numbers come from making these comparisons directly in MATLAB where the results where generated in the first place.
+\begin{itemize}
+  \item The clustering is quite robust to the shifting 
+  bin locations. 
+  The unsmoothed clustering result of 
+  \reffig{figure_A3_binary_cos_clustering} changes in 
+  only $277$, or $\sim 2\%$, of $14050$ pixels when 
+  repeated on the shifted-bin data.
+	\item In the shifted-bin analysis, $a_*^+ = 0.1668$ 
+  for the cancer cluster, not very different to the 
+  $a_*^+ = \Sexpr{round(rev(sortedDIPPS$x)[nStar],4)}$ in the 
+  initial analysis.
+	\item $54$ variables (\gls{mz} bins) have a \gls{dipps} 
+  greater than or equal to $a_*^+$ in the shifted-bin 
+  analysis --- the same number as in the initial 
+  analysis. 
+  Of these $54$ variables, $47$ match between the two 
+  analyses in a one-to-one manner. 
+  Two pairs of adjacent bins in the initial analyses 
+  appear as a single bin in the shifted-bin analysis, 
+  and one pair of adjacent bins in the shifted-bin 
+  analysis appears as a single bin in the initial 
+  analysis. 
+  Three variables appear in the shifted-bin analysis 
+  that did not appear in the initial analysis, and two 
+  variables appear in the initial analysis that do not 
+  appear in the shifted-bin analysis. 
+  This behaviour highlights the importance of using 
+  multiple binnings in parallel in order to ensure 
+  important variables are not missed. 
+  In the interests of illustrating methods and ideas
+  simply I will continue consider only one binning for 
+  the remainder of the discussion of the ovarian cancer 
+  data in this chapter and the analyses that follow in 
+  \refsec{datasetComparisons}.
+  I will revisit the concept of using multiple 
+  shifted-bin analyses in parallel in 
+  \refsec{DApreprocessingVars} when we consider 
+  classification of the endometrial data.
+\end{itemize}
+
+
+<<figure_A3_dipps_cutoffs, dependson="A3_dipps_cutoffs", out.width="0.6\\linewidth", fig.cap= "Plot of $a$ on the $x$-axis versus $D_{cos} \\bigl ( \\bm{c}, \\posDiffPropOcc{a} \\bigr )$ on the $y$-axis, showing the cutoff $a_*^+$ in {\\color{red} red} where $\\bm{c}$ is the centroid and $\\posDiffPropOcc{a}$ is defined in \\refdef{DIPPStemplate} such that the subset of interest corresponds to the \\colboxcancer cluster of the unsmoothed clustering result shown in \\reffig{figure_A3_binary_cos_clustering}.", fig.align='center'>>=
+dipps_cutoff = rev(tail(sortedDIPPS$x,length(vN)))
+x = c(dipps_cutoff[1],as.vector(sapply(dipps_cutoff[2:length(dipps_cutoff)],
+                         function(x){return(rep(x,2))}))
+      )
+x <- rev(x)
+y = c(as.vector(sapply(cosD[1:(length(dipps_cutoff)-1)],
+                       function(x){return(rep(x,2))})),
+      cosD[length(cosD)]
+)
+y <- rev(y)
+
+
+plot_df <- data.frame(dipps_cutoff = x, cosD = y)
+p = (ggplot(plot_df,aes(x=dipps_cutoff,y=cosD))
+     + geom_point(data=data.frame(dipps_cutoff = mean(dipps_cutoff[nStar:(nStar+1)]),cosD = cosD[nStar]),aes(x=dipps_cutoff,y=cosD), colour="red",size=5)
+     + geom_line()
+     + ylab("") 
+     + xlab("")
+)
+print(p)
+@
+
+
+
+
+
+\subsection{Visualising Characterisations of the Cancer Cluster}
+\label{sec:dippsHeatmapsA3}
+
+In \refsec{dipps} I demonstrated how the \gls{dipps} 
+can be used with a heuristic cutoff 
+(\refdef{DIPPSthreshold}) to obtain a set of positive 
+indicators for the unsmoothed \Ncolboxcancer{} cluster of 
+\reffig{figure_A3_binary_cos_clustering}.
+We will call these variables `\gls{dipps}-features', 
+and in this section we will explore how the spatial
+distribution of these \gls{dipps}-features can be 
+visualised in an easily interpretable, and therefore
+useful, way.
+
+We count how many \gls{dipps}-features exhibit presence
+in each spectrum --- that is, if we represent the
+\gls{dipps}-features as a $d$-index subset of the 
+variables with binary vector dual 
+$\vRowSubset = \posDiffPropOcc{a_*}$, then
+we consider the sum $\vRowSubset^T \mData$.
+We visualise these counts for dataset A3 as heatmaps 
+in \reffig{figure_A3_dipps_heatmap}, using the spatial 
+distribution of spectra discussed in 
+\refsec{spatialDist} and colouring pixels to indicate 
+the count represented in $\vRowSubset^T \mData$ for 
+each spectrum.
+In \reffig{figure_A3_dipps_heatmap}, we use 
+light/bright colours to indicate pixels for which many 
+of the \gls{dipps}-features are present in the 
+corresponding spectra, and dark/dull colours to 
+indicate pixels for which many of the 
+\gls{dipps}-features are absent.
+Grey indicates spectra in which none of the 
+\gls{dipps}-features are present.
+
+The strength of heatmaps such as those shown in
+\reffig{figure_A3_dipps_heatmap} is their 
+interpretability --- they provide interpretations for 
+spatial regions to be that are of direct biological 
+relevance.
+\gls{dipps}-heatmaps allow for gradual 
+differences between spatial regions to be represented
+--- in contrast to the hard boundaries in a cluster 
+membership.
+Furthermore, the values in the \gls{dipps}-heatmaps can 
+be directly interpreted in terms of the
+\gls{dipps}-features, which correspond to peptide 
+masses.
+For example, ``between $5$ and $10$ \gls{dipps}-features 
+are present in a particular region''.
+This strength of \gls{dipps}-heatmaps is highlighted by
+comparing to the relatively abstract interpretations of 
+cluster memberships such as those of
+\reffig{figure_A3_binary_cos_clustering}.
+For example, ``spectra in the \Ncolboxcancer{} cluster are 
+more similar to each other than to spectra from other 
+clusters''. 
+We discuss the interpretations that can be made 
+from such heatmaps later in this section, when we 
+interpret the heatmaps of 
+\reffig{figure_A3_dipps_heatmap}.
+First, we discuss the application of the spatial smooth
+introduced in \refsec{spatialSmooth} to producing the
+smoothed results in 
+\reffig{figure_A3_binary_cos_clustering} and 
+\reffig{figure_A3_dipps_heatmap}.
+
+
+<<A3_dipps_heatmap, dependson="A3_dipps_cutoffs">>=
+dipps_heatmap_bins = Summary_merged[tail(sortedDIPPS$ix,nStar),]$Bin
+peaklist_merged = rbind(peaklist_u,peaklist_d)
+peaklist_subset = peaklist_merged[!is.na(match(peaklist_merged$Bin,dipps_heatmap_bins)),]
+
+mI.m <- spatialPlot(peaklist_subset,fExists,
+                    plot_var = 'count',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+mI.m$plot <- 1
+@
+
+% NOTE: This relies on the smoothing having been done in the matlab code.
+<<A3_smooth>>=
+smoothParam = 0.25
+binSize = 0.25
+mA3_smoothedData <- read.csv(paste('./matlab/output/',
+                                   dataset_name,
+                                   '_Bin',toString(100*binSize),
+                                   '_',toString(100*smoothParam),
+                                   'smooth_data.csv',sep=""),
+                             header=TRUE
+                             )
+peaklist_smoothed <- subset(melt(mA3_smoothedData,id.vars=1),value > 0)[,-3]
+peaklist_smoothed$variable <- as.numeric(peaklist_smoothed$variable)
+setnames(peaklist_smoothed,'X0','Bin')
+setnames(peaklist_smoothed,'variable','Acquisition')
+@
+
+<<A3_smoothed_dipps, dependson= c("A3_smooth","A3_dipps","clus_A3_smoothed_cos")>>=
+aStar_original = rev(sortedDIPPS$x)[nStar]
+
+# Spatially Smoothed DIPPS Analysis
+LXY$Group = 0
+LXY[match(subset(clus_A3_smoothed,Smoothed.Cosine!=4)$Acquisition,LXY$Acquisition),"Group"] = 1;
+LXY[match(subset(clus_A3_smoothed,Smoothed.Cosine==4)$Acquisition,LXY$Acquisition),"Group"] = 2;
+
+LXY_d = subset(LXY,(Group %% 3) == 1)
+LXY_u = subset(LXY,(Group %% 3) == 2)
+nSpec_d = nrow(LXY_d)
+nSpec_u = nrow(LXY_u)
+
+peaklist_smoothed <- transform(peaklist_smoothed,Group = LXY[match(peaklist_smoothed$Acquisition,LXY$Acquisition),]$Group)
+
+# Produce seperate peaklists for groups.
+peaklist_u = subset(peaklist_smoothed,(Group %% 3) == 2)
+peaklist_d = subset(peaklist_smoothed,(Group %% 3) == 1)
+
+# Calculate summary statistics for each peakgroup (proportions of occurrence, and thereby DIPPS in this case).
+Summary_u <- ddply(peaklist_u,"Bin",summarise,
+                   propOcc = length(unique(Acquisition))
+)
+Summary_u$propOcc <- Summary_u$propOcc/nSpec_u
+Summary_d <- ddply(peaklist_d,"Bin",summarise,
+                   propOcc = length(unique(Acquisition))
+)
+Summary_d$propOcc <- Summary_d$propOcc/nSpec_d
+
+Summary_smoothed = merge(Summary_u,Summary_d,
+                         by = "Bin",all.x = TRUE,all.y = TRUE,
+                         suffixes=c(".u",".d")
+)
+Summary_smoothed = replace(Summary_smoothed,is.na(Summary_smoothed),0)
+Summary_smoothed$DIPPS = Summary_smoothed$propOcc.u - Summary_smoothed$propOcc.d
+
+# Calculate the cosine centroid of the upregulated group.
+u_matrix = dcast(peaklist_u,Acquisition~Bin,value.var="Acquisition")
+specID = data.frame(Acquisition = u_matrix[,1])
+u_matrix = as.matrix(u_matrix[,-1])
+u_matrix[!is.na(u_matrix)] = 1
+u_matrix[is.na(u_matrix)] = 0
+specID$nPeaks = rowSums(u_matrix)
+u_matrix = u_matrix/sqrt(specID$nPeaks)
+centroid_u = colMeans(u_matrix)
+centroid_u = centroid_u/sqrt(sum(centroid_u^2))
+temp = match(colnames(u_matrix),Summary_smoothed$Bin)
+Summary_smoothed$centroid.u = 0
+Summary_smoothed[temp,]$centroid.u = centroid_u
+
+# Find data-driven cutoff according to the DIPPS method using cosine distance.
+curMinCosD = 10
+sortedDIPPS = sort(Summary_smoothed$DIPPS,index.return=TRUE)
+# vN = 1:floor(nrow(Summary_merged)/2)
+vN = 1:sum(sortedDIPPS$x > 0)
+cosD = vN
+for (n in vN){
+  Summary_smoothed$t = 0
+  Summary_smoothed[tail(sortedDIPPS$ix,n),]$t = 1/sqrt(n)
+  cosD[n] = 1 - sum(Summary_smoothed$t * Summary_smoothed$centroid.u)
+}
+nStar = vN[which.min(cosD)]
+
+dipps_heatmap_bins = Summary_smoothed[tail(sortedDIPPS$ix,nStar),]$Bin
+peaklist_merged = rbind(peaklist_u,peaklist_d)
+peaklist_subset = peaklist_merged[!is.na(match(peaklist_merged$Bin,dipps_heatmap_bins)),]
+@
+
+
+
+
+\begin{figure}
+\vspace{-4cm}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {
+\includegraphics[height=6.05cm,trim= 15cm 0cm 14.5cm 0cm,clip=true]{./miscImages/HEstains_contrast/Slide_4_p44.pdf}
+};
+\draw (5.8,-0.15) node {
+<<figure_A3_dipps_heatmap, dependson=c("A3_dipps_heatmap","A3_smoothed_dipps"), message=FALSE, fig.width=3.6, out.width="0.518\\linewidth">>=
+temp <- spatialPlot(peaklist_subset,fExists,
+                    plot_var = 'count',
+                    minX_in = minX,
+                    minY_in = minY,
+                    return_mI.m = TRUE)
+temp$plot <- 2
+mI.m = rbind(mI.m,temp)
+
+mI.m$plot <- factor(mI.m$plot)
+p = (ggplot(mI.m,aes(X,Y))
+     + facet_grid(. ~ plot)
+     + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+     + guides(alpha = FALSE,fill=FALSE)
+     + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+     + coord_fixed()
+     + scale_x_continuous(breaks=seq(350, 400, 50))
+     + scale_y_reverse(breaks=seq(50, 200, 50))
+     + theme(strip.text.x = element_blank(), strip.background = element_blank())
+     + ylab("")
+     + xlab("")
+)
+print(p)
+@
+};
+\draw (-1.3,2.4) node {(a)};
+\draw (2.7,2.4) node {(b)};
+\draw (1,-2.85) node {5mm};
+\draw[line width = 6pt] (0.276,-3.2) -- (1.670,-3.2);
+\draw[->,very thick] (0.8,0.4) -- (0.4,0);
+\draw[->,very thick] (0.85,1) -- (0.45,0.6);
+\draw[->,very thick] (0.6,-0.3) -- (0.2,-0.7);
+\draw[->,very thick] (1.45,2.15) -- (1.05,1.75);
+\end{tikzpicture}
+\end{center}
+\vspace{-4cm}
+\caption{ (a) \gls{he} stained tissue section with 
+arrows indicating the four visible primary tumours and 
+(b) \gls{dipps} heatmap for the cancer cluster in the 
+unsmoothed data ($\tau = 0$, left) and the smoothed 
+data ($\tau = 0.25$, right).
+In the unsmoothed data, the \gls{dipps}-heatmap 
+represents the sum of the $\Sexpr{nStar_original}$ 
+\gls{mz} bins with \gls{dipps} 
+$\geq a_*^+ = \Sexpr{round(aStar_original,4)}$, and in the 
+smoothed data the sum of the $\Sexpr{nStar}$ smoothed 
+($\tau = 0.25$) \gls{mz} bins with \gls{dipps} 
+$\geq a_*^+ = \Sexpr{round(rev(sortedDIPPS$x)[nStar],4)}$. 
+\label{fig:figure_A3_dipps_heatmap}}
+\end{figure}
+
+
+
+
+The unsmoothed heatmap shown in 
+\reffig{figure_A3_dipps_heatmap} appears ``speckled'' 
+in places, and this speckling can be reduced by 
+incorporating a spatial smooth. 
+In \refsec{spatialSmooth} we suggest a spatial smooth 
+that preserves the binary nature of the data. 
+Dataset A3 was smoothed using \refalg{spatialSmooth} 
+with a smoothing parameter $\tau = 0.25$.
+An identical analysis, as discussed above, $k$-means 
+clustering and \gls{dipps} feature extraction, was 
+performed on the smoothed data, resulting in the 
+smoothed heatmap shown in 
+\reffig{figure_A3_dipps_heatmap}. 
+Some things to notes about the results on the smoothed 
+data include:
+\begin{itemize}
+  \item The clustering is quite robust to smoothing, 
+  the two clusterings of 
+  \reffig{figure_A3_binary_cos_clustering} differ in 
+  only 
+  $\Sexpr{sum(clus_A3$Binary.Cosine != clus_A3$Smoothed.Cosine)}$ 
+  or 
+  $\sim \Sexpr{round(100*sum(clus_A3$Binary.Cosine != clus_A3$Smoothed.Cosine)/nrow(clus_A3))}\%$ 
+  of $\Sexpr{nrow(clus_A3)}$ spectra.
+  These small differences correspond to a similar 
+  reduction in `speckling'. 
+  \item The 
+  $\Sexpr{nrow(clus_A3_smoothed) - nrow(clus_A3)}$ 
+  spectra that were empty in the raw data, as mentioned
+  in \refsec{spatialDist}, are no longer empty in the 
+  smoothed data. 
+  \item In the smoothed data 
+  $a_*^+ = \Sexpr{rev(sortedDIPPS$x)[nStar]}$ for the 
+  cancer cluster, quite similar to 
+  $a_*^+ = \Sexpr{aStar_original}$ in the initial 
+  analysis.
+	\item There are $\Sexpr{nStar}$ \gls{dipps}-features
+  in the smoothed data. 
+  All $\Sexpr{nStar}$ show up in both the initial 
+  analysis, and the shifted-bin analysis mentioned 
+  earlier. 
+\end{itemize}
+The smoothed \gls{dipps}-heatmap exhibits noticeably 
+``sharper'' edges and less ``speckling'' than the
+unsmoothed heatmap, while still displaying a very 
+similar spatial distribution.
+
+
+
+
+
+
+
+
+Comparing the heatmaps to the histology, all shown in 
+\reffig{figure_A3_dipps_heatmap}, the four main bright 
+areas in the heatmap correspond well with the ovarian 
+tumours, much like the \Ncolboxcancer{} cluster of 
+\reffig{figure_A3_binary_cos_clustering}.
+There are two less bright, but still distinguishable 
+regions also of interest shown in the heatmaps of
+\reffig{figure_A3_dipps_heatmap}:
+\begin{itemize}
+  \item One ``connects'' between the top two cancer 
+  tumours, and extends up and to the left from them.
+  \item The other is a separate node of brightness 
+  directly left of the second from bottom primary 
+  tumour.
+\end{itemize}
+When the tissue was considered by a pathologist, in 
+addition to identifying the four main cancer tumours, 
+two other areas of interest were noted, but could not 
+be confirmed as cancerous tumours without further 
+analysis.
+One of these additional areas corresponds to the second 
+region noted above, the other was at the very bottom, 
+and is not highlighted in the heatmaps of 
+\reffig{figure_A3_dipps_heatmap}.
+The region mentioned in the first point above was not
+highlighted by the pathologist as being potentially 
+cancerous.
+This back and forth between \gls{maldi}-\gls{ims} data
+analysis and pathology is essential to making use of 
+such data.
+In this case, the connecting region mentioned in the 
+first point above has been identified as primarily 
+connective tissue.
+One hypothesis that agrees with the pathology, and also
+explains why this region would be highlighted in the 
+heatmaps of \reffig{figure_A3_dipps_heatmap} is that 
+the tumours originated as connective tissue and may 
+have retained some of the connective tissues 
+characteristic molecular features.
+This hypothesis is further supported by the 
+intermediate brightness of the regions between the 
+three central tumours --- that also corresponds to small
+areas of connective tissue.
+The area to the left has some similarity to the tumours 
+and this is of interest as it was identified as 
+potentially cancerous by the pathologist, yet the area 
+at the bottom which was also identified as potentially 
+cancerous by the pathologist does not share this 
+similarity to the tumours.
+It is possible that \gls{maldi}-\gls{ims} data could be 
+used in combination with pathologists annotations in 
+order to improve the sensitivity of histopathological 
+annotations in the future.
+Furthermore the region at the bottom does \emph{not} 
+exhibit this similarity, and as such is clearly 
+differentiable from the left area on the basis of the 
+\gls{maldi}-\gls{ims} data --- this demonstrates that 
+multiple regions, equally `in question' from the 
+perspective of a pathologist, could potentially be 
+distinguished by these molecular features. 
+This is promising as it indicates that perhaps the use 
+of \gls{maldi}-\gls{ims} data in combination with 
+pathologists annotations based on staining and light 
+microscopy could potentially not only improve 
+sensitivity but also specificity of such 
+histopathological annotations.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

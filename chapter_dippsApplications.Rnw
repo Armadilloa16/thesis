@@ -1,0 +1,3303 @@
+<<chapter_dippsApplications_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+In \refchap{dipps} we introduced \gls{dipps}-based 
+feature extraction as a method for finding a set of 
+\gls{dipps}-features that are good positive indicators 
+for a subset of interest in the data.
+In \refsec{clusCharAnalysis} we considered the 
+application of this feature extraction method to 
+the the ovarian cancer dataset A3 --- in that 
+application the subset of interest corresponded to 
+cancer tissue in dataset A3, as obtained by $k$-means
+clustering.
+The \gls{dipps}-based feature extraction approach is a 
+general method however, requiring only binary data and
+a subset of interest. 
+There is no limitation to \gls{maldi}-\gls{ims} data,
+or to using clustering to find such a subset. 
+In this chapter we consider two applications of the 
+\gls{dipps}-based feature extraction approach  
+introduced in \refchap{dipps}.
+Both the applications we consider are 
+\gls{maldi}-\gls{ims} applications as this is the focus
+of our work, but the \gls{dipps}-based feature 
+extraction approach can apply to any binary presence/
+absence data, not only \gls{maldi}-\gls{ims} data.
+The first application we consider is a natural 
+extension of the ovarian cancer work we began 
+discussing in \refchap{dipps} and so uses clustering to 
+find the subset of interest, but the second application
+does not require any analysis to find a subset of 
+interest as the subset is already part of the 
+experimental design.
+Brief descriptions of these two applications follow.
+
+First, in \refsec{datasetComparisons} and with 
+additional details in \refapp{datasetComparisons}, we 
+extend the application considered in 
+\refsec{clusCharAnalysis} to the ovarian cancer data of 
+\refsec{ovarianDatasets} in two ways: by applying the 
+feature extraction to other tissue types, and by 
+applying the feature extraction to the remainder of the 
+ovarian cancer datasets discussed in 
+\refsec{ovarianDatasets}, including both multiple 
+datasets from the same patient and datasets from 
+different patients.
+Ultimately we compare the sets of \gls{dipps}-features
+extracted and thereby investigate within and between 
+patient variability in order to demonstrate that within 
+patient variability is less than between patient 
+differences --- meaning it is feasible to detect real 
+between patient differences in these data. 
+We have published this work \citep{Winderbaum2015}.
+
+Second, in \refsec{Nglycans}, we consider a different application of the \gls{dipps}-based feature extraction approach, to the glycan data of 
+\refsec{NglycansDatasets}.
+In these glycan data the goal is to demonstrate that
+glycans can be detected using \gls{maldi}-\gls{ims} 
+through the use of an enzyme, PNGase F. 
+In order to do this, two regions of tissue where used,
+one treated with PNGase F and one not.
+The untreated region is expected to exhibit no 
+glycan signals and acts as a control group, so any 
+glycans should be able to be detected by comparing 
+these two groups.
+This natural separation of the data into two groups 
+provides the subset of interest for the 
+\gls{dipps}-based feature extraction approach, and so 
+no analysis is necessary to find the subset of 
+interest in this case, in contrast to the 
+ovarian cancer application where we use $k$-means 
+clustering to find the subsets of interest.
+
+\section{Comparing Ovarian Cancer Datasets}
+\label{sec:datasetComparisons}
+
+This section is organised in the following way.
+Initially I briefly describe the Jaccard distance and 
+how it can be used to compare two sets of 
+\gls{dipps}-features.
+I suggest that this will provide a useful method for 
+making the many comparisons we are interested in making 
+between tissue types, datasets, and patients. 
+Although the primary interest is the comparison of 
+datasets from different patients, in order to do this 
+in a meaningful way first the within-patient 
+variability must be addressed. 
+I will consider within-patient variability in 
+Sections~\ref{sec:withinPatient_A}~-~\ref{sec:withinPatient_C} 
+by comparing results between datasets collected from 
+the same patient.
+Having developed an understanding of the within-patient 
+variability in 
+Sections~\ref{sec:withinPatient_A}~-~\ref{sec:withinPatient_C}, 
+I then consider comparisons between different patients
+in \refsec{betweenPatients}.
+Finally, I discuss my conclusions and the implications 
+of these comparisons in 
+\refsec{datasetComparisonsConclusions}.
+In \refsec{withinPatient_A} I consider results in some 
+detail, as an example, but in
+Sections~\ref{sec:withinPatient_B}~-~\ref{sec:betweenPatients}
+I focus on the most important and interesting results.
+A more detailed discussion of these results is included 
+in \refapp{datasetComparisons}.
+
+
+\subsection{Jaccard Distance for Comparing Datasets}
+\label{sec:JaccardDistance}
+
+\citet{Gorzolka2014} have shown that comparisons 
+between tissue samples is complicated by tissue (and 
+tumour) heterogeneity, to the point where even samples 
+from the same patient can appear to be very different.
+In order to detect meaningful differences between 
+patients despite high within-patient variability, it is 
+crucial to take tissue heterogeneity into account.
+The ability to take tissue heterogeneity into account 
+is the primary advantage of \gls{maldi}-\gls{ims}, as 
+it has the potential to separate data from different 
+tissue types within a single tissue sample.
+In \refsec{p44kmeansResults} we demonstrated that 
+tissue types can be separated by clustering in the 
+ovarian cancer data.
+In \refsec{dipps} we demonstrated how a 
+\gls{dipps}-based feature extraction approach could be
+used to find a set of positive indicators which we call
+\gls{dipps}-features, for a particular subset of the 
+data such as a cluster or tissue type.
+Here I briefly describe the Jaccard distance and how 
+it can be used to compare two sets of 
+\gls{dipps}-features.
+\begin{defn}
+\emph{\textbf{Jaccard Distance:}}
+is a measure of the dissimilarity between two sets 
+$S_1$ and $S_2$,
+\begin{equation}
+  D_{Jac}(S_1,S_2) = 1 - \frac{|S_1 \cap S_2|}{|S_1 \cup S_2|}.
+\end{equation}
+\label{def:DJac}
+\end{defn}
+I use $|S_1|$ to denote the size of the set $S_1$, or 
+its cardinality.
+Note that other set-theoretic measures could be used
+here, $|S_1 \cup S_2| - |S_1 \cap S_2|$ for instance,
+but these would all be largely equivalent for our 
+purposes and the Jaccard distance is a commonly used
+measure of dissimilarity between sets across a wide 
+variety of disciplines --- see 
+\citet{Cross2002,Jaccard2010,Leydesdorff2008}. 
+When $S_1$ and $S_2$ are sets of \gls{dipps}-features, 
+corresponding to \gls{mz} bins or variables in the 
+\gls{maldi}-\gls{ims} data, the Jaccard distance is 
+directly interpretable as the proportion of 
+\gls{dipps}-features unique to one of the two sets 
+being compared. 
+The simple form of the Jaccard distance is useful.
+If a particular similarity or dissimilarity is of 
+interest, identifying the variables that contribute to 
+that similarity/ dissimilarity is straightforward, and 
+so targeted follow-up experiments can be easily 
+designed.
+In the remainder of \refsec{datasetComparisons} we 
+apply the \gls{dipps}-based feature extraction approach
+of \refsec{dipps} using the heuristic cutoff of 
+\refdef{DIPPSthreshold} for each of the tissue types/ 
+clusters in each of the ovarian cancer datasets 
+introduced in \refsec{ovarianDatasets}.
+We will then make extensive use of the Jaccard distance
+to compare the sets of \gls{dipps}-features resulting 
+from this feature extraction approach. 
+
+
+
+
+\subsection{Detailed Comparisons Within Patient A}
+\label{sec:withinPatient_A}
+
+
+In \refchap{dipps} dataset A3 was used extensively in 
+illustrative and exploratory analyses.
+A3 corresponds to a single section or `slice' of an 
+excised tissue block from patient A. 
+The datasets A1, A2 and A4 correspond to different 
+sections or `slices' of the same tissue block as A3. 
+As all four of these sections come from the same tissue 
+block, it is expected that they should be very similar.
+As such any reliable analysis method should produce 
+similar results on these sections.
+For example, clustering to separate tissue types should 
+show visually similar patterns. 
+How similar/ different results are between
+these datasets can give an impression of the 
+within-patient variability as well as the 
+reproducibility of both the technology, and the method
+of analysis.
+Furthermore A1 and A2 correspond to consecutive 
+sections of tissue, and thus would be expected to be 
+even more similar to each other.
+In this section I will introduce these other patient A
+datasets, and apply the ideas introduced in 
+\refchap{dipps} to them.
+I present clustering results in 
+\reffig{figure_binary_cosClus_A}, and apply the 
+feature extraction approach of \refsec{dipps} using the
+heuristic cutoff of \refdef{DIPPSthreshold} to obtain 
+a set of \gls{dipps}-features for each cluster.
+I then visualise the similarities/ differences between
+these sets of \gls{dipps}-features using the Jaccard 
+distance, \refdef{DJac}, in \reffig{figure_Jaccard_A}.
+This visualisation allows for the sets of 
+\gls{dipps}-features associated to each of the $16$ 
+clusters shown in \reffig{figure_binary_cosClus_A} to 
+be compared, both within dataset and between datasets.
+
+<<clus_A1_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A1'
+clus_A1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_A1$V1 <- factor(clus_A1$V1)
+clus_A1$V2 <- replace(clus_A1$V2,clus_A1$V2==1,5)
+clus_A1$V2 <- replace(clus_A1$V2,clus_A1$V2==2,1)
+clus_A1$V2 <- replace(clus_A1$V2,clus_A1$V2==5,2)
+clus_A1$V2 <- factor(clus_A1$V2)
+setnames(clus_A1,'V1','Acquisition')
+setnames(clus_A1,'V2','Binary.Cosine')
+@
+
+<<clus_A2_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A2'
+clus_A2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_A2$V1 <- factor(clus_A2$V1)
+clus_A2$V2 <- replace(clus_A2$V2,clus_A2$V2==1,5)
+clus_A2$V2 <- replace(clus_A2$V2,clus_A2$V2==2,1)
+clus_A2$V2 <- replace(clus_A2$V2,clus_A2$V2==5,2)
+clus_A2$V2 <- factor(clus_A2$V2)
+setnames(clus_A2,'V1','Acquisition')
+setnames(clus_A2,'V2','Binary.Cosine')
+@
+% 
+% <<clus_A3_binary,include=FALSE>>=
+% K <- 4
+% binSize = 0.25
+% dataset_name <- 'A3'
+% clus_A3 <- read.csv(paste('./matlab/output/',
+%                           dataset_name,
+%                           '_Bin',toString(100*binSize),
+%                           '_binary_',
+%                           toString(K),'means_clusterings.csv',
+%                           sep=""),
+%                     header=FALSE
+%                     )
+% clus_A3$V1 <- factor(clus_A3$V1)
+% clus_A3$V2 <- factor(clus_A3$V2)
+% clus_A3$V3 <- factor(clus_A3$V3)
+% clus_A3$V4 <- factor(clus_A3$V4)
+% setnames(clus_A3,'V1','Acquisition')
+% setnames(clus_A3,'V2','Binary.Cosine')
+% setnames(clus_A3,'V3','Binary.Hamming')
+% setnames(clus_A3,'V4','Binary.Euclidean')
+% @
+
+<<clus_A4_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A4'
+clus_A4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_A4$V1 <- factor(clus_A4$V1)
+clus_A4$V2 <- replace(clus_A4$V2,clus_A4$V2==1,5)
+clus_A4$V2 <- replace(clus_A4$V2,clus_A4$V2==2,1)
+clus_A4$V2 <- replace(clus_A4$V2,clus_A4$V2==5,2)
+clus_A4$V2 <- factor(clus_A4$V2)
+setnames(clus_A4,'V1','Acquisition')
+setnames(clus_A4,'V2','Binary.Cosine')
+@
+
+
+
+
+\begin{figure}[ht]
+		\begin{center}
+			\begin{tikzpicture}
+				\draw (0,0) node {
+        <<figure_datasetComparisons_A1_binary_cos_clustering, dependson=c("clus_A1_binary","data_imaging_readin"), message=FALSE, fig.width=4.5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'A1'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_A1,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_reverse(breaks=seq(100, 150, 50))
+              + scale_y_continuous(breaks=seq(50, 200, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (3.6,0) node {
+        <<figure_datasetComparisons_A2_binary_cos_clustering, dependson=c("clus_A2_binary","data_imaging_readin"), message=FALSE, fig.width=4.5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'A2'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_A2,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_reverse(breaks=seq(350, 400, 50))
+              + scale_y_continuous(breaks=seq(50, 200, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (6.8,0) node {
+				<<figure_datasetComparisons_A3_binary_cos_clustering, dependson=c("clus_A3_binary","data_imaging_readin"), message=FALSE, fig.width=4.5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'A3'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_A3,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_continuous(breaks=seq(350, 400, 50))
+              + scale_y_reverse(breaks=seq(50, 200, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (9.8,0) node {
+        <<figure_datasetComparisons_A4_binary_cos_clustering, dependson=c("clus_A4_binary","data_imaging_readin"), message=FALSE, fig.width=4.5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'A4'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_A4,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_continuous(breaks=seq(100, 150, 50))
+              + scale_y_reverse(breaks=seq(50, 200, 50))
+        )
+        print(p)
+        @
+				};
+			\end{tikzpicture}
+		\end{center}
+		\caption{Spatial maps showing the cluster 
+    membership produced by $4$-means clustering with 
+    the cosine distance on the binary binned data for 
+    $4$ datasets, from left to right: A1, A2, A3 and A4.
+    Clusters are identified with colours, and roughly 
+    correspond to the tissue-types \colboxcancer{}, 
+    \colboxadipose{}, \colboxstroma{}, and 
+    \colboxofftissue{}.
+    \label{fig:figure_binary_cosClus_A}}
+\end{figure}
+
+
+\reffig{figure_binary_cosClus_A} shows the 
+cluster-membership produced by $4$-means clustering 
+using the cosine distance on the binned binary data for 
+the four datasets:  A1, A2, A3 and A4. 
+As mentioned above datasets A1 and A2 come from 
+consecutive sections of tissue, meaning that 
+discounting any distortion caused during sectioning, 
+these two sections of tissue should be approximately  
+$6-10\,\mu$m apart in the direction orthogonal to the 
+sectioning --- roughly one tenth of a pixel, so we would 
+expect them to be very similar.
+Similarly, A3 and A4 come from nearby sections, with 
+only two or three sections between them.
+We can see from \reffig{figure_binary_cosClus_A} that 
+in all four datasets the cluster analysis results in
+clusters that correspond spatially to the four broadly 
+different tissue types present in the tissue --- 
+\Ncolboxcancer{}, \Ncolboxadipose{}, \Ncolboxstroma{}, and 
+\Ncolboxofftissue{}.
+There is a noticeable difference in the \Ncolboxcancer{} 
+clusters of datasets A1 and A2 as compared to A3 and A4 
+in that the connective areas at the top of the images 
+shown in \reffig{figure_binary_cosClus_A} are included 
+in the \Ncolboxcancer{} clusters of datasets A1 and A2, 
+but not of A3 and A4. 
+These connective areas are the same as mentioned in 
+\refsec{dippsHeatmapsA3}.
+In \refsec{dippsHeatmapsA3} we hypothesised that this 
+region was similar to the \Ncolboxcancer{} in A3 due to 
+the tumour having grown out of this connective tissue,
+and these clustering results support this hypothesis 
+--- the similarity is potentially even more evident in 
+datasets A1 and A2 in which this region is clustered
+together with the primary tumours, indicating 
+spectra from this region are sufficiently similar to 
+spectra from the primary tumours to be clustered 
+together.
+Also, for datasets A1 and A2 some of the off-tissue 
+spectra in the lower Y-coordinate values that are 
+closer to the tissue are included in the \Ncolboxadipose{}
+cluster.
+In datasets A3 and A4 the \Ncolboxadipose{} clusters do 
+not extend to these spectra, and there are more 
+off-tissue spectra total, particularly in dataset A4.
+To summarise, there is broad similarity in the 
+clustering results, but when considered in more detail, 
+results from consecutive sections are more similar than
+results from non-consecutive sections --- this is to be
+expected. 
+
+<<dipps_A1,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A1'
+DIPPS_A1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_A1,'V1','Bin')
+setnames(DIPPS_A1,'V2','C2')
+setnames(DIPPS_A1,'V3','C1')
+setnames(DIPPS_A1,'V4','C3')
+setnames(DIPPS_A1,'V5','C4')
+cutOFFs_A1 <- DIPPS_A1[nrow(DIPPS_A1),2:(K+1)]
+DIPPS_A1 <- DIPPS_A1[-nrow(DIPPS_A1),]
+@
+
+<<dipps_A2,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A2'
+DIPPS_A2 <- read.csv(paste('./matlab/output/',
+                           dataset_name,
+                           '_Bin',toString(100*binSize),
+                           '_binary_',
+                           toString(K),'means_DIPPS.csv',
+                           sep=""),
+                     header=FALSE)
+setnames(DIPPS_A2,'V1','Bin')
+setnames(DIPPS_A2,'V2','C2')
+setnames(DIPPS_A2,'V3','C1')
+setnames(DIPPS_A2,'V4','C3')
+setnames(DIPPS_A2,'V5','C4')
+cutOFFs_A2 <- DIPPS_A2[nrow(DIPPS_A2),2:(K+1)]
+DIPPS_A2 <- DIPPS_A2[-nrow(DIPPS_A2),]
+@
+
+<<dipps_A3,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A3'
+DIPPS_A3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_A3,'V1','Bin')
+setnames(DIPPS_A3,'V2','C1')
+setnames(DIPPS_A3,'V3','C2')
+setnames(DIPPS_A3,'V4','C3')
+setnames(DIPPS_A3,'V5','C4')
+cutOFFs_A3 <- DIPPS_A3[nrow(DIPPS_A3),2:(K+1)]
+DIPPS_A3 <- DIPPS_A3[-nrow(DIPPS_A3),]
+@
+
+<<dipps_A4,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'A4'
+DIPPS_A4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_A4,'V1','Bin')
+setnames(DIPPS_A4,'V2','C2')
+setnames(DIPPS_A4,'V3','C1')
+setnames(DIPPS_A4,'V4','C3')
+setnames(DIPPS_A4,'V5','C4')
+cutOFFs_A4 <- DIPPS_A4[nrow(DIPPS_A4),2:(K+1)]
+DIPPS_A4 <- DIPPS_A4[-nrow(DIPPS_A4),]
+@
+
+<<compareDatasets_Jaccard_A, dependson=c("dipps_A1","dipps_A2","dipps_A3","dipps_A4")>>=
+bins_dipps <- as.list(1:48)
+for (X in 1:16){
+  clus_X <- paste("C",toString(((X-1) %% 4) + 1),sep="")
+  bins_dipps[[X]] <- switch(ceiling(X/4),
+                            DIPPS_A1[DIPPS_A1[,clus_X] > cutOFFs_A1[,clus_X],"Bin"],
+                            DIPPS_A2[DIPPS_A2[,clus_X] > cutOFFs_A2[,clus_X],"Bin"],
+                            DIPPS_A3[DIPPS_A3[,clus_X] > cutOFFs_A3[,clus_X],"Bin"],
+                            DIPPS_A4[DIPPS_A4[,clus_X] > cutOFFs_A4[,clus_X],"Bin"]
+  )
+}
+Jaccard_A <- data.frame(X = 1:16, Y = 1:16, Jaccard = 0)
+for (X in 1:15){
+  for (Y in (X+1):16){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X]],bins_dipps[[Y]]))/length(union(bins_dipps[[X]],bins_dipps[[Y]])))
+    Jaccard_A <- rbind(Jaccard_A,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_A <- rbind(Jaccard_A,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\draw (10,0) node {
+<<figure_Jaccard_A, dependson="compareDatasets_Jaccard_A", fig.width=8, out.width="0.9\\linewidth">>=
+frames <- data.frame(X=rep(c(2.5,6.5,10.5,14.5),4),Y=rep(c(2.5,6.5,10.5,14.5),c(4,4,4,4)))
+p <- (ggplot(Jaccard_A,aes(X,Y))
+      + geom_tile(data = Jaccard_A,aes(fill=Jaccard))
+      + geom_rect(data=frames,size=1,fill=NA,colour="black",aes(xmin=X-2,xmax=X+2,ymin=Y-2,ymax=Y+2))
+      + scale_y_reverse(breaks=c(4.5,8.5,12.5))
+      + scale_x_continuous(breaks=c(4.5,8.5,12.5))
+      + theme(axis.ticks = element_blank(), axis.text = element_blank())
+      + ylab("") + xlab("")
+      + coord_fixed()
+)
+print(p)
+@
+};
+% 2.4475
+\draw (5.696,5.9) node {A1};
+\draw (8.144,5.9) node {A2};
+\draw (10.592,5.9) node {A3};
+\draw (13.040,5.9) node {A4};
+\draw (5.6965,5.569) -- (5.6965,5.669);
+\draw (8.144,5.569) -- (8.144,5.669);
+\draw (10.5915,5.569) -- (10.5915,5.669);
+\draw (13.039,5.569) -- (13.039,5.669);
+\draw[anchor=west] (14.9,4.773) node {\colboxofftissue};
+\draw[anchor=west] (14.9,4.161) node {\colboxstroma};
+\draw[anchor=west] (14.9,3.549) node {\colboxadipose};
+\draw[anchor=west] (14.9,2.937) node {\colboxcancer};
+\draw (14.7525,4.773) -- (14.8525,4.773);
+\draw (14.7525,4.161) -- (14.8525,4.161);
+\draw (14.7525,3.549) -- (14.8525,3.549);
+\draw (14.7525,2.937) -- (14.8525,2.937);
+\end{tikzpicture}
+\end{center}
+\vspace{-0.5cm}
+\caption{Image representing the Jaccard distance 
+comparisons of \refsec{JaccardDistance} of the cluster 
+memberships of \reffig{figure_binary_cosClus_A}. 
+A set of \gls{dipps}-features is found for each of the 
+$16$ clusters shown in \reffig{figure_binary_cosClus_A} 
+using the feature extraction approach discussed in 
+\refsec{dipps} and the heuristic cutoff of 
+\refdef{DIPPSthreshold}.
+The image shown above represents pairwise Jaccard 
+distances between these sets of \gls{dipps}-features.
+Black lines separate datasets, with the four pixels 
+within each black divisor corresponding to the four 
+clusters for that dataset.
+So the main block diagonal represents within-dataset
+comparisons, and the rest represent between-dataset
+comparisons. 
+\label{fig:figure_Jaccard_A}}
+\end{figure}
+
+
+\reffig{figure_Jaccard_A} shows the $16 \times 16$ 
+symmetric distance matrix resulting from pairwise 
+Jaccard distance comparisons between the $16$ sets of 
+\gls{dipps}-features, each corresponding to one of the 
+$16$ clusters shown in 
+\reffig{figure_binary_cosClus_A} --- four from each of 
+the four sections.
+This matrix of comparisons is visualised in 
+\reffig{figure_Jaccard_A} using colour to show values 
+of the Jaccard distance --- dark colours indicating 
+small values close to zero, i.e. similarity, and light 
+colours indicating large values close to one, i.e. 
+dissimilarity.
+Each pixel in the $16 \times 16$ grid shown in 
+\reffig{figure_Jaccard_A} corresponds to a single
+pairwise comparison.
+For example, the far top right pixel of 
+\reffig{figure_Jaccard_A} corresponds to the comparison
+of the \Ncolboxofftissue{} and \Ncolboxcancer{} clusters both
+from dataset A4.
+In this example, a set of \gls{dipps}-features is 
+found for each of these two clusters using the feature
+extraction method described in \refsec{dipps} and the
+heuristic cutoff of \refdef{DIPPSthreshold}. 
+These two sets of \gls{dipps}-features are then 
+compared using the Jaccard distance, and the Jaccard
+distance between the two sets determines the colour of 
+the pixel.
+In this example, the pixel is very light coloured 
+meaning the Jaccard distance between them is close to 
+one, that they are dissimilar, and more specifically 
+that the two sets being compared do not have very much 
+overlap between them.
+
+Remarks on \reffig{figure_Jaccard_A}:
+\begin{itemize}
+	\item The dark diagonals are very clear, 
+  reflecting the broad agreement between datasets.
+  For simplicity let us interpret clusters as tissue 
+  types, despite small inconsistencies between the two.
+  Then we can interpret these dark diagonals as showing
+  that the variables which characterise any particular 
+  tissue type in one dataset, often also characterise 
+  that tissue type in other datasets.
+  Because the Jaccard distance is a set comparison 
+  measure, dark pixels, small values, or similar sets
+  indicate a large intersection between the two sets
+  being compared.
+  In this case the sets correspond to 
+  \gls{dipps}-features found to characterise particular
+  tissue types in particular datasets, and these 
+  diagonals represent comparing the characterising 
+  \gls{dipps}-features for the same tissue type across 
+  different datasets.
+  The fact these diagonals are dark show that variables
+  identified as \gls{dipps}-features for a particular 
+  tissue type in one dataset often are identified as 
+  \gls{dipps}-features for the same tissue type in 
+  other datasets as well --- i.e. these sets have a 
+  large intersection.
+  This essentially establishes the reproducibility of 
+  the \gls{dipps}-feature extraction method for 
+  reliably identifying the same (or similar) variables 
+  important to the characterisation of tissue types 
+  across different datasets from the same patient.
+  
+  \item The similarity between the \Ncolboxcancer{} 
+  cluster of A1 and A2 to the \Ncolboxadipose{} cluster of 
+  A3 and A4 noted during the discussion of 
+  \reffig{figure_binary_cosClus_A} above is reflected 
+  in \reffig{figure_Jaccard_A}, but using the results 
+  of \reffig{figure_Jaccard_A} we could, if we were 
+  interested, now identify the variables responsible 
+  for this similarity. This allows for more indepth 
+  interpretation than was possible from the clustering
+  results of \reffig{figure_binary_cosClus_A} alone.
+	\item The only off-diagonal entry that is 
+  consistently and noticeably darkened between all the
+  datasets is the comparison of \Ncolboxadipose{} and 
+  \Ncolboxstroma{} clusters, which could indicate that of 
+  all the tissue types, these are the least well
+  separated, and we will see further evidence for this
+  when we consider the clustering results on the other
+  patients in Sections~\ref{sec:withinPatient_B} and 
+  \ref{sec:withinPatient_C}.
+\end{itemize}
+
+
+\subsection{Summary of Comparisons Within Patient B}
+\label{sec:withinPatient_B}
+
+In this section we consider four datasets from patient 
+B, another ovarian cancer patient, as described in 
+\refsec{ovarianDatasets}. 
+I will introduce the four datasets much like I did for 
+patient A in \refsec{withinPatient_A}, by considering 
+the clustering results.
+However for patient A I discussed in detail the Jaccard
+distance comparisons as well as the clustering results,
+and although these detailed comparisons are included in 
+\refapp{datasetComparisons} they are omitted here for 
+brevity.
+ 
+\reffig{figure_binary_cosClus_B} shows 
+cluster-membership much like 
+\reffig{figure_binary_cosClus_A}, but for the four 
+datasets from patient B. 
+In \refsec{withinPatient_A} I equated clusters to tissue 
+types, and mentioned that this was a slight 
+simplification as there are small discrepancies between
+the two that can be seen by comparing the cluster
+memberships to the \gls{he} stained tissues sections.
+In the interest of brevity I do not include the 
+\gls{he} images here, instead describing any notable 
+discrepancies between the clustering results and the 
+tissue types, as these will be relevant when 
+interpreting the comparisons to follow.
+Broadly we are interested in tissue types, and I often
+refer to the clusters by their associated tissue types,
+i.e. \Ncolboxcancer{}, \Ncolboxstroma{}, \Ncolboxadipose{},
+and \Ncolboxofftissue{}. 
+However, when discussing discrepancies between tissue 
+types and clusters, in order to clarify the distinction 
+I use the colour to refer specifically to a cluster and
+not its associated tissue type, i.e. \Ncolboxpurple{}, 
+\Ncolboxgreen{}, \Ncolboxcyan{}, or \Ncolboxsalmon{}.
+The \Ncolboxpurple{} clusters of datasets A1 and A2 in 
+\reffig{figure_binary_cosClus_A} containing some 
+connective tissue regions as well as the cancerous
+primary tumours as discussed in 
+\refsec{withinPatient_A} is an example of such a 
+discrepancy between clusters and tissue types.
+It is important to discuss these discrepancies as they 
+explain many of the features in the comparisons that 
+would otherwise appear to be artefacts.
+Only once these discrepancy-caused effects are 
+understood can the remaining comparisons be interpreted
+and overall conclusions be made --- I discuss such 
+overall conclusions in 
+\refsec{datasetComparisonsConclusions}.
+
+As far as discrepancies between tissue types and 
+clusters as shown in \reffig{figure_binary_cosClus_B}
+go, the main point to note is that in dataset B1 the 
+\Ncolboxcancer{} and \Ncolboxstroma{} clusters are well 
+separated, but in the other three datasets the 
+clustering broadly grouped these two tissue types 
+together in the same cluster.
+This leaves an `extra' cluster in these three 
+datasets, because these two tissue types are both 
+included in a single cluster.
+In B2 and B4 the off-tissue region is split between the 
+\Ncolboxsalmon{} and \Ncolboxgreen{} clusters. 
+In B3, the \Ncolboxgreen{} cluster forms a small area 
+between \Ncolboxcancer{} areas.
+It is also useful to note that the \Ncolboxadipose{}
+clusters across all four datasets agree well, both 
+with each other and with the histology.
+
+In order to reduce discrepancies between
+clustering results and tissue types as determined by 
+histology, the clustering results could be improved by 
+using more sophisticated clustering methods and 
+fine-tuning parameter choices and data cleaning steps 
+that preceded the clustering.
+However, even without these refinements these tissue 
+types can be separated by individualising the choice of 
+number of clusters to use for each patient, as it would
+appear the \Ncolboxstroma{} is more difficult to separate 
+from the \Ncolboxcancer{} in patient B.
+In \citet{Winderbaum2015}, we use $3$-means clustering 
+for patient B and this achieves much better agreement
+between cluster membership and tissue types.
+However the objective here is to demonstrate the 
+usefulness of the \gls{dipps} feature extraction in 
+exploratory analyses and the fact that these clustering 
+results \emph{do not} perfectly reflect the tissue 
+types actually helps to highlight the usefulness of 
+\gls{dipps} --- it is not necessary for the clustering 
+to separate the tissue types perfectly in order for us
+to obtain useful interpretations using this approach.
+The fact that we use the exact same clustering 
+algorithm on all the datasets also helps to simplify 
+the presentation of these results, allowing us to focus 
+our discussion on the interpretation of results without 
+needing to carefully justify many parameter choices.
+
+
+<<clus_B1_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B1'
+clus_B1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_B1$V1 <- factor(clus_B1$V1)
+clus_B1$V2 <- replace(clus_B1$V2,clus_B1$V2==1,5)
+clus_B1$V2 <- replace(clus_B1$V2,clus_B1$V2==2,1)
+clus_B1$V2 <- replace(clus_B1$V2,clus_B1$V2==5,2)
+clus_B1$V2 <- factor(clus_B1$V2)
+setnames(clus_B1,'V1','Acquisition')
+setnames(clus_B1,'V2','Binary.Cosine')
+@
+
+<<clus_B2_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B2'
+clus_B2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_B2$V1 <- factor(clus_B2$V1)
+clus_B2$V2 <- replace(clus_B2$V2,clus_B2$V2==3,5)
+clus_B2$V2 <- replace(clus_B2$V2,clus_B2$V2==4,3)
+clus_B2$V2 <- replace(clus_B2$V2,clus_B2$V2==5,4)
+clus_B2$V2 <- factor(clus_B2$V2)
+setnames(clus_B2,'V1','Acquisition')
+setnames(clus_B2,'V2','Binary.Cosine')
+@
+
+<<clus_B3_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B3'
+clus_B3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_B3$V1 <- factor(clus_B3$V1)
+clus_B3$V2 <- replace(clus_B3$V2,clus_B3$V2==4,5)
+clus_B3$V2 <- replace(clus_B3$V2,clus_B3$V2==2,4)
+clus_B3$V2 <- replace(clus_B3$V2,clus_B3$V2==3,2)
+clus_B3$V2 <- replace(clus_B3$V2,clus_B3$V2==5,3)
+clus_B3$V2 <- factor(clus_B3$V2)
+setnames(clus_B3,'V1','Acquisition')
+setnames(clus_B3,'V2','Binary.Cosine')
+@
+
+<<clus_B4_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B4'
+clus_B4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_B4$V1 <- factor(clus_B4$V1)
+clus_B4$V2 <- replace(clus_B4$V2,clus_B4$V2==4,5)
+clus_B4$V2 <- replace(clus_B4$V2,clus_B4$V2==3,4)
+clus_B4$V2 <- replace(clus_B4$V2,clus_B4$V2==2,3)
+clus_B4$V2 <- replace(clus_B4$V2,clus_B4$V2==5,2)
+clus_B4$V2 <- factor(clus_B4$V2)
+setnames(clus_B4,'V1','Acquisition')
+setnames(clus_B4,'V2','Binary.Cosine')
+@
+
+
+
+
+\begin{figure}
+    \begin{center}
+			\begin{tikzpicture}
+				\draw (0,0) node {
+        <<figure_datasetComparisons_B1_binary_cos_clustering, dependson=c("clus_B1_binary","data_imaging_readin"), message=FALSE, fig.width=4, fig.height=5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'B1'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_B1,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+#               + scale_x_reverse(breaks=seq(100, 150, 50))
+              + scale_x_continuous(breaks=seq(75, 125, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (3.2,0) node {
+        <<figure_datasetComparisons_B2_binary_cos_clustering, dependson=c("clus_B2_binary","data_imaging_readin"), message=FALSE, fig.width=4, fig.height=5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'B2'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_B2,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_reverse(breaks=seq(325, 375, 50))
+              + scale_y_continuous(breaks=seq(100, 200, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (6.4,0) node {
+				<<figure_datasetComparisons_B3_binary_cos_clustering, dependson=c("clus_B3_binary","data_imaging_readin"), message=FALSE, fig.width=4, fig.height=5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'B3'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_B3,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_continuous(breaks=seq(50, 100, 50))
+#               + scale_y_reverse(breaks=seq(50, 200, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (9.8,0) node {
+        <<figure_datasetComparisons_B4_binary_cos_clustering, dependson=c("clus_B4_binary","data_imaging_readin"), message=FALSE, fig.width=4, fig.height=5, out.width="0.24\\linewidth">>=
+        dataset_name <- 'B4'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_B4,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_continuous(breaks=seq(350, 400, 50))
+              + scale_y_reverse(breaks=seq(50, 100, 50))
+        )
+        print(p)
+        @
+				};
+			\end{tikzpicture}
+		\end{center}
+		\caption{Spatial maps showing the cluster 
+    membership produced by $4$-means clustering with 
+    the cosine distance on the binary binned data for 
+    $4$ datasets, from left to right: B1, B2, B3 and 
+    B4.
+    Clusters are identified with colours, and roughly 
+    correspond to the tissue-types \colboxcancer{}, 
+    \colboxadipose{}, \colboxstroma{}, and 
+    \colboxofftissue{}.
+    The exception to this rough correspondence between 
+    clusters and tissue types is that the green 
+    clusters of datasets B2 and B4 correspond to 
+    off-tissue regions.
+    \label{fig:figure_binary_cosClus_B}}
+\end{figure}
+
+
+
+
+<<dipps_B1,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B1'
+DIPPS_B1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B1,'V1','Bin')
+setnames(DIPPS_B1,'V2','C2')
+setnames(DIPPS_B1,'V3','C1')
+setnames(DIPPS_B1,'V4','C3')
+setnames(DIPPS_B1,'V5','C4')
+cutOFFs_B1 <- DIPPS_B1[nrow(DIPPS_B1),2:(K+1)]
+DIPPS_B1 <- DIPPS_B1[-nrow(DIPPS_B1),]
+@
+
+<<dipps_B2,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B2'
+DIPPS_B2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B2,'V1','Bin')
+setnames(DIPPS_B2,'V2','C1')
+setnames(DIPPS_B2,'V3','C2')
+setnames(DIPPS_B2,'V4','C4')
+setnames(DIPPS_B2,'V5','C3')
+cutOFFs_B2 <- DIPPS_B2[nrow(DIPPS_B2),2:(K+1)]
+DIPPS_B2 <- DIPPS_B2[-nrow(DIPPS_B2),]
+@
+
+<<dipps_B3,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B3'
+DIPPS_B3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B3,'V1','Bin')
+setnames(DIPPS_B3,'V2','C1')
+setnames(DIPPS_B3,'V3','C4')
+setnames(DIPPS_B3,'V4','C2')
+setnames(DIPPS_B3,'V5','C3')
+cutOFFs_B3 <- DIPPS_B3[nrow(DIPPS_B3),2:(K+1)]
+DIPPS_B3 <- DIPPS_B3[-nrow(DIPPS_B3),]
+@
+
+<<dipps_B4,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'B4'
+DIPPS_B4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_B4,'V1','Bin')
+setnames(DIPPS_B4,'V2','C1')
+setnames(DIPPS_B4,'V3','C3')
+setnames(DIPPS_B4,'V4','C4')
+setnames(DIPPS_B4,'V5','C2')
+cutOFFs_B4 <- DIPPS_B4[nrow(DIPPS_B4),2:(K+1)]
+DIPPS_B4 <- DIPPS_B4[-nrow(DIPPS_B4),]
+@
+
+<<compareDatasets_Jaccard_B, dependson=c("dipps_B1","dipps_B2","dipps_B3","dipps_B4")>>=
+Jaccard_B <- data.frame(X = 1:16, Y = 1:16, Jaccard = 0)
+for (X in 1:16){
+  clus_X <- paste("C",toString(((X-1) %% 4) + 1),sep="")
+  bins_dipps[[X+16]] <- switch(ceiling(X/4),
+                               DIPPS_B1[DIPPS_B1[,clus_X] > cutOFFs_B1[,clus_X],"Bin"],
+                               DIPPS_B2[DIPPS_B2[,clus_X] > cutOFFs_B2[,clus_X],"Bin"],
+                               DIPPS_B3[DIPPS_B3[,clus_X] > cutOFFs_B3[,clus_X],"Bin"],
+                               DIPPS_B4[DIPPS_B4[,clus_X] > cutOFFs_B4[,clus_X],"Bin"]
+  )
+}
+for (X in 1:15){
+  for (Y in (X+1):16){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X+16]],bins_dipps[[Y+16]]))/length(union(bins_dipps[[X+16]],bins_dipps[[Y+16]])))
+    Jaccard_B <- rbind(Jaccard_B,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_B <- rbind(Jaccard_B,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+
+
+
+
+The clustering results for B1 correspond best to tissue 
+morphology, and so I will compare the other datasets 
+clustering results to those for B1.
+
+
+
+
+
+
+\subsection{Summary of Comparisons Within Patient C}
+\label{sec:withinPatient_C}
+
+Similarly to \refsec{withinPatient_B}, here I introduce 
+clustering results for four datasets from patient C --- 
+shown in \reffig{figure_binary_cosClus_C}. 
+The more detailed Jaccard distance comparisons of these 
+clusters associated \gls{dipps}-features are included 
+in \refapp{datasetComparisons}.
+
+Remarks on the clustering results of 
+\reffig{figure_binary_cosClus_C}:
+\begin{itemize}
+	\item C2 and C4 show a noticeable number of empty 
+  spectra, indicated by grey pixels. 
+  This could indicate a problem in overall data 
+  quality.
+  Reasons that could account for this above-normal 
+  number of empty spectra include: ineffective 
+  antigen retrieval, digestion, or matrix deposition 
+  during sample preparation, instrumentation issues 
+  during data acquisition, and even artefacts in the 
+  peak-picking step. 
+  For our purposes, the key thing to remember is that 
+  these datasets could potentially have lower data 
+  quality compared to the other datasets. \
+  
+	\item In C2 and C3 the \Ncolboxcyan{} clusters extends 
+  out into the off-tissue region.
+  This is similar to the \Ncolboxcyan{} clusters in 
+  datasets A1 and A2 as shown in 
+  \reffig{figure_binary_cosClus_A}.
+  One explanation for these clusters including 
+  off-tissue regions is that there could be peptides 
+  that are mobilised during sample preparation which 
+  move off the tissue.
+  The fact that clusters from different datasets, and 
+  even different patients, show this spread into 
+  off-tissue regions from \Ncolboxadipose{} tissue
+  suggests the possibility that some \Ncolboxadipose{} 
+  specific peptides may be particularly susceptible to 
+  being mobilised.
+  This is a concern that could be further investigated
+  and such investigation could ultimately result in 
+  improvements to sample preparation methods for 
+  acquiring accurate and spatially resolved 
+  \gls{maldi}-\gls{ims} data in the future.  
+  
+\end{itemize}
+Aside from the two points above, cluster agreement both
+between datasets and to tissue types is good.
+
+
+<<clus_C1_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C1'
+clus_C1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_C1$V1 <- factor(clus_C1$V1)
+clus_C1$V2 <- replace(clus_C1$V2,clus_C1$V2==4,5)
+clus_C1$V2 <- replace(clus_C1$V2,clus_C1$V2==3,4)
+clus_C1$V2 <- replace(clus_C1$V2,clus_C1$V2==5,3)
+clus_C1$V2 <- replace(clus_C1$V2,clus_C1$V2==1,5)
+clus_C1$V2 <- replace(clus_C1$V2,clus_C1$V2==2,1)
+clus_C1$V2 <- replace(clus_C1$V2,clus_C1$V2==5,2)
+clus_C1$V2 <- factor(clus_C1$V2)
+setnames(clus_C1,'V1','Acquisition')
+setnames(clus_C1,'V2','Binary.Cosine')
+@
+
+<<clus_C2_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C2'
+clus_C2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_C2$V1 <- factor(clus_C2$V1)
+clus_C2$V2 <- replace(clus_C2$V2,clus_C2$V2==1,5)
+clus_C2$V2 <- replace(clus_C2$V2,clus_C2$V2==2,1)
+clus_C2$V2 <- replace(clus_C2$V2,clus_C2$V2==5,2)
+clus_C2$V2 <- factor(clus_C2$V2)
+setnames(clus_C2,'V1','Acquisition')
+setnames(clus_C2,'V2','Binary.Cosine')
+@
+
+
+<<clus_C3_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C3'
+clus_C3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_C3$V1 <- factor(clus_C3$V1)
+clus_C3$V2 <- replace(clus_C3$V2,clus_C3$V2==1,5)
+clus_C3$V2 <- replace(clus_C3$V2,clus_C3$V2==2,1)
+clus_C3$V2 <- replace(clus_C3$V2,clus_C3$V2==5,2)
+clus_C3$V2 <- factor(clus_C3$V2)
+setnames(clus_C3,'V1','Acquisition')
+setnames(clus_C3,'V2','Binary.Cosine')
+@
+
+
+<<clus_C4_binary,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C4'
+clus_C4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_clusterings.csv',
+                          sep=""),
+                    header=FALSE
+                    )
+clus_C4$V1 <- factor(clus_C4$V1)
+clus_C4$V2 <- replace(clus_C4$V2,clus_C4$V2==1,5)
+clus_C4$V2 <- replace(clus_C4$V2,clus_C4$V2==2,1)
+clus_C4$V2 <- replace(clus_C4$V2,clus_C4$V2==5,2)
+clus_C4$V2 <- factor(clus_C4$V2)
+setnames(clus_C4,'V1','Acquisition')
+setnames(clus_C4,'V2','Binary.Cosine')
+@
+
+
+
+
+\begin{figure}
+    \begin{center}
+  		\begin{tikzpicture}
+				\draw (-0.1,0) node {
+        <<figure_datasetComparisons_C1_binary_cos_clustering, dependson=c("clus_C1_binary","data_imaging_readin"), message=FALSE, fig.width=4.6, fig.height=4, out.width="0.26\\linewidth">>=
+        dataset_name <- 'C1'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_C1,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_y_reverse(breaks=seq(50, 100, 50))
+              + scale_x_continuous(breaks=seq(50, 150, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (3.4,0) node {
+        <<figure_datasetComparisons_C2_binary_cos_clustering, dependson=c("clus_C2_binary","data_imaging_readin"), message=FALSE, fig.width=4.6, fig.height=4, out.width="0.26\\linewidth">>=
+        dataset_name <- 'C2'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_C2,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_y_reverse(breaks=seq(50, 150, 50))
+              + scale_x_continuous(breaks=seq(300, 400, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (6.6,0) node {
+				<<figure_datasetComparisons_C3_binary_cos_clustering, dependson=c("clus_C3_binary","data_imaging_readin"), message=FALSE, fig.width=4.6, fig.height=4, out.width="0.26\\linewidth">>=
+        dataset_name <- 'C3'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_C3,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_y_continuous(breaks=seq(100, 150, 50))
+              + scale_x_reverse(breaks=seq(50, 100, 50))
+        )
+        print(p)
+        @
+				};
+				\draw (9.8,0) node {
+        <<figure_datasetComparisons_C4_binary_cos_clustering, dependson=c("clus_C4_binary","data_imaging_readin"), message=FALSE, fig.width=4.6, fig.height=4, out.width="0.26\\linewidth">>=
+        dataset_name <- 'C4'
+        fExists <- load_fExists(dataset_name)
+        LXY <- load_LXY(dataset_name)
+        minX <- min(LXY$X)
+        minY <- min(LXY$Y)
+        p <- (spatialPlot(clus_C4,fExists,
+                          plot_var = 'Binary.Cosine',
+                          plot_var_type = 'categorical',
+                          minX_in = minX,
+                          minY_in = minY,
+                          display_legend = FALSE) 
+              + ylab("")  + xlab("") 
+              + scale_x_continuous(breaks=seq(350, 400, 50))
+              + scale_y_reverse(breaks=seq(50, 100, 50))
+        )
+        print(p)
+        @
+				};
+			\end{tikzpicture}
+		\end{center}
+		\caption{Spatial maps showing the cluster 
+    membership produced by $4$-means clustering with 
+    the cosine distance on the binary binned data for 
+    $4$ datasets, from left to right: C1, C2, C3 and 
+    C4.
+    Clusters are identified with colours, and roughly 
+    correspond to the tissue-types \colboxcancer{}, 
+    \colboxadipose{}, \colboxstroma{}, and 
+    \colboxofftissue{}.
+    \label{fig:figure_binary_cosClus_C}}
+\end{figure}
+
+
+
+<<dipps_C1,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C1'
+DIPPS_C1 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C1,'V1','Bin')
+setnames(DIPPS_C1,'V2','C2')
+setnames(DIPPS_C1,'V3','C1')
+setnames(DIPPS_C1,'V4','C4')
+setnames(DIPPS_C1,'V5','C3')
+cutOFFs_C1 <- DIPPS_C1[nrow(DIPPS_C1),2:(K+1)]
+DIPPS_C1 <- DIPPS_C1[-nrow(DIPPS_C1),]
+@
+
+<<dipps_C2,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C2'
+DIPPS_C2 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C2,'V1','Bin')
+setnames(DIPPS_C2,'V2','C2')
+setnames(DIPPS_C2,'V3','C1')
+setnames(DIPPS_C2,'V4','C3')
+setnames(DIPPS_C2,'V5','C4')
+cutOFFs_C2 <- DIPPS_C2[nrow(DIPPS_C2),2:(K+1)]
+DIPPS_C2 <- DIPPS_C2[-nrow(DIPPS_C2),]
+@
+
+<<dipps_C3,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C3'
+DIPPS_C3 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C3,'V1','Bin')
+setnames(DIPPS_C3,'V2','C2')
+setnames(DIPPS_C3,'V3','C1')
+setnames(DIPPS_C3,'V4','C3')
+setnames(DIPPS_C3,'V5','C4')
+cutOFFs_C3 <- DIPPS_C3[nrow(DIPPS_C3),2:(K+1)]
+DIPPS_C3 <- DIPPS_C3[-nrow(DIPPS_C3),]
+@
+
+<<dipps_C4,include=FALSE>>=
+K <- 4
+binSize = 0.25
+dataset_name <- 'C4'
+DIPPS_C4 <- read.csv(paste('./matlab/output/',
+                          dataset_name,
+                          '_Bin',toString(100*binSize),
+                          '_binary_',
+                          toString(K),'means_DIPPS.csv',
+                          sep=""),
+                    header=FALSE)
+setnames(DIPPS_C4,'V1','Bin')
+setnames(DIPPS_C4,'V2','C2')
+setnames(DIPPS_C4,'V3','C1')
+setnames(DIPPS_C4,'V4','C3')
+setnames(DIPPS_C4,'V5','C4')
+cutOFFs_C4 <- DIPPS_C4[nrow(DIPPS_C4),2:(K+1)]
+DIPPS_C4 <- DIPPS_C4[-nrow(DIPPS_C4),]
+@
+
+<<compareDatasets_Jaccard_C, dependson=c("dipps_C1","dipps_C2","dipps_C3","dipps_C4")>>=
+Jaccard_C <- data.frame(X = 1:16, Y = 1:16, Jaccard = 0)
+for (X in 1:16){
+  clus_X <- paste("C",toString(((X-1) %% 4) + 1),sep="")
+  bins_dipps[[X+32]] <- switch(ceiling(X/4),
+                               DIPPS_C1[DIPPS_C1[,clus_X] > cutOFFs_C1[,clus_X],"Bin"],
+                               DIPPS_C2[DIPPS_C2[,clus_X] > cutOFFs_C2[,clus_X],"Bin"],
+                               DIPPS_C3[DIPPS_C3[,clus_X] > cutOFFs_C3[,clus_X],"Bin"],
+                               DIPPS_C4[DIPPS_C4[,clus_X] > cutOFFs_C4[,clus_X],"Bin"]
+  )
+}
+for (X in 1:15){
+  for (Y in (X+1):16){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X+32]],bins_dipps[[Y+32]]))/length(union(bins_dipps[[X+32]],bins_dipps[[Y+32]])))
+    Jaccard_C <- rbind(Jaccard_C,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_C <- rbind(Jaccard_C,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+
+
+
+\subsection{Between Patient Comparisons}
+\label{sec:betweenPatients}
+
+
+ 
+<<compareDatasets_Jaccard_all, dependson=c("compareDatasets_Jaccard_A","compareDatasets_Jaccard_B","compareDatasets_Jaccard_C")>>=
+Jaccard_all <- data.frame(X = 1:48, Y = 1:48, Jaccard = 0)
+for (X in 1:47){
+  for (Y in (X+1):48){
+    Jaccard_dist <- 1 - (length(intersect(bins_dipps[[X]],bins_dipps[[Y]]))/length(union(bins_dipps[[X]],bins_dipps[[Y]])))
+    Jaccard_all <- rbind(Jaccard_all,data.frame(X=X, Y=Y, Jaccard = Jaccard_dist))
+    Jaccard_all <- rbind(Jaccard_all,data.frame(X=Y, Y=X, Jaccard = Jaccard_dist))
+  }
+}
+@
+
+
+A comprehensive comparison of all four clusters from 
+each of the $12$ datasets introduced is of interest, 
+and is included in \refapp{datasetComparisons}. 
+However we are particularly interested in the 
+\Ncolboxcancer{} comparisons, as similarities therein 
+could potentially yield common markers that could be 
+used for early detection.
+Dissimilarities in the \Ncolboxcancer{} comparisons could 
+potentially lead to markers for diagnosis, prognosis, 
+or prediction of response to treatment and be used for 
+the individualisation of treatment plans.
+Due to our particular interest in \Ncolboxcancer{}
+we consider the \Ncolboxcancer{} comparisons 
+specifically in \reffig{figure_Jaccard_cancer}.
+\reffig{figure_Jaccard_cancer} shows the pairwise 
+Jaccard distances between the $12$ sets of 
+\gls{dipps}-features, each corresponding to one of the 
+$12$ cancer clusters shown across 
+Figures~\ref{fig:figure_binary_cosClus_A}, 
+\ref{fig:figure_binary_cosClus_B}, and 
+\ref{fig:figure_binary_cosClus_C} 
+--- one set of cancer cluster characterising 
+\gls{dipps}-features from each of the four sections 
+from each of the three patients.
+Here we discuss these results in a broad sense, and we
+provide some more details in 
+\refsec{datasetComparisonsConclusions} and 
+\refapp{datasetComparisons}.
+
+
+
+\begin{figure}
+\begin{center}
+\begin{tikzpicture}
+\draw (10,0) node {
+<<figure_Jaccard_cancer, dependson="compareDatasets_Jaccard_all", fig.width=8, out.width="0.9\\linewidth">>=
+frames <- data.frame(X=rep(c(10,26,42),3),Y=rep(c(10,26,42),c(3,3,3)))
+p <- (ggplot(subset(Jaccard_all,(X%%4==0) & (Y%%4==0)),aes(X,Y))
+      + geom_tile(data = subset(Jaccard_all,(X%%4==0) & (Y%%4==0)),aes(fill=Jaccard))
+      + geom_rect(data=frames,size=1,fill=NA,colour="black",aes(xmin=X-8,xmax=X+8,ymin=Y-8,ymax=Y+8))
+      + scale_y_reverse(breaks=c(18,34))
+      + scale_x_continuous(breaks=c(18,34))
+      + scale_fill_gradient(breaks=c(0.2,0.4,0.6,0.8))
+      + theme(axis.ticks = element_blank(), axis.text = element_blank())
+      + ylab("") + xlab("")
+      + coord_fixed()
+)
+print(p)
+@
+};
+% 3.3795
+\draw (6.0745,6.1) node {A};
+\draw (9.454,6.1) node {B};
+\draw (12.8335,6.1) node {C};
+\draw (6.0745,5.778) -- (6.0745,5.878);
+\draw (9.454,5.778) -- (9.454,5.878);
+\draw (12.8335,5.778) -- (12.8335,5.878);
+% 0.84475
+\draw[anchor=west] (15.1,4.8481) node {A1};
+\draw[anchor=west] (15.1,4.0034) node {A2};
+\draw[anchor=west] (15.1,3.1586) node {A3};
+\draw[anchor=west] (15.1,2.3139) node {A4};
+\draw (15.03,4.8481) -- (15.13,4.8481);
+\draw (15.03,4.0034) -- (15.13,4.0034);
+\draw (15.03,3.1586) -- (15.13,3.1586);
+\draw (15.03,2.3139) -- (15.13,2.3139);
+\end{tikzpicture}
+\end{center}
+\caption{Image representing the pairwise Jaccard 
+distances of \refsec{JaccardDistance} between the $12$ 
+sets of \gls{dipps}-features
+corresponding to each of the $12$ \colboxcancer 
+clusters shown in 
+Figures~\ref{fig:figure_binary_cosClus_A}, 
+\ref{fig:figure_binary_cosClus_B}, and 
+\ref{fig:figure_binary_cosClus_C} 
+--- one set of cancer cluster characterising 
+\gls{dipps}-features from each of the four sections 
+from each of the three patients.
+Black lines seperate patients, similarly to 
+\reffig{figure_Jaccard_all} --- infact the results 
+shown here are a subset of those in 
+\reffig{figure_Jaccard_all}, corresponding to every
+fourth pixel, i.e. those corresponding to cancer 
+clusters.
+\label{fig:figure_Jaccard_cancer}}
+\end{figure}
+
+The first thing to note in 
+\reffig{figure_Jaccard_cancer} is that within-patient
+similarities are stronger than between-patient 
+comparisons. 
+This is encouraging as tissue heterogeneity, which we 
+are hopefully at least partly accounting for by using 
+our clustering results, can provide challenges in the 
+analysis of \gls{maldi}-\gls{ims} data 
+\citep{Gorzolka2014}.
+After we note that we can separate within-patient 
+variability from between-patient variability by 
+visually observing that the main block diagonal in 
+\reffig{figure_Jaccard_cancer} is darker than the 
+off-diagonal, the next observation from 
+\reffig{figure_Jaccard_cancer} is also clear --- there 
+appears to be strong similarity between patients A and 
+C that is absent in comparisons with patient B. 
+There are also a few more minor points:
+\begin{itemize}
+  \item Dataset C4 has lower similarities to all 
+  other datasets overall, and this could be explained 
+  by the potentially lower quality of this dataset 
+  implied by the `speckling' noted earlier.
+  
+  \item Dataset B1 has lower within-patient similarity
+  than any other dataset --- this is likely to be 
+  because dataset B1 is alone amongst the patient B 
+  datasets in separating the \Ncolboxcancer{} tissue 
+  well, the other three datasets include significant 
+  amounts of \Ncolboxstroma{l} tissue in their 
+  \Ncolboxpurple{} clusters.
+%   This is particularly notable because initially it 
+%   might be assumed that the dissimilarity of the 
+%   patient B \colboxcancer clusters could be due to the 
+%   \colboxcancer not being well seperated from the 
+%   \colboxstroma, but the \colboxcancer cluster of 
+%   dataset B1, wherein the \colboxcancer is well 
+%   seperated from the \colboxstroma, demonstrates 
+%   dissimilarity to the \colboxcancer clusters of 
+%   patients A and C equal to that of the other 
+%   \colboxcancer clusters of patient B and this 
+%   demonstrates that the difference in patient B is not 
+%   due to a clustering artefact but is instead likely to 
+%   be a real difference.
+\end{itemize}
+
+The second point above leads back to the main 
+observation that the \Ncolboxcancer{} clusters of patient 
+B are notably different from those of patients A and C. 
+Initially one might think this could be due to the 
+inclusion of non-cancer \Ncolboxstroma{} tissue in three 
+of these \Ncolboxpurple{} clusters (B2, B3, and B4), 
+however note that the \Ncolboxcancer{} cluster of dataset 
+B1 (in which the \Ncolboxcancer{} cluster is much better 
+separated) does not show much higher 
+cross-patient similarity. 
+This indicates that a more likely explanation for 
+patients B's \Ncolboxcancer{} cluster demonstrating 
+dissimilarity to the \Ncolboxcancer{} clusters of patients 
+A and C is actually that there is a difference between 
+these patients cancers at a molecular level.
+We discussed this result that the cancer of patient B 
+seems to differ from the cancer of patients A and C 
+with our biochemist collaborators at the \gls{apc}, and 
+after acquiring more detailed descriptions of the 
+histopathology of the tissues from these patients came 
+to understand that the cancer tissue of patient B is 
+largely necrotic, and it could be that we are detecting 
+blood-specific masses that characterise this necrosis. 
+In short, the back and forth process between data 
+analysis and biology/histopathology produced a real, 
+biologically significant and consistent, difference 
+between these patients' cancers.  
+
+
+
+
+\subsection{Conclusions}
+\label{sec:datasetComparisonsConclusions}
+
+<<datasetComparisons_dipps_cancer, dependson="compareDatasets_Jaccard_all">>=
+temp <- NULL
+for (i in 1:48){
+  temp <- union(temp,bins_dipps[[i]])
+}
+dipps_comparisons_df <- data.frame(Bin = temp)
+for (i in 1:48){
+  dipps_comparisons_df[,paste("p",toString(ceiling(i/16)),"s",toString(ceiling(i/4)-4*(ceiling(i/16)-1)),"c",toString(((i-1) %% 4)+1),sep="")] <- as.numeric(!is.na(match(dipps_comparisons_df$Bin,bins_dipps[[i]])))
+}
+dipps_comparisons_df$sum_cancer <- rowSums(dipps_comparisons_df[,seq(4,48,4)+1])
+dipps_comparisons_df$sum_stroma <- rowSums(dipps_comparisons_df[,seq(2,46,4)+1])
+dipps_comparisons_df$sum_adipose <- rowSums(dipps_comparisons_df[,seq(3,47,4)+1])
+dipps_comparisons_df$sum_offTissue <- rowSums(dipps_comparisons_df[,seq(1,45,4)+1])
+@
+
+
+In \refchap{dipps} we demonstrated that powerful 
+interpretations can be made from extending clustering
+results with a \gls{dipps}-based approach to 
+identifying sets of positive indicators for each
+cluster.
+In \refsec{JaccardDistance} we then discussed how the
+Jaccard distance could be used to compare these sets of 
+positive indicators.
+In 
+Sections~\ref{sec:withinPatient_A}-\ref{sec:betweenPatients}
+and \refapp{datasetComparisons}
+we then demonstrated how meaningful interpretations can
+be obtained by considering these comparisons. 
+These interpretations range from quality control checks 
+to biologically relevant clues that warrant further 
+investigation via \gls{lc}-\gls{ms} and 
+immunohistochemistry for identification and validation
+at the protein level. 
+We also demonstrated that meaningful conclusions could
+be drawn despite the variations and artefacts of the
+clusterings --- infact, the variation in clustering
+results enriched the conclusions drawn from the Jaccard 
+distance comparisons, despite making them more 
+complicated.
+Some particular examples of interpretations resulting 
+from the Jaccard distance comparisons follow:
+\begin{itemize}
+  \item There are 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,sum_offTissue==12))}$ 
+  \gls{mz} bins that characterise the \Ncolboxofftissue{} 
+  regions in all $12$ datasets --- these could be 
+  further investigated as potential contaminants, 
+  matrix peaks, or artefacts of the peak-picking 
+  algorithm. 
+  If they could be confirmed as matrix peaks, for 
+  example, they could then be excluded in future 
+  studies.
+  Until further validation is carried out on these 
+  peaks, they should certainly be considered 
+  sceptically if they came up as relevant in any other 
+  analyses.
+  
+  \item Similarly, there are 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c2+p2s4c2==2)&(sum_offTissue==0)))}$ 
+  \gls{mz} bins that characterise the \Ncolboxgreen{} 
+  clusters in both B2 and B4 (which correspond to 
+  \Ncolboxofftissue{} regions), but characterise none of 
+  the \Ncolboxofftissue{} clusters in any of the datasets. 
+  These \gls{mz} values could be further investigated as 
+  potentially delocalised peptides (if they are 
+  confirmed to be peptides), or some form of localised 
+  contamination (fingerprints, saliva, etc.) specific 
+  to these sections. 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c2+p2s4c2+p3s2c3+p3s3c3==4)&(sum_offTissue==0)))}$ 
+  of these \gls{mz} bins also characterise the \Ncolboxcyan{} 
+  clusters in C2 and C3, which include both tissue and 
+  \Ncolboxofftissue{} regions, possibly supporting the 
+  hypothesis that these could be delocalised peptides.
+  Given the sample preparation steps, there should be 
+  only very minimal homogenisation and so if these 
+  \gls{mz} bins could be validated as mobilised peptides, 
+  this would indicate directions in which the sample
+  preparation steps could be improved.
+  Either way, these masses warrant further 
+  investigation.
+  
+  \item Of the 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4==3)))}$ 
+  variables that characterise the \Ncolboxpurple{} 
+  clusters in B2, B3, and B4 (which contain both 
+  \Ncolboxcancer{} and \Ncolboxstroma{} tissue), 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)))}$ 
+  also characterise the \Ncolboxcancer{} cluster of B1 
+  (where \Ncolboxcancer{} and \Ncolboxstroma{} are well 
+  separated). 
+  However, of these 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)))}$ 
+  \gls{mz} bins, 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c2+p2s1c4==5)))}$
+  also characterise the \Ncolboxstroma{} cluster of B1. 
+  This highlights the difficulty in separating the 
+  \Ncolboxcancer{} from the \Ncolboxstroma{} in this patient, 
+  even in dataset B1 where the clustering succeeded in 
+  doing so. 
+  This is most likely due to how the \Ncolboxcancer{} grew 
+  out of the \Ncolboxstroma{} tissue and so is still 
+  molecularly quite similar to it. 
+  The 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)&p2s1c2==0))}$
+  variables that characterise the \Ncolboxcancer{} but not 
+  the \Ncolboxstroma{} in patient B could be further 
+  investigated as potential biomarkers. 
+
+  \item The intersection of all 12 sets of 
+  cancer-characterising \gls{dipps}-features contains 
+  exactly one \gls{mz} bin. 
+  That \gls{mz} bin is centred at 
+  $\Sexpr{subset(dipps_comparisons_df,sum_cancer==12)$Bin}$. 
+  This \gls{mz} value matches to a peptide that was 
+  identified as originating from the protein 
+  `Heterogeneous nuclear ribonucleoprotein A1' (ROA1) 
+  in follow-up \gls{lc}-\gls{ms}.
+  The identity of this peptide was validated using 
+  \emph{in situ} \gls{ms}/\gls{ms}. 
+  This ROA1 protein has been shown to be of interest in 
+  the past \citep{Lee2010,Chen2010}. 
+  The identity of this protein has since been validated 
+  by immunohistochemistry, and is one of the proteins 
+  of interest noted in \citet{Winderbaum2015}.
+  The \gls{mz} bin centred at 
+  $\Sexpr{subset(dipps_comparisons_df,sum_cancer==12)$Bin}$ 
+  is one of the 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)&p2s1c2==0))}$ 
+  bins mentioned in the dot point above as 
+  characterising all four \Ncolboxcancer{} clusters of 
+  patient B, but not the \Ncolboxstroma{} cluster of 
+  dataset B1. 
+  
+  \item The other 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)&p2s1c2==0))-1}$ 
+  \gls{mz} bins of the 
+  $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)&p2s1c2==0))}$ 
+  mentioned above are also interesting, as they do not 
+  characterise any other \Ncolboxcancer{} clusters (in 
+  either patient A or C) and as such could be further 
+  investigated as potential markers that distinguish 
+  the \Ncolboxcancer{} of patient B from that of patients
+  A and C --- possibly even for necrotic tissue in 
+  general.
+\end{itemize}
+
+It is possible to investigate many of the 
+results discussed above in more depth. 
+For example, analyses with shifted bin locations could 
+be considered.
+Also, more detail could be included in the 
+investigation of individual \gls{mz} bins --- for example, 
+there are (in addition to those mentioned in the first 
+point above) another 
+$\Sexpr{nrow(subset(dipps_comparisons_df,sum_offTissue==11))}$
+\gls{mz} bins which are positive indicators for 
+\Ncolboxofftissue{} in $11$ (of $12$) datasets.
+
+However, the emphasis of this thesis is to demonstrate 
+that bioinformatic approaches as suggested here can 
+produce substantial and meaningful results with 
+relative ease. 
+For the bioinformatician implementing these methods, it 
+is important to realise that there are many small 
+improvements that can be made to squeeze every little 
+bit of information out of their data in any particular
+case, but as most of the conclusions from these types 
+of exploratory analyses will involve follow up 
+validation studies, this is not necessarily the goal, 
+and is not what we focus on here.
+
+% \pagebreak
+% %\bibliographystyle{abbrv}
+% \bibliographystyle{plainnat}
+% %\bibliographystyle{harvard}
+% \bibliography{references}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Exploratory Analysis of the Murine N-glycan Data}
+\label{sec:dataDependant}
+
+As discussed in \refsec{statsBackground}, in order to 
+represent peaklist \gls{maldi}-\gls{ims} data in the 
+standard statistical paradigm of `variables' and 
+`observations' we need to discretise the \gls{mz} domain 
+and thereby group peaks by \gls{mz} into variables.
+Up to here we have used the data-independent binning 
+approach to this, as described in detail in 
+\refapp{binning}.
+However in some cases, such as the N-glycan data that 
+we will consider here, a data-dependent approach is 
+more appropriate.
+Data-dependent methods overcome some of the 
+disadvantages of the data-independent binning approach, 
+for example binning can split peaks that ought to 
+be grouped into the same variable due to its arbitrary
+bin locations, and data-dependent approaches are much 
+less likely to do this.
+The disadvantage of data-dependent methods is, as 
+mentioned in \refsec{binning}, that extending analyses 
+to multiple datasets is much less natural.
+As the interest in the N-glycan data is not to
+compare multiple datasets, but rather to simply explore
+the one dataset, a data-independent approach to 
+discretisation of the \gls{mz} domain is appropriate.
+
+This section is organised as following. 
+First, we introduce the data-dependent discretisation 
+method we will use in \refsec{tol_clus}. 
+Then in \refsec{Nglycans} we consider the application 
+of the \gls{dipps}-based feature extraction discussed 
+in \refsec{dipps} to the N-glycan data of 
+\refsec{NglycansDatasets}.
+
+\subsection{Tolerance Clustering}
+\label{sec:tol_clus}
+
+Discretisation can be thought of as clustering of one
+dimensional data --- \gls{mz}.
+The result of discretisation is essentially a `cluster 
+membership', with each peak belonging to a `cluster' or 
+variable.
+In the case of binning, these `clusters' correspond to
+bins.
+
+Here we introduce one of the simplest approaches to 
+data-dependent discretisation --- tolerance clustering.
+Tolerance clustering is a fairly simple concept, and
+has been used to discretise peaklist 
+\gls{maldi}-\gls{ims} data in the past, for example see 
+\citet{Gustafsson2012}.
+Tolerance clustering can be thought of as the process 
+of forming equivalence classes defined by the 
+equivalence relation by which two values are equivalent
+if and only if the absolute difference between them is 
+$\leq \tau$ for some given grouping tolerance $\tau$.
+To be precise, given a set of real numbers $m_k$, which 
+in the context of peaklist \gls{maldi}-\gls{ims} data 
+would be the \gls{mz} values of peaks, and a grouping 
+tolerance $\tau > 0$ the relevant equivalence relation 
+is 
+\begin{equation}
+  C_{\tau} = \Bigl \{ \left ( m_{k},m_{k'} \right ) \quad s.t. \quad |m_{k} - m_{k'}| \leq \tau \Bigr \}. 
+  \label{eqn:tolClus_equivalence}
+\end{equation}
+The equivalence classes defined by 
+\refeqn{tolClus_equivalence} are then the clusters or 
+peakgroups or variables, as in \refdef{tolClus}.
+
+{\highlightTextAs{notation}
+\begin{defn} \emph{\textbf{Tolerance clustering:}}
+  Given a set of real numbers $m_{k}$ a grouping 
+  tolerance $\tau > 0$ and the equivalence relation 
+  $C_{\tau}$ as in \refeqn{tolClus_equivalence} tolerance 
+  clustering results in the set of group labels $c_k$ 
+  assigning each $m_k$ to a cluster such that 
+  $c_k = c_{k'}$ if and only if there exists a sequence 
+  $k_1,\, k_2,\, \hdots,k_n$ for which $k_1 = k$, 
+  $k_n = k'$ and $(m_{k_i},m_{k_{i+1}}) \in C_{\tau}$ 
+  for all $i = 1,\, 2,\, \hdots,\, (n-1)$. 
+  \label{def:tolClus}
+\end{defn}
+}
+Reasonable values for the grouping value $\tau$ will 
+depend on the application, and choosing an appropriate
+value will require some experimentation in any given 
+case, but in peptide and glycan \gls{maldi}-\gls{ims}
+peaklist data, values of $\tau$ around $0.1$ are often 
+reasonable as the difference in \gls{mz} between features 
+is often at least $1$, and the mass error is typically 
+smaller than $0.1$.
+Other applications in which the mass error is greater,
+such as protein \gls{ms}, may require larger values of 
+$\tau$.
+
+Both tolerance clustering and binning have the 
+advantage that the number of clusters does not need to 
+be specified \emph{a priori}, as it does with a 
+clustering method such as $k$-means.
+However there are also differences between tolerance 
+clustering and binning, as mentioned previously.
+For example, tolerance clustering produces clusters 
+such that if two values are within $\tau$ of each other 
+they are guaranteed to be in the same cluster.
+Binning cannot make such a guarantee --- two values 
+separated by $\tau$ can be put into different bins if 
+the boundary between two bins happens to fall between 
+them.
+The interpretability awarded by this guarantee is one 
+of the main advantages of tolerance clustering.
+Following are several other points worth mentioning 
+about tolerance clustering in the context of 
+\gls{maldi}-\gls{ims} data. 
+Note that in this context, we interpret clusters as 
+`peakgroups' as the values we are clustering are peaks
+\gls{mz} values.
+\begin{itemize}
+  \item Tolerance clustering has a tendency to produce 
+  a number of peakgroups that are very small, 
+  containing as few as a single peak.
+  It is quite similar to binning in the sense that
+  binning also produces many almost empty variables.
+  Typically further analyses are robust to the removal 
+  of these low-occurrence peakgroups (variables), as we
+  demonstrated for binning in \refsec{propOcc}.
+  Removing these low-occurrence peakgroups can improve 
+  both computational speed and ease of interpretation 
+  by reducing the number of variables involved. 
+  
+  \item The choice of tolerance $\tau$ is important ---
+  results can be very sensitive to choice of $\tau$ if 
+  $\tau$ is chosen to be too large. 
+  If $\tau$ is too large, tolerance clustering will 
+  group values that should be kept separate.
+  If the dataset is sufficiently large, or if enough
+  datasets are combined for a single analysis, this 
+  grouping of values that should be kept separate can 
+  occur regardless of $\tau$.
+  If $\tau$ is too small, tolerance 
+  clustering can split values that should be kept 
+  together, compounding the problem discussed in the 
+  first dot point above. 
+  Peakgroups are typically very well resolved in 
+  \gls{maldi}-\gls{ims} particularly for high-quality 
+  internally calibrated datasets such as those we 
+  consider.
+  In our experience, a tolerance of $\tau = 0.1$ tends 
+  to avoid both these issues for sufficiently small 
+  datasets --- less than two million peaks or so.
+  In larger datasets, say $10$ or $15$ million 
+  peaks,  tolerance clustering will often begin 
+  to fail regardless of choice of $\tau$ unless the 
+  rate of erroneous and high mass-error peaks can be 
+  limited somehow. 
+  In these datasets, we recommend using either a 
+  data-independent approach with fixed cluster width 
+  such as binning, or a more sophisticated 
+  data-dependent discretisation that can take into 
+  account peak density, such as the {\tt DBSCAN}
+  algorithm proposed by \citet{Ester1996} or more 
+  specifically its deterministic variant {\tt DBSCAN*} 
+  \cite[Section~3]{Campello2013}.
+
+  \item Tolerance clustering can exhibit artefacts ---
+  particularly when there is a single outlying peak 
+  halfway between two groups of peaks --- causing the 
+  tolerance clustering to group the two together, when 
+  they should be kept separate. 
+\end{itemize}
+
+
+Many of the pitfalls of tolerance clustering mentioned
+in the dot points above can be avoided by more advanced 
+data-dependent clustering methods for discretisation.
+However, in many cases it is possible to, by 
+carefully choosing a tolerance $\tau$, avoid all these
+issues in any given \gls{maldi}-\gls{ims} dataset. 
+As mentioned above, a tolerance of $\tau = 0.1$ will 
+often work, with almost no problems.
+If possible, using tolerance clustering in this way is 
+advantageous due to its simple interpretability.
+
+In conclusion, although tolerance clustering improves 
+on some of the limitations of binning, it also shares 
+many of the limitations of binning.
+Some of these limitations of the tolerance clustering 
+method can be further improved upon by using more 
+advanced clustering algorithms, as mentioned above, 
+however in many cases these limitations can be 
+minimised by careful selection of tolerance $\tau$. 
+When these limitations can be minimised by careful 
+selection of $\tau$ then tolerance clustering has the
+advantage that the resulting peakgroups are quite 
+easily interpretable, as mentioned above.
+
+The glycan data of \refsec{NglycansDatasets} is such a 
+case for which careful choice of tolerance $\tau$ can 
+minimise the limitations of the tolerance clustering 
+method, and as such we apply tolerance clustering to 
+these data in \refsec{Nglycans}.
+Improvements could be made by using more sophisticated 
+clustering approaches, however the purpose of the 
+N-glycan was to serve as a proof-of-principle and not to 
+squeeze as much information from the data as possible,
+and so tolerance clustering is more than sufficient for 
+exploring the N-glycan data.
+
+
+
+
+% \subsection{{\tt DBSCAN }}
+% \label{sec:dbscan}
+% 
+% {\tt DBSCAN} is a clustering algorithm originally 
+% proposed by \citet{Ester1996}, but what I will refer 
+% to as `{\tt DBSCAN}' here is perhaps more accurately
+% reffered to as `{\tt DBSCAN*}', which is a fully 
+% deterministic variation due to 
+% \cite[Section~3]{Campello2013}. 
+% {\tt DBSCAN} (and variations)  has gained popularity in 
+% many areas including data-mining, as it has a number of 
+% very attractive features. 
+% Some of its more notable features include:
+% \begin{itemize}
+%   \item The number of clusters do not need to be 
+%   specified \emph{apriori}s.
+%   \item It can seperate non-linearly seperable clusters
+%   relatively easily in many cases.
+% \end{itemize}
+% 
+% In the context of using it as a data-dependent 
+% discretisation method (i.e. using it on one dimensional 
+% data), it essentially simplifies to an improved version 
+% of tolerance clustering, with some additional
+% conditions that allow it to ignore low-density regions,
+% thereby avoiding many of the pitfalls of tolerance
+% clustering as described in \refdef{tolClus}.
+% We define {\tt DBSCAN} ({\tt DBSCAN*}) in 
+% \refdef{dbscan} below.
+% 
+% % We could define {\tt DBSCAN} first before defining 
+% % {\tt DBSCAN*} but first we would require some notation:
+% % \begin{itemize}
+% % \item We call $m_{q}$ \textbf{ directly density-reachable } from $m_{p}$ if $|m_{p} - m_{q}| \leq \tau$ (essentially, tolerance clustering) and $m_{p}$ has at least $n_{min}$ values within $\tau$. 
+% % \item We call $m_{q}$ \textbf{ density-reachable} from $m_{p}$ if there exist a seqence of values $m_{k1}, \, m_{k2}, \hdots , \, m_{kN}$ such that $m_{k1} = m_p$, $m_{kN} = m_q$ and $m_{k(i+1)}$ is \textbf{ directly density-reachable } from $m_{ki}$.
+% % \item Two values $m_{q}$ and $m_{p}$ are \textbf{ density-connected } if there exists a value $m_{k}$ such that both $m_{q}$ and $m_{p}$ are \textbf{ density-reachable} from $m_{k}$.
+% % \end{itemize}
+% 
+% {\highlightTextAs{notation}
+% \begin{defn} \emph{\textbf{{\tt DBSCAN:}}}
+% Given some values $m_{k}$, a distance tolerance 
+% $\tau > 0$, and a minimum density 
+% $n_{min} \in \mathbb{N}$, we call points $m_p$ 
+% core points iff 
+% $|\{m_k : |m_p - m_k| \leq \tau \}| \geq n_{min}$.
+% Core points are tolerance clustered with a tolerance
+% $\tau$, as per \refdef{tolClus}. 
+% Non-core points, sometimes called noise points, are not
+% assigned a cluster/ peakgroup.
+%   \label{def:dbscan}
+% \end{defn}
+% }
+% 
+% {\highlightTextAs{incomplete}
+% As it stands, I could cut out this section and all 
+% reference to {\tt DBSCAN} as I do not use it anywhere.
+% I do think its interesting, and I do think it 
+% could be useful to people doing this type of analysis. 
+% We have used it in Chao's vulvar cancer 
+% LC-MS/MS matching, but we do not discuss that data
+% anywhere in my thesis -- it does not use DIPPS, 
+% classification, or anything else from my thesis, so it 
+% would stand out abit as `tacked on'.
+% So we could either leave it here for interest as is, 
+% cut it out, or add another section about Chao's vulvar 
+% cancer data.
+% Any of these three options are reasonable, although the 
+% first two make more sense than the third in my 
+% oppinion.
+% If we do keep it, I could expand on the difference 
+% between {\tt DBSCAN} and {\tt DBSCAN*}, its kinda 
+% interesting.
+% }
+
+
+
+\subsection{Using the DIPPS in the Context of Glycan Data}
+\label{sec:Nglycans}
+
+<<Nglycans_load_data,dependson="data_Nglycans_readin">>=
+dataset_name <- 'glycans_kidney'
+peaklist_all <- load_peaklist(dataset_name)
+LXY <- load_LXY(dataset_name)
+fExists <- load_fExists(dataset_name)
+@
+
+The glycan data of \citet{Gustafsson2015}, as 
+introduced in \refsec{NglycansDatasets}, consists of 
+$\Sexpr{nrow(peaklist_all)}$ peaks from 
+$\Sexpr{length(unique(peaklist_all$Acquisition))}$
+spectra collected from two regions of interest, one 
+treated with PNGase F in order to release N-linked
+glycans, the other a control that should contain no 
+glycan signals. 
+The objective in this glycan experiment was to 
+demonstrate that this sample preparation approach can
+successfully detect glycans using \gls{maldi}-\gls{ims}
+and preserve the spatial distributions of these 
+glycans in the process.
+We use this application to illustrate the usefulness of 
+the \gls{dipps} feature extraction approach in a 
+context different to the ovarian cancer data originally 
+used to illustrate it in \refsec{dipps}.
+In these glycan data, there is a region of tissue 
+that has been treated with PNGase F, which cleaves 
+glycans and makes them detectable by \gls{maldi}-\gls{ms}.
+A separate control region, not treated with PNGase F, 
+is also present, and so potential glycan signals 
+should be identifiable by occurring in the PNGase F 
+treated regions but not in the control region.
+This natural partitioning of the data into two groups, 
+control group and PNGase F treated group, provides 
+the subset of interest necessary for calculating the
+\gls{dipps}.
+Note that the \gls{dipps}-based feature extraction 
+approach applies to any subset of interest, that can 
+originate from many different sources.
+In contrast to the ovarian cancer data analysis of 
+\refsec{datasetComparisons}, where $k$-means clustering 
+was used to find the subsets of interest, here the 
+subset of interest is inherent to the design of the 
+experiment and no analysis is necessary in order to 
+find it. 
+The aim of the analysis to follow is to find a 
+shortlist of candidate glycan masses by comparing the 
+two regions using the \gls{dipps}, and show that at 
+least some of them have spatial distributions matching
+the histology of the tissue. 
+
+Samples were analysed by \gls{lc}-\gls{ms} in parallel, 
+also with and without PNGase F treatment --- and glycans 
+were identified in the PNGase F treated samples. 
+The shortlist of glycan candidates we produce from the 
+analysis of the \gls{maldi}-\gls{ims} data will then be 
+compared to the glycans identified by \gls{lc}-\gls{ms} 
+in order to further support the identities of the 
+shortlist masses as glycans.
+We will also compare the spatial distributions of 
+these candidate masses with tissue histology, as it 
+is of interest if tissue-type specific glycans can be 
+found. 
+
+
+<<Nglycans_tol_clus,dependson="Nglycans_load_data">>=
+tol = 0.1
+peaklist_all <- groupPeaks(peaklist_all,tol)
+@
+
+<<Nglycans_peakgroup_summary,dependson="Nglycans_tol_clus">>=
+peakgroup_summary <- ddply(peaklist_all,"PeakGroup",summarise,min_mz = min(m.z),max_mz=max(m.z))
+@
+
+Tolerance clustering using a grouping tolerance of 
+$\tau = \Sexpr{tol}$ on the glycan data produces 
+$\Sexpr{length(unique(peaklist_all$PeakGroup))}$ 
+peakgroups, i.e. 
+$\Sexpr{length(unique(peaklist_all$PeakGroup))}$ unique
+values of the group labels $c_k$ in \refdef{tolClus}.
+As mentioned above, many of these peakgroups contain 
+very few peaks, similar to the distribution shown in
+\reffig{figure_A3_proportions_of_occurrence_histogram}
+and discussed in \refsec{propOcc} ---
+$\Sexpr{100*sum(cU(peaklist_all$PeakGroup)$N <= 100)/nrow(peakgroup_summary)}$\% 
+of these peakgroups contain fewer than 100 peaks.
+As mentioned above, one concern when using tolerance 
+clustering is that an outlying peak lying halfway 
+between two peakgroups can cause the otherwise separate 
+peakgroups to be grouped together when they ought to be
+kept separate. 
+A good sanity check for such unwanted groupings is to 
+consider the range of each peakgroup --- the difference 
+between the minimum and maximum \gls{mz} in the 
+peakgroup. 
+In the glycan data, the maximum such range after 
+tolerance clustering with a tolerance of $\tau = 0.1$
+is 
+$\Sexpr{max(peakgroup_summary$max_mz-peakgroup_summary$min_mz)}$ 
+\gls{Da}.
+An \gls{mz} difference of $1$ \gls{Da} is the smallest 
+difference between features we expect to be able to 
+resolve in these data, and so the fact that the maximum 
+range is less than $1$ \gls{Da} reassures us that any 
+resolvable features differing by $1$ \gls{Da} have not been 
+combined into a single peakgroup.
+If we had peakgroups with ranges significantly 
+above $1$ \gls{Da}, it might be worth considering a lower 
+tolerance $\tau$ or either a data-independent 
+discretisation or a more sophisticated clustering 
+method that can take into account peak density.
+In the case of the glycan data, tolerance clustering 
+with $\tau = 1$ is sufficient to resolve any features 
+differing by at least $1$ \gls{Da} and so we continue with 
+this choice.
+
+<<Nglycans_annot,dependson="Nglycans_load_data">>=
+# Save some anotation information for later use.
+LXY_cal = subset(LXY,Region==0)
+LXY_con = subset(LXY,Region==2)
+LXY_png = subset(LXY,Region==1|Region==3)
+LXY_png1 = subset(LXY,Region==1)
+LXY_png2 = subset(LXY,Region==3)
+nSpec_cal = length(unique(LXY_cal$Acquisition))
+nSpec_con   = length(unique(LXY_con$Acquisition))
+nSpec_png   = length(unique(LXY_png$Acquisition))
+nSpec_png1   = length(unique(LXY_png1$Acquisition))
+nSpec_png2   = length(unique(LXY_png2$Acquisition))
+minX = min(LXY$X)
+minY = min(LXY$Y)
+minX_cal = min(LXY_cal$X)
+minY_cal = min(LXY_cal$Y)
+minX_con = min(LXY_con$X)
+minY_con = min(LXY_con$Y)
+minX_png1 = min(LXY_png1$X)
+minY_png1 = min(LXY_png1$Y)
+minX_png2 = min(LXY_png2$X)
+minY_png2 = min(LXY_png2$Y)
+# Including seperated spatial information for the regions in order to produce seperate plots for each region.
+fExists_cal = fExists[(minX_cal-minX+1):(max(LXY_cal$X)-minX+3),(minY_cal-minY+1):(max(LXY_cal$Y)-minY+3)]
+fExists_con = fExists[(minX_con-minX+1):(max(LXY_con$X)-minX+3),(minY_con-minY+1):(max(LXY_con$Y)-minY+3)]
+fExists_png1 = fExists[(minX_png1-minX+1):(max(LXY_png1$X)-minX+3),(minY_png1-minY+1):(max(LXY_png1$Y)-minY+3)]
+fExists_png2 = fExists[(minX_png2-minX+1):(max(LXY_png2$X)-minX+3),(minY_png2-minY+1):(max(LXY_png2$Y)-minY+3)]
+@
+
+<<Nglycans_reduce_peaklists,dependson="Nglycans_tol_clus">>=
+# Reduce to single peak representation per peakgroup per spectrum (weighing intensities by SN ratio).
+# 1 peak per spectrum (`pps')
+peaklist_all <- transform(peaklist_all,Region = LXY[match(peaklist_all$Acquisition,LXY$Acquisition),]$Region)
+peaklist_merged = ddply(peaklist_all,c("Acquisition","Peaklist","PeakGroup","Region"),summarise,intensity=max(intensity))
+# Produce seperate peaklists for PNGase treated and Control regions.
+peaklist_png = subset(peaklist_merged,Region == 1 | Region == 3)
+peaklist_con = subset(peaklist_merged,Region == 2)
+@
+
+<<Nglycans_dipps,dependson="Nglycans_reduce_peaklists">>=
+# Calculate DIPPS statistics for each peakgroup (via proportions of occurrence).
+Summary_png <- ddply(peaklist_png,"PeakGroup",summarise,
+                     propOcc = length(unique(Acquisition))
+                     )
+Summary_png$propOcc <- Summary_png$propOcc/nSpec_png
+Summary_con <- ddply(peaklist_con,"PeakGroup",summarise,
+                     propOcc = length(unique(Acquisition))
+)
+Summary_con$propOcc <- Summary_con$propOcc/nSpec_con
+
+Summary_merged = merge(Summary_png,Summary_con,
+                       by = "PeakGroup",all.x = TRUE,all.y = TRUE,
+                       suffixes=c(".png",".con")
+                       )
+Summary_merged = replace(Summary_merged,is.na(Summary_merged),0)
+Summary_merged$DIPPS = Summary_merged$propOcc.png - Summary_merged$propOcc.con
+
+# Calculate the cosine centroid of the png regions.
+png_matrix = dcast(peaklist_png,Acquisition+Peaklist~PeakGroup,value.var="intensity")
+specID = png_matrix[,1:2]
+png_matrix = as.matrix(png_matrix[,c(-1,-2)])
+png_matrix[!is.na(png_matrix)] = 1
+png_matrix[is.na(png_matrix)] = 0
+specID$nPeaks = rowSums(png_matrix)
+png_matrix = png_matrix/sqrt(specID$nPeaks)
+centroid_png = colMeans(png_matrix)
+centroid_png = centroid_png/sqrt(sum(centroid_png^2))
+temp = match(colnames(png_matrix),Summary_merged$PeakGroup)
+Summary_merged$centroid.png = 0
+Summary_merged[temp,]$centroid.png = centroid_png
+
+# Find data-driven cutoff according to the DIPPS method using cosine distance.
+curMinCosD = 10
+sortedDIPPS = sort(Summary_merged$DIPPS,index.return=TRUE)
+# vN = 1:floor(nrow(Summary_merged)/2)
+vN = 1:nrow(Summary_merged)
+cosD = vN
+for (n in vN){
+  Summary_merged$t = 0
+  Summary_merged[tail(sortedDIPPS$ix,n),]$t = 1/sqrt(n)
+  cosD[n] = 1 - sum(Summary_merged$t * Summary_merged$centroid.png)
+}
+nStar = vN[which.min(cosD)]
+@
+
+
+<<Nglycans_dipps_heatmap, dependson="Nglycans_dipps">>=
+dipps_heatmap_bins = Summary_merged[tail(sortedDIPPS$ix,nStar),]$PeakGroup
+peaklist_subset = peaklist_merged[!is.na(match(peaklist_merged$PeakGroup,dipps_heatmap_bins)),]
+@
+
+\begin{figure}
+\vspace{-4cm}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {
+<<figure_Nglycans_dipps_heatmap_png1, dependson="Nglycans_dipps_heatmap", fig.width=2.5, fig.height=2.5, out.width="0.33\\linewidth">>=
+p = suppressMessages(spatialPlot(peaklist_subset,
+                 fExists_png1,
+                 plot_var = "count",
+                 minX_in = minX_png1,
+                 minY_in = minY_png1,
+                 display_legend = FALSE)
+     + ylab("") + xlab("")
+     + scale_x_reverse(breaks=seq(450, 500, 50))
+     + scale_y_continuous(breaks=seq(150, 200, 50))
+)
+print(p)
+@
+};
+\draw (9,0) node {
+<<figure_Nglycans_dipps_heatmap_con, dependson="Nglycans_dipps_heatmap",fig.width=3, out.width="0.32\\linewidth">>=
+p = suppressMessages(spatialPlot(peaklist_subset,
+                 fExists_con,
+                 plot_var = "count",
+                 minX_in = minX_con,
+                 minY_in = minY_con)
+     + ylab("") + xlab("")
+     + scale_x_continuous(breaks=seq(620, 670, 50))
+     + scale_y_reverse(breaks=seq(50, 50, 50))
+     + scale_fill_gradient("",limits=c(1,13),breaks=c(1,4,7,10,13))
+)
+print(p)
+@
+};
+\draw (4.4,0) node {
+<<figure_Nglycans_dipps_heatmap_png2, dependson="Nglycans_dipps_heatmap", fig.width=2.5, fig.height=2.5, out.width="0.33\\linewidth">>=
+p = suppressMessages(spatialPlot(peaklist_subset,
+                 fExists_png2,
+                 plot_var = "count",
+                 minX_in = minX_png2,
+                 minY_in = minY_png2,
+                 display_legend = FALSE)
+     + ylab("") + xlab("")
+     + scale_x_continuous(breaks=seq(300, 350, 50))
+     + scale_y_reverse(breaks=seq(200, 250, 50))
+)
+print(p)
+@
+};
+\end{tikzpicture}
+\end{center}
+\vspace{-4cm}
+\caption{\gls{dipps} heatmaps showing the sum (count) 
+of the occurrence in the $\Sexpr{nStar}$ peakgroups 
+with \gls{dipps} 
+$\geq a_*^+ = \Sexpr{round(rev(sortedDIPPS$x)[nStar],digits=3)}$ 
+in the PNGase F treated region (left and centre) and 
+the control region (right). 
+Analogous to the heatmaps of 
+\reffig{figure_A3_dipps_heatmap}.
+\label{fig:figure_Nglycans_dipps_heatmap}}
+\end{figure}
+
+
+
+
+<<Nglycans_high_dipps_bins, dependson="Nglycans_dipps">>=
+high_dipps_bins <- sort(Summary_merged$DIPPS,decreasing=TRUE,index.return=TRUE)
+@
+ 
+\begin{figure}[ht]
+\begin{center}
+\includegraphics[scale=0.7, trim=0cm 0cm 1cm 0.7cm, clip=true]{./miscImages/HEstains/glycan_profiling_with_annotation.pdf}
+\end{center}
+\caption{H\&E stain of a section of murine kidney used 
+in the glycan experiment. Red annotation shows the 
+border between the outer cortex region, and the inner 
+medulla/pelvis region. 
+\label{fig:glycan_HE}}
+\end{figure}
+
+We are interested in finding variables, that is 
+peakgroups produced by the tolerance clustering 
+discussed above, containing peaks in the PNGase F 
+treated region but not in the control region.
+Such variables would be positive indicators for the 
+PNGase F region, and so we choose the subset of 
+interest to be the PNGase F treated region when we 
+calculate the \gls{dipps} for each variable.
+This choice is analogous to us choosing the subset of 
+interest to be the cancer tissue in the analysis of the 
+ovarian cancer data in \refsec{dipps}.
+Using the heuristic cutoff of \refdef{DIPPSthreshold}, 
+the \gls{dipps} ranking includes $\Sexpr{nStar}$ 
+peakgroups with \gls{dipps} 
+$\geq a_*^+ = \Sexpr{round(rev(sortedDIPPS$x)[nStar],digits=3)}$.
+The spatial distribution of the sum (count) of 
+occurrence in these $\Sexpr{nStar}$ peakgroups is shown 
+in 
+\reffig{figure_Nglycans_dipps_heatmap} as a \gls{dipps}
+heatmap, and \reffig{glycan_HE} shows the histology of 
+a typical mouse kidney section for comparison, with the 
+major components annotated including the outer cortex 
+region, and the inner medulla/pelvis region.
+The log-intensity of the $\Sexpr{nStar}$ peakgroups of 
+\reffig{figure_Nglycans_dipps_heatmap} are shown 
+individually in 
+\reffig{figure_Nglycans_high_dipps_bins} and 
+\reffig{figure_Nglycans_high_dipps_bins_cont}(a). 
+Of these $13$ peakgroups, the spatial distributions 
+appear to be either uniformly distributed across the 
+kidney (\reffig{figure_Nglycans_high_dipps_bins}(a), 
+(i), (j), and (l)), cortex-specific 
+(\reffig{figure_Nglycans_high_dipps_bins}(e-h,k), 
+\reffig{figure_Nglycans_high_dipps_bins_cont}(a)), or 
+somewhere inbetween 
+(\reffig{figure_Nglycans_high_dipps_bins}(b-d)). 
+This is not representative of glycan distributions in 
+this tissue, as the cortex makes up a disproportionate 
+amount of the tissue, and \gls{dipps} will rank 
+glycans higher if they cover a higher proportion of the 
+PNGase F treated tissue.
+Although the heuristic cutoff was useful in order to 
+be able to make the comparisons between ovarian 
+cancer datasets in \refsec{datasetComparisons}, in the 
+context of the glycan data we are interested in 
+finding as many potential glycan masses as possible, 
+and so it makes sense to extend the list of masses we 
+consider to include more than the top $13$. 
+Spatial distributions for the log-intensity of the 
+peakgroups ranked $1-12$, $13-24$, and $25-36$ as 
+ranked by highest \gls{dipps} are shown in 
+Figures~\ref{fig:figure_Nglycans_high_dipps_bins},
+\ref{fig:figure_Nglycans_high_dipps_bins_cont}, and 
+\ref{fig:figure_Nglycans_high_dipps_bins_cont_2}
+respectively.
+The associated \gls{mz} location and \gls{dipps} for each 
+of these top $36$ ranked peakgroups are included in the 
+figure captions.
+The PNGase F treated region includes two sections of 
+kidney, and the figures show only one for simplicity as
+replication is good between the two sections --- this 
+can be seen in the similarity between the spatial 
+patterns of the centre and left images of 
+\reffig{figure_Nglycans_dipps_heatmap}. 
+Note that we stop at the $36$th ranked peakgroup and 
+don't go further because by visually inspecting 
+\reffig{figure_Nglycans_high_dipps_bins_cont_2} in 
+comparison to 
+\reffig{figure_Nglycans_high_dipps_bins_cont} and
+\reffig{figure_Nglycans_high_dipps_bins} we can
+see that most of the peakgroups ranked $25-36$ shown in 
+\reffig{figure_Nglycans_high_dipps_bins_cont_2} are 
+low-occurrence and many of them are not spatially 
+localised in comparison to more highly ranked 
+variables.
+If we were to continue and consider variables ranked 
+below $36$, this trend only continues, and so the more
+lowly ranked variables are not of interest.
+Considering the extended list of peakgroups shown in 
+\reffig{figure_Nglycans_high_dipps_bins_cont} and 
+\reffig{figure_Nglycans_high_dipps_bins_cont_2}, we 
+can note several more interesting spatial 
+distributions:
+\begin{itemize}
+  \item There are two peakgroups, 
+  \reffig{figure_Nglycans_high_dipps_bins_cont}(h) and 
+  (j), that exhibit a distinct cortex-specific spatial 
+  distribution concentrated in the centre of the kidney 
+  close to the medulla but absent in the outer cortex. 
+  This distinct cortex-specific spatial distribution 
+  seems to indicate there are at least two regions of 
+  the cortex which differ in their glycan composition 
+  --- very interesting!
+  
+  \item There are also three distinct spatial 
+  distributions specific to the medulla/pelvis region: 
+  \begin{itemize}
+    \item \reffig{figure_Nglycans_high_dipps_bins_cont}(f),
+    \reffig{figure_Nglycans_high_dipps_bins_cont_2}(b), 
+    and (g) show spatial distributions focused in a 
+    particular subset of the medulla, in a shape 
+    spread along the short axis of the kidney.
+    
+    \item \reffig{figure_Nglycans_high_dipps_bins_cont_2}(e) 
+    and (l) show spatial distributions also focused in 
+    a different subset of the medulla, in a shape 
+    spread along the long axis of the kidney.
+    
+    \item Finally, 
+    \reffig{figure_Nglycans_high_dipps_bins_cont_2}(c) 
+    and (i) show highly specific spatial distributions 
+    that seem to correspond to a blood vessel visible 
+    in the \gls{he} stain of \reffig{glycan_HE}.
+  \end{itemize}
+\end{itemize}
+To conclude, distinct spatial distributions can 
+certainly be observed in these data, most of which 
+correspond well with the histology.
+
+As can be seen from 
+\reffig{figure_Nglycans_high_dipps_bins}, there are 
+many peakgroups with very high \glspl{dipps}, which is 
+encouraging for the experiment, as this most likely 
+indicates that glycans have been successfully 
+extracted from the tissue and measured. 
+In order to further support this conclusion, we can
+match the \gls{mz} values to the \gls{lc}-\gls{ms} 
+results, and verify their identity by \emph{in situ} 
+\gls{ms}/\gls{ms}.
+Of the top $26$ peakgroups as ranked by \gls{dipps}, 
+$16$ were successfully matched with \gls{lc}-\gls{ms} and 
+assigned potential identifications.
+These $16$ matches are shown in 
+\reftab{glycan_matches} with estimated mass errors and 
+proposed glycan compositions and structure.
+A legend for the symbols used to draw the proposed 
+glycan structures in \reftab{glycan_matches} is 
+provided in \reftab{glycan_legend}.
+
+\citet{Gustafsson2015} also demonstrate that different 
+spatial distributions can be discovered in these data 
+without consideration of particular masses --- 
+specifically they successfully separate the two cortex 
+regions, and one region covering the whole 
+medulla/pelvis region. 
+Regardless, the conclusion is that these glycan data
+are a proof-of-principle that it is possible to measure 
+consistent spatial distributions of glycans in 
+\gls{ffpe} tissue using \gls{maldi}-\gls{ims}.
+
+The analysis of the glycan dataset also provides some 
+insight into the heuristic of \refdef{DIPPSthreshold}.
+It is interesting to note that the heuristic cutoff is 
+effectively $0.5$ in this case as the 
+$\Sexpr{nStar+1}$th peakgroup, i.e. 
+\reffig{figure_Nglycans_high_dipps_bins_cont}(b), has 
+a \gls{dipps} of 
+$\Sexpr{round(high_dipps_bins[[1]][14],digits=2)}$.
+Peakgroups with high \gls{dipps} are expected to 
+be glycans and so are not expected to occur in the 
+control region at all. 
+The \gls{dipps} is the difference of two proportions of 
+occurrence, one from the subset of interest which in 
+this case is the PNGase F region, the other from the 
+complement which in this case is the control region.
+As glycans are expected to have a proportion of 
+occurrence of zero in the control region, the only 
+factor influencing the value of their \gls{dipps} is 
+their proportion of occurrence in the PNGase F treated 
+region.
+Following from the discussion at the end of 
+\refsec{dipps}, the heuristic of 
+\refdef{DIPPSthreshold} attempts to minimise the 
+distance between the centroid of the subset of interest
+and the \gls{dipps}-template representing the most 
+highly ranked variables by \gls{dipps}.
+The most highly ranked peakgroups in the context of the 
+glycan data should all be glycans, and for these 
+peakgroups the \gls{dipps} reduces to the proportion of 
+occurrence in the PNGase F treated region.
+So if we begin with the empty set, the corresponding 
+\gls{dipps}-template will be the vector of zeros.
+As we add more peakgroups, working down from the most 
+highly ranked by \gls{dipps} we switch zeros into ones 
+in the corresponding elements of the 
+\gls{dipps}-template, until we reach a peakgroup with a 
+\gls{dipps} below $0.5$ --- the $14$th peakgroup in the 
+glycan data.
+Switching the $14$th zero to a one will increase the 
+distance between the centroid and the 
+\gls{dipps}-template rather than decreasing it, and so 
+the heuristic \gls{dipps}-threshold selects the top 
+$13$ peakgroups.
+The above interpretation of the heuristic is a slight 
+oversimplification, as it implicitly assumes that the 
+centroid of the subset of interest is the mean.
+When using the cosine distance, this interpretation is
+only valid if each spectrum has the same number of 
+peaks and therefore their binary representations have
+the same length.
+In practice observations do not all have the same 
+number of peaks, but this interpretation is still 
+useful to explore how the heuristic of 
+\refdef{DIPPSthreshold} behaves.
+
+
+
+\begin{table}[hb]
+\begin{center}
+\begin{tabular}{cl}
+Symbol & Monomer \\ \hline
+\raisebox{-.35\height}{\includegraphics[scale=0.3]{./miscImages/glycans/legend_blue_square.pdf}} & N-acetylglucosamine \\
+\raisebox{-.35\height}{\includegraphics[scale=0.3]{./miscImages/glycans/legend_red_triangle.pdf}} & Fucose \\
+\raisebox{-.35\height}{\includegraphics[scale=0.3]{./miscImages/glycans/legend_green_circle.pdf}} & Mannose \\
+\raisebox{-.35\height}{\includegraphics[scale=0.3]{./miscImages/glycans/legend_yellow_circle.pdf}} & Galactose \\
+\raisebox{-.35\height}{\includegraphics[scale=0.3]{./miscImages/glycans/legend_blue_circle.pdf}} & Glucose \\
+\end{tabular}
+\end{center}
+\caption{Glycan Notation Legend \label{tab:glycan_legend}}
+\end{table}
+
+% % Matching vs. the profiling data as opposed to the imaging data
+% \begin{table}
+% \begin{center}
+% {\footnotesize
+% \begin{tabular}{ccccccc}
+% & Profiling         & LC-MS/MS      & 	     &   	         & \\
+% & MALDI AWM         & $[M+Na^+]^+$ & error & Proposed    & \\
+% & $[M+Na^+]^+$      &  calculated  & (ppm) & composition & \cite{Xu2012} \\ \hline
+% &                   &              &       &             &  \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(a) & 1257.42           & 1257.41 &	7.95  & (Hex)$_2$ + (Man)$_3$(GlcNAc)$_2$            & 1257.42 \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(j) & 1419.48 &	1419.47 &	7.04  &	(Hex)$_3$ + (Man)$_3$(GlcNAc)$_2$            &	1419.48 \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(e) & 1485.54	& 1485.53	& 6.73  & (HexNAc)$_2$(Deoxyhexose)$_1$    	         & 1485.53 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(d) & 1581.54	& 1581.53	& 6.32  & (Hex)$_4$ + (Man)$_3$(GlcNAc)$_2$	          & 1581.53 \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(k) & 1647.60	& 1647.57	& 18.21	& (Hex)$_1$(HexNAc)$_2$(Deoxyhexose)$_1$     & 1647.59 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(b) & 1663.58	& 1663.57	& 6.01	& (Hex)$_2$(HexNAc)$_2$ + (Man)$_3$(GlcNAc)$_2$	& 1663.58 \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(f) & 1688.61	& 1688.61	& 0.00	& (HexNAc)$_3$(Deoxyhexose)$_1$            & 1688.61 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(c) & 1743.59	& 1743.57	& 11.47	& (Hex)$_5$ + (Man)$_3$(GlcNAc)$_2$	          & 1743.58 \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(l) & 1809.64	& 1809.63	& 5.25	& (Hex)$_2$(HexNAc)$_2$(Deoxyhexose)$_1$     & 1809.64 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(e) & 1850.67	& 1850.65	& 10.81	& (Hex)$_1$(HexNAc)$_3$(Deoxyhexose)$_1$     & 1850.67 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(b) & 1905.64	& 1905.63	& 5.25	& (Hex)$_6$ + (Man)$_3$(GlcNAc)$_2$	          & 1905.63 \\
+% & 1955.72 & 1955.69	& 15.34 & (Hex)$_2$(HexNAc)$_2$(Deoxyhexose)$_2$     & 1955.70 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(h) & 2012.72	& 2012.71	& 4.97	& (Hex)$_2$(HexNAc)$_3$(Deoxyhexose)$_1$     & 2012.72 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(j) & 2067.69	& 2067.67	& 9.67	& (Hex)$_7$ + (Man)$_3$(GlcNAc)$_2$            & 2067.69 \\
+% & 2101.79	& 2101.75	& 19.03	& (Hex)$_2$(HexNAc)$_2$(Deoxyhexose)$_3$     & 2101.76 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(h) & 2158.79	& 2158.77	& 9.26	& (Hex)$_2$(HexNAc)$_3$(Deoxyhexose)$_2$     & 2158.78 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins}(g) & 2304.85	& 2304.83	& 8.68	& (Hex)$_2$(HexNAc)$_3$(Deoxyhexose)$_3$     & 2304.83 \\
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \ref{fig:figure_Nglycans_high_dipps_bins_cont}(c) & 2816.08	& 2816.01	& 24.86	& (Hex)$_3$(HexNAc)$_4$(Deoxyhexose)$_4$ & \\	
+% &         &         &       & + (Man)$_3$(GlcNAc)$_2$ & \\
+% \end{tabular}
+% }
+% \end{center}
+% \caption{Matched masses between the \emph{in situ} MALDI acquisition and the LC-MS/MS. For proposed structures and more details, see \addRef. \label{tab:glycan_matches}}
+% \end{table}
+
+% Matching vs. the imaging data
+\begin{table}
+\begin{center}
+{\footnotesize
+\begin{tabular}{ccccccc}
+       & LC-\gls{msms} & mass	 &   	         &            & \\
+       & $[M+Na^+]^+$  & error & Proposed    & Proposed   & \\
+Figure & calculated    & (ppm) & composition & structure  & {\tiny \cite{Xu2012}} \\ \hline
+       &               &       &             &            & \\ 
+\ref{fig:figure_Nglycans_high_dipps_bins}(a)      & 1257.41 &	\Sexpr{round(1000000*abs(1257.41-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][1],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][1],]$PeakGroup)$SN))/1257.41,digits=1)}       & {\tiny (Hex)$_2$ + (Man)$_3$(GlcNAc)$_2$}          & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_1.pdf}} & 1257.42 \\
+& & & & & & \\
+\ref{fig:figure_Nglycans_high_dipps_bins}(j)      & 1419.47 &	\Sexpr{round(1000000*abs(1419.47-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][10],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][10],]$PeakGroup)$SN))/1419.47,digits=1)}     &	{\tiny (Hex)$_3$ + (Man)$_3$(GlcNAc)$_2$}          & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_2.pdf}} &	1419.48 \\ 
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins_cont}(e)} & \multirow{2}{*}{1485.53}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(1485.53-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][17],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][17],]$PeakGroup)$SN))/1485.53,digits=1)}}     & {\tiny (HexNAc)$_2$(Deoxyhexose)$_1$}    	         & \multirow{2}{*}{\raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_3.pdf}}} & \multirow{2}{*}{1485.53} \\ 
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}   &                  & \\ 
+& & & & & & \\
+\ref{fig:figure_Nglycans_high_dipps_bins}(d)      & 1581.53	& \Sexpr{round(1000000*abs(1581.53-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][4],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][4],]$PeakGroup)$SN))/1581.53,digits=1)}       & {\tiny (Hex)$_4$ + (Man)$_3$(GlcNAc)$_2$}	         & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_4.pdf}}& 1581.53 \\ 
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins_cont}(k)} & \multirow{2}{*}{1647.57}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(1647.57-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][23],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][23],]$PeakGroup)$SN))/1647.57,digits=1)}}     & {\tiny (Hex)$_1$(HexNAc)$_2$(Deoxyhexose)$_1$}     & \multirow{2}{*}{\raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_5.pdf}}} & \multirow{2}{*}{1647.59} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}     &                & \\
+& & & & & & \\
+\ref{fig:figure_Nglycans_high_dipps_bins_cont}(b) & 1663.57	& \Sexpr{round(1000000*abs(1663.57-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][14],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][14],]$PeakGroup)$SN))/1663.57,digits=1)}   	& {\tiny (Hex)$_2$(HexNAc)$_2$ + (Man)$_3$(GlcNAc)$_2$}	& \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_6.pdf}} & 1663.58 \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins_cont}(f)} & \multirow{2}{*}{1688.61}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(1688.61-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][18],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][18],]$PeakGroup)$SN))/1688.61,digits=1)}}     & {\tiny (HexNAc)$_3$(Deoxyhexose)$_1$}            & \multirow{2}{*}{\raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_7.pdf}}} & \multirow{2}{*}{1688.61} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}  &                   & \\
+& & & & & & \\
+\ref{fig:figure_Nglycans_high_dipps_bins}(c)      & 1743.57	& \Sexpr{round(1000000*abs(1743.57-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][3],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][3],]$PeakGroup)$SN))/1743.57,digits=1)}      	& {\tiny (Hex)$_5$ + (Man)$_3$(GlcNAc)$_2$}	          & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_8.pdf}} & 1743.58 \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins}(l)} & \multirow{2}{*}{1809.63}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(1809.63-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][12],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][12],]$PeakGroup)$SN))/1809.63,digits=1)}} & {\tiny (Hex)$_2$(HexNAc)$_2$(Deoxyhexose)$_1$}     & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_9.pdf}} & \multirow{2}{*}{1809.64} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}    &  \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_10.pdf}}               & \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins}(e)} & \multirow{2}{*}{1850.65}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(1850.65-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][5],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][5],]$PeakGroup)$SN))/1850.65,digits=1)}}	& {\tiny (Hex)$_1$(HexNAc)$_3$(Deoxyhexose)$_1$}     & \multirow{2}{*}{\raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_11.pdf}}} & \multirow{2}{*}{1850.67} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}    &                 & \\
+& & & & & & \\
+\ref{fig:figure_Nglycans_high_dipps_bins}(b)      & 1905.63	& \Sexpr{round(1000000*abs(1905.63-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][2],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][2],]$PeakGroup)$SN))/1905.63,digits=1)}      	& {\tiny (Hex)$_6$ + (Man)$_3$(GlcNAc)$_2$}	          & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_12.pdf}} & 1905.63 \\
+% & 1955.72 & 1955.69	& 15.34 & (Hex)$_2$(HexNAc)$_2$(Deoxyhexose)$_2$     & 1955.70 \\
+%                                                   &         &       & + (Man)$_3$(GlcNAc)$_2$                    & \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins_cont}(h)} & \multirow{2}{*}{2012.71}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(2012.71-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][20],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][20],]$PeakGroup)$SN))/2012.71,digits=1)}}     & {\tiny (Hex)$_2$(HexNAc)$_3$(Deoxyhexose)$_1$}     & \multirow{2}{*}{\raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_14.pdf}}} & \multirow{2}{*}{2012.72} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}   &                  & \\
+& & & & & & \\
+\ref{fig:figure_Nglycans_high_dipps_bins_cont}(j) & 2067.67	& \Sexpr{round(1000000*abs(2067.67-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][22],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][22],]$PeakGroup)$SN))/2067.67,digits=1)}     & {\tiny (Hex)$_7$ + (Man)$_3$(GlcNAc)$_2$}            & \raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_15.pdf}} & 2067.69 \\
+% & 2101.79	& 2101.75	& 19.03	& (Hex)$_2$(HexNAc)$_2$(Deoxyhexose)$_3$     & 2101.76 \\
+%                                                   &         &       & + (Man)$_3$(GlcNAc)$_2$                    & \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins}(h)} & \multirow{2}{*}{2158.77}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(2158.77-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][8],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][8],]$PeakGroup)$SN))/2158.77,digits=1)}}	& {\tiny (Hex)$_2$(HexNAc)$_3$(Deoxyhexose)$_2$}     & \multirow{2}{*}{\raisebox{-.4\height}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_17.pdf}}} & \multirow{2}{*}{2158.78} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}                    & & \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins}(g)} & \multirow{2}{*}{2304.83}  & \multirow{2}{*}{\Sexpr{round(1000000*abs(2304.83-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][7],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][7],]$PeakGroup)$SN))/2304.83,digits=2)}}	& {\tiny (Hex)$_2$(HexNAc)$_3$(Deoxyhexose)$_3$}     & \multirow{2}{*}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_18.pdf}} & \multirow{2}{*}{2304.83} \\
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}  &                   & \\
+& & & & & & \\
+& & & & & & \\
+\multirow{2}{*}{\ref{fig:figure_Nglycans_high_dipps_bins_cont}(c)} & \multirow{2}{*}{2816.01}	& \multirow{2}{*}{\Sexpr{round(1000000*abs(2816.01-weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][15],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][15],]$PeakGroup)$SN))/2816.01,digits=1)}}  & {\tiny (Hex)$_3$(HexNAc)$_4$(Deoxyhexose)$_4$} & \multirow{2}{*}{\includegraphics[scale=0.1]{./miscImages/glycans/glycan_19.pdf}} & \\	
+                                                  &         &       & {\tiny + (Man)$_3$(GlcNAc)$_2$}      &               & \\
+\end{tabular}
+}
+\end{center}
+\caption{Matched masses between the \emph{in situ} MALDI acquisition and the LC-\gls{msms}. For proposed structures and more details, see \citet{Gustafsson2015}. A legend for the symbols used to draw the proposed structures is provided in \reftab{glycan_legend}. \label{tab:glycan_matches}}
+\end{table}
+
+
+
+
+
+\begin{figure}[p]
+  \begin{center}
+      <<figure_Nglycans_high_dipps_bins, dependson="Nglycans_high_dipps_bins", fig.height=6, fig.width=6,  out.width="0.95\\linewidth">>=
+      mI.m <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][1],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      mI.m$plot <- "(a)"
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][2],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(b)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][3],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(c)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][4],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(d)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][5],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(e)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][6],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(f)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][7],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(g)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][8],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(h)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][9],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(i)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][10],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(j)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][11],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(k)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][12],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(l)"
+      mI.m = rbind(mI.m,temp)
+
+      mI.m$plot <- factor(mI.m$plot)
+      
+      p = (ggplot(mI.m,aes(X,Y))
+           + facet_wrap( ~ plot, ncol = 4)
+           + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+           + guides(alpha = FALSE,fill=FALSE)
+           + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+           + coord_fixed()
+           + scale_x_continuous(breaks=seq(300, 350, 50))
+           + scale_y_reverse(breaks=seq(200, 250, 50))
+           + ylab("")
+           + xlab("")
+      )
+      print(p)
+      @    
+  \end{center}
+\captionsetup{singlelinecheck=off}
+\caption[foo bar]{Spatial plots with log-intensity of 
+peaks shown using colour, bright 
+colours corresponding to high log-intensities dark to 
+low log-intensities and grey indicating the absence of 
+peaks. Each subplot shows a peakgroup, and the 
+peakgroups shown are those ranked $1-12$ in decreasing 
+order of \gls{dipps}. 
+For each peakgroup an abundance weighted mean \gls{mz} 
+was calculated by averaging the $m/z$ of all peaks in 
+the peakgroup, weighting based on their \gls{snr}. 
+Shown are the peakgroups with \gls{snr}-weighted mean
+\gls{mz} of: \label{fig:figure_Nglycans_high_dipps_bins} 
+  \begin{center}
+	\begin{multicols}{2}
+	\begin{enumerate}[(a)]
+		\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][1],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][1],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][1],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][2],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][2],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][2],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][3],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][3],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][3],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][4],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][4],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][4],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][5],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][5],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][5],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][6],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][6],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][6],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][7],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][7],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][7],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][8],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][8],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][8],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][9],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][9],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][9],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][10],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][10],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][10],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][11],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][11],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][11],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][12],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][12],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][12],digits=2)}$.
+	\end{enumerate}
+	\end{multicols}
+	\end{center}
+}
+\end{figure}
+
+
+\begin{figure}[p]
+  \begin{center}
+      <<figure_Nglycans_high_dipps_bins_cont, dependson="Nglycans_high_dipps_bins", fig.height=6, fig.width=6,  out.width="0.95\\linewidth">>=
+      mI.m <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][13],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      mI.m$plot <- "(a)"
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][14],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(b)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][15],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(c)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][16],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(d)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][17],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(e)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][18],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(f)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][19],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(g)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][20],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(h)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][21],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(i)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][22],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(j)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][23],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(k)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][24],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(l)"
+      mI.m = rbind(mI.m,temp)
+
+      mI.m$plot <- factor(mI.m$plot)
+      
+      p = (ggplot(mI.m,aes(X,Y))
+           + facet_wrap( ~ plot, ncol = 4)
+           + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+           + guides(alpha = FALSE,fill=FALSE)
+           + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+           + coord_fixed()
+           + scale_x_continuous(breaks=seq(300, 350, 50))
+           + scale_y_reverse(breaks=seq(200, 250, 50))
+           + ylab("")
+           + xlab("")
+      )
+      print(p)
+      @    
+  \end{center}
+\captionsetup{singlelinecheck=off}
+\caption[foo bar]{Spatial plots with log-intensity of 
+peaks shown using colour, bright 
+colours corresponding to high log-intensities dark to 
+low log-intensities and grey indicating the absence of 
+peaks. Each subplot shows a peakgroup, and the 
+peakgroups shown are those ranked $13-24$ in decreasing 
+order of \gls{dipps}. 
+For each peakgroup an abundance weighted mean \gls{mz} 
+was calculated by averaging the $m/z$ of all peaks in 
+the peakgroup, weighting based on their \gls{snr}. 
+Shown are the peakgroups with \gls{snr}-weighted mean
+\gls{mz} of: 
+\label{fig:figure_Nglycans_high_dipps_bins_cont}. 
+  \begin{center}
+	\begin{multicols}{2}
+	\begin{enumerate}[(a)]
+		\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][13],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][13],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][13],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][14],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][14],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][14],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][15],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][15],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][15],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][16],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][16],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][16],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][17],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][17],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][17],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][18],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][18],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][18],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][19],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][19],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][19],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][20],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][20],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][20],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][21],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][21],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][21],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][22],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][22],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][22],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][23],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][23],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][23],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][24],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][24],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][24],digits=2)}$.
+	\end{enumerate}
+	\end{multicols}
+	\end{center}
+}
+\end{figure}
+
+
+
+\begin{figure}[p]
+  \begin{center}
+      <<figure_Nglycans_high_dipps_bins_cont_2, dependson="Nglycans_high_dipps_bins", fig.height=6, fig.width=6,  out.width="0.95\\linewidth">>=
+      mI.m <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][25],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      mI.m$plot <- "(a)"
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][26],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(b)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][27],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(c)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][28],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(d)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][29],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(e)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][30],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(f)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][31],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(g)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][32],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(h)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][33],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(i)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][34],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(j)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][35],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(k)"
+      mI.m = rbind(mI.m,temp)
+      temp <- spatialPlot(subset(peaklist_all,PeakGroup==Summary_merged[high_dipps_bins[[2]][36],]$PeakGroup),
+                          fExists_png2,
+                          plot_var_transform = "log",
+                          minX_in = minX_png2,
+                          minY_in = minY_png2,
+                          return_mI.m = TRUE)
+      temp$plot <- "(l)"
+      mI.m = rbind(mI.m,temp)
+
+      mI.m$plot <- factor(mI.m$plot)
+      
+      p = (ggplot(mI.m,aes(X,Y))
+           + facet_wrap( ~ plot, ncol = 4)
+           + geom_tile(data = mI.m,aes(fill=value,alpha=as.numeric(!is.na(value))),colour=NA)  
+           + guides(alpha = FALSE,fill=FALSE)
+           + geom_tile(data = mI.m,aes(alpha=0.5*as.numeric(mI.m$empty)))
+           + coord_fixed()
+           + scale_x_continuous(breaks=seq(300, 350, 50))
+           + scale_y_reverse(breaks=seq(200, 250, 50))
+           + ylab("")
+           + xlab("")
+      )
+      print(p)
+      @    
+  \end{center}
+\captionsetup{singlelinecheck=off}
+\caption[foo bar]{Spatial plots with log-intensity of 
+peaks shown using colour, bright 
+colours corresponding to high log-intensities dark to 
+low log-intensities and grey indicating the absence of 
+peaks. Each subplot shows a peakgroup, and the 
+peakgroups shown are those ranked $25-36$ in decreasing 
+order of \gls{dipps}. 
+For each peakgroup an abundance weighted mean \gls{mz} 
+was calculated by averaging the $m/z$ of all peaks in 
+the peakgroup, weighting based on their \gls{snr}. 
+Shown are the peakgroups with \gls{snr}-weighted mean
+\gls{mz} of: 
+\label{fig:figure_Nglycans_high_dipps_bins_cont_2}. 
+  \begin{center}
+  \begin{multicols}{2}
+	\begin{enumerate}[(a)]
+		\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][25],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][25],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][25],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][26],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][26],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][26],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][27],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][27],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][27],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][28],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][28],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][28],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][29],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][29],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][29],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][30],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][30],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][30],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][31],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][31],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][31],digits=2)}$.
+  	\item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][32],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][32],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][32],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][33],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][33],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][33],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][34],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][34],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][34],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][35],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][35],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][35],digits=2)}$.
+    \item $\Sexpr{round(weighted.mean(subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][36],]$PeakGroup)$m.z,subset(peaklist_all,PeakGroup == Summary_merged[high_dipps_bins[[2]][36],]$PeakGroup)$SN),digits=2)}$ and \gls{dipps} $\Sexpr{round(high_dipps_bins[[1]][36],digits=2)}$.
+	\end{enumerate}
+	\end{multicols}
+	\end{center}
+}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% Vulvar Cancer intro
+%
+%The vulvar cancer data contains data for four patients. For each patient, areas of tissue corresponding to a number of tissue types that are of particular interest have been annotated by the biologists. Specifically, these annotated tissue types are along a progression pathway for the cancer, and so considering differences between them is of particular interest, as it has the potential to yeild insights into the progression of the disease. For each of the four patients, there is annotated areas of healthy (H), primary tumour (T), and metastisis (M) tissue. For two of the patients, there is also regions of VIM (V) tissue that is theorised to be an intermediate state between healthy and tumour in the progression pathway for cancer. So the theorised progression is as shown in \reffig{vulvarProgression}.
+%
+%\begin{figure}[h]
+	%\begin{center}
+	%\begin{tikzpicture}
+		%\draw (0,0) node {H};
+		%\draw[->,dashed] (0.3,0) -- (0.7,0);
+		%\draw (1,0) node {V};
+		%\draw[->,dashed] (1.3,0) -- (1.7,0);
+		%\draw (2,0) node {T};
+		%\draw[->] (2.3,0) -- (2.7,0);
+		%\draw (3,0) node {M};
+	%\end{tikzpicture}
+	%\end{center}
+	%\caption{Progression pathway for vulvar cancer \label{fig:vulvarProgression}}
+%\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% 
+% 
+% \pagebreak
+% %\bibliographystyle{abbrv}
+% \bibliographystyle{plainnat}
+% %\bibliographystyle{harvard}
+% \bibliography{references}
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

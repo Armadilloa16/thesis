@@ -1,0 +1,1550 @@
+<<appendix_normalisation_set_parent, cache=FALSE, include=FALSE>>=
+set_parent('whole_thesis.Rnw')
+@
+
+
+% Here we provide derivations for the analytic form of 
+% two classes of matrix used in \refchap{normalisation}. 
+% In \refsec{ABCnotation} we introduce notation for these
+% two classes of matrix -- $A(a,b,c,d)$ and $C(n,d,c)$
+% respectively.
+% We also introduce some shorthand notation and 
+% preliminary results that will be convenient in the 
+% derivations.
+% Both derivations (\refsec{invAproof} and \refsec{invCproof}
+% respectively) approach the problems in the same way:
+% \begin{itemize}
+%   \item For an invertible matrix $A$ the inverse can be 
+%   found from the adjoint of $A$, $adj(A)$, as 
+%   $A^{-1} = \frac{1}{|A|}adj(A)$. 
+%   \item The adjoint is the tranzspose of the cofactor 
+%   matrix $adj(A) = C^T$. 
+%   Both classes of matrix we consider are symmetric, and 
+%   as such $adj(A) = C = C^T$.
+%   \item The cofactor matrix can be found from the 
+%   matrix of minors, $M$ as $C_{ij} = (-1)^{i+j}M_{ij}$ 
+%   where the subscript $ij$ indicates the $(i,j)^{th}$ 
+%   element of the matrix.
+%   \item The $(i,j)$th entry of the matrix of minors 
+%   is the determinant of the matrix $A$ with the $i$th 
+%   row and $j$th column removed.
+% \end{itemize}
+% References for these results and other basic linear 
+% algebra results used can be found in 
+% \citet{Halmos1958,Brookes2011}.
+
+Here we provide a derivation of the analytic form for 
+the inverse of a class of matrices $A(a,b,c,d)$ 
+defined in \refeqn{A}.
+First we introduce notation, shorthand, and preliminary
+results in \refsec{ABCnotation}.
+We also use many common linear algebra results 
+throughout, and references for these can be found in 
+\citet{Halmos1958,Brookes2011}.
+
+
+
+
+\section{Notation and Preliminary Results}
+\label{sec:ABCnotation}
+
+
+\subsection{$A(a,b,c,d)$}
+
+We will be interested in matrices of the form
+\begin{equation}
+A(a,b,c,d) = \left [ \begin{array}{cc}
+    a\text{I}_{b\times b} & \bm{1}_{b \times d} \\
+		\bm{1}_{b \times d} & c\text{I}_{d\times d}
+	\end{array} \right ] = \left [ \begin{array}{cccccccc}
+	a & 0 & 0 & 0 & 1 & 1 & \hdots & 1 \\
+	0 & a & 0 & 0 & 1 & 1 & \hdots & 1 \\
+	\vdots & & \ddots & \vdots & \vdots & & \ddots & \vdots \\
+	0 & 0 & 0 & a & 1 & 1 & \hdots & 1 \\
+	1 & 1 & 1 & 1 & c & 0 & \hdots & 0 \\
+	1 & 1 & 1 & 1 & 0 & c & \hdots & 0 \\
+	\vdots & & & \vdots & \vdots & & \ddots & \vdots \\
+	1 & 1 & 1 & 1 & 0 & 0 & \hdots & c \\
+	\end{array} \right ].
+\label{eqn:A}
+\end{equation}
+%\begin{equation*}
+%A(a,b,c,d) = \left [ \begin{array}{ccccccccc}
+	%a & 0 & 0 & 0 & 0 & 1 & 1 & \hdots & 1 \\
+	%0 & a & 0 & 0 & 0 & 1 & 1 & \hdots & 1 \\
+	%\vdots & & \ddots & & \vdots & \vdots & & \ddots & \vdots \\
+	%0 & 0 & 0 & 0 & a & 1 & 1 & \hdots & 1 \\
+	%1 & 1 & 1 & 1 & 1 & c & 0 & \hdots & 0 \\
+	%1 & 1 & 1 & 1 & 1 & 0 & c & \hdots & 0 \\
+	%\vdots & & & & \vdots & \vdots & & \ddots & \vdots \\
+	%1 & 1 & 1 & 1 & 1 & 0 & 0 & \hdots & c \\
+	%\end{array} \right ]
+%\end{equation*}
+We will be dealing with matrices of minors of such 
+matrices, and as such some shorthand notation will be 
+useful: 
+\begin{itemize}
+  \item Let $A \setminus (i,j)$ denote the submatrix of
+$A$ constructed by removing the $i$th row and $j$th 
+column.
+  \item Let $A \setminus (i,.)$ denote the submatrix 
+of $A$ constructed by removing the $i$th row, and 
+$A \setminus (.,j)$ denote the submatrix of
+$A$ constructed by removing the $j$th column.
+  \item Let $A \setminus \{(i,j),(k,l)\}$ denote the 
+submatrix of $A$ constructed by removing the $i$th and 
+$k$th rows, and $j$th and $l$th columns.
+\end{itemize}
+Note that 
+$A \setminus \{(i,j),(k,l)\} = A \setminus \{(i,l),(k,j)\} = A \setminus \{(k,l),(i,j)\}$.
+Furthermore if $j > i$ then 
+$A \setminus \{(i,i),(j,j)\} = (A \setminus (j,j)) \setminus (i,i)$. 
+
+Also, the shorthand notation:
+\begin{equation}
+A_n = A(a,b-n,c,d-n), \quad \quad n \leq min(b,d)
+\label{An}
+\end{equation}
+will be useful as dropping the $(a,b,c,d)$ dependence 
+is convenient when these values are constant, as they 
+will be in the cases we consider.
+
+
+
+
+
+% \subsection{$B(a,b)$ and $C(n,d,c)$}
+% 
+% We will also be interested in $ab \times b$ matrices of 
+% the form: 
+% 
+% \begin{equation}
+% B(a,b) = \left [ \begin{array}{cccccc}
+%   1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% 	\vdots 	& \vdots 	& 				& \ddots 	& 				& \vdots \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% 	\end{array}
+% 	\right ].
+% \label{eqn:B}
+% \end{equation}
+% % \begin{figure}[ht]
+% % \begin{center}
+% % \begin{tikzpicture}
+% % x\draw (0,0) node {
+% % $
+% %   B(a,b) = \left [ \begin{array}{cccccc}
+% % 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% % 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% % 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% % 	1 			& 0 			& 0 			& 0 			& \hdots 	& 0 \\
+% % 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% % 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% % 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% % 	1 			& 1 			& 0 			& 0 			& \hdots 	& 0 \\
+% % 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% % 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% % 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% % 	1 			& 0 			& 1 			& 0 			& \hdots 	& 0 \\
+% % 	\vdots 	& \vdots 	& 				& \ddots 	& 				& \vdots \\
+% % 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% % 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% % 	\vdots 	& \vdots 	& 				& 				& 				& \vdots \\
+% % 	1 			& 0 			& 0 			& 0 			& \hdots 	& 1 \\
+% % 	\end{array}
+% % 	\right ]
+% % $
+% % };
+% % 	\draw [decorate,decoration={brace,amplitude=12pt},yshift=6pt,xshift=8pt]
+% % 					(-0.65,4) -- (2.05,4) node [black,midway,yshift=18pt] 
+% % {$b-1$};
+% % 	\draw [decorate,decoration={brace,amplitude=12pt},yshift=0pt,xshift=20pt]
+% % 					(2.05,4) -- (2.05,2.4) node [black,midway,yshift=0pt,xshift=16pt] 
+% % {$a$};
+% % 	\draw [decorate,decoration={brace,amplitude=12pt},yshift=0pt,xshift=20pt]
+% % 					(2.05,2.1) -- (2.05,0.5) node [black,midway,yshift=0pt,xshift=16pt] 
+% % {$a$};
+% % 	\draw [decorate,decoration={brace,amplitude=12pt},yshift=0pt,xshift=20pt]
+% % 					(2.05,0.2) -- (2.05,-1.4) node [black,midway,yshift=0pt,xshift=16pt] 
+% % {$a$};
+% % 	\draw [decorate,decoration={brace,amplitude=12pt},yshift=0pt,xshift=20pt]
+% % 					(2.05,-2.4) -- (2.05,-4) node [black,midway,yshift=0pt,xshift=16pt] 
+% % {$a$};
+% % \end{tikzpicture}
+% % \end{center}
+% % \end{figure}
+% 
+% Let $B_c$ denote $B(c,n)$ -- we drop the $n$ dependance
+% as in the cases we are interested in $n$ remains 
+% constant.
+% Given this notation, note that 
+% $B_c^TB_c = cA(n,1,1,n-1)$. 
+% Similarly to $A(a,b,c,d)$ we will be interested in
+% certain submatrices of $B(a,b)$. For given $i$ (that 
+% will be clear from context), we introduce the recursive 
+% notation:
+% 
+% \begin{equation}
+% B_{(d-c)(k)} = B_{(d-c)(k-1)} \setminus ((i-1)(d-c) + 1,\, .), \quad \quad k = 1,2,\hdots,(d-c)
+% \label{eqn:Bk}
+% \end{equation}
+% with initial value
+% \begin{equation*}
+% B_{(d-c)(0)} = B_{(d-c)} \setminus (.\, ,i).
+% \end{equation*}
+% 
+% Similarly we introduce the recursive notation:
+% 
+% \begin{equation}
+% B_{(d-c)(k)^*} = B_{(d-c)(k-1)^*} \setminus ((i-1)(d-c) + 1,\, .), \quad \quad k = 1,2,\hdots,(d-c)
+% \label{eqn:Bkstar}
+% \end{equation}
+% with initial value
+% \begin{equation*}
+% B_{(d-c)(1)^*} = B_{(d-c)} \setminus \{ (.\, ,i),(.\, , 1) \}.
+% \end{equation*}
+% 
+% 
+% 
+% 
+% 
+% 
+% Introducing notation for $B(a,b)$ is useful because we 
+% will be interested in the set of matrices of the form: 
+% \begin{equation}
+% C(n,d,c) = \left [ \begin{array}{cc}
+% dA(n,1,1,n-1) & B_{(d-c)}^T \\
+% B_{(d-c)} & \bm{I}
+% \end{array}
+% \right ].
+% \label{eqn:C}
+% \end{equation}
+% 
+% and the recursive definiations of Equations
+% \ref{eqn:Bk} and \ref{eqn:Bkstar} are useful for 
+% writing the submatrices of $C(n,d,c)$:
+% 
+% \begin{equation}
+% C_{(k)} = \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)(k)}^T \\
+% B_{(d-c)(k)} & \bm{I}_{(d-c)n-k}
+% \end{array} \right |
+% \label{eqn:Ck}
+% \end{equation}
+% 
+% and 
+% 
+% \begin{equation}
+% C_{(k)^*} = \left | \begin{array}{cc}
+% d\bm{I}_{n-2} & B_{(d-c)(k)^*}^T  \\
+% B_{(d-c)(k)^*} & \bm{I}_{(d-c)n-k} 
+% \end{array} \right |.
+% \label{eqn:Ckstar}
+% \end{equation}
+
+
+% \subsection{Determinants of Block Matrices}
+% 
+% It is useful to remember the general decomposition 
+% result for block matrices with $A$ or $D$ invertible 
+% respectively:
+% \begin{equation*}
+% \left [ \begin{array}{cc}
+% A & B \\
+% C & D 
+% \end{array} \right ]
+% = \left [ \begin{array}{cc}
+% A & 0 \\ 
+% C & I 
+% \end{array} \right ] 
+% \left [ \begin{array}{cc}
+% I & A^{-1}B \\
+% 0 & D - CA^{-1}B
+% \end{array} \right ]
+% = \left [ \begin{array}{cc}
+% I & B \\ 
+% 0 & D 
+% \end{array} \right ] 
+% \left [ \begin{array}{cc}
+% A - BD^{-1}C & 0 \\
+% D^{-1}C & I
+% \end{array} \right ].
+% \end{equation*}
+% 
+% This LU-decomposition leads to
+% \begin{equation}
+% \left | \begin{array}{cc}
+% A & B \\
+% C & D 
+% \end{array} \right |
+% = |A||D - CA^{-1}B|
+% = |D||A - BD^{-1}C|
+% \label{eqn:SchurDet}
+% \end{equation}
+% involving the Schur complement of $A$ or $D$ 
+% respectively, which can be obtained trivially from the 
+% Leibniz formula.
+% This is a commonly known relation in linear algebra.
+% % , and will be useful here -- particularly in the second
+% % derivation of \refsec{invCproof}.
+
+
+
+\subsection{Preliminary Results for $|A(a,b,c,d)\setminus (i,j)|$}
+\label{sec:prelimTheorem}
+
+Here we provide expansions of 
+$|A(a,b,c,d)\setminus (i,j)|$ for all possible $(i,j)$. 
+These preliminary results will be useful for the 
+derivation in \refsec{invAproof}.
+
+\subsubsection{Case 1: $i \in [1,b]$ and $j \in [b+1,b+d]$}
+
+If $i \neq b$,
+\begin{equation*}
+|A(a,b,c,d)\setminus (i,j)| = -|A(a,b,c,d)\setminus (i+1,j)|
+\end{equation*}
+
+If $j \neq b+d$ ($A(a,b,c,d)\setminus (i,j+1)$ makes no sense),
+\begin{equation*}
+|A(a,b,c,d)\setminus (i,j)| = -|A(a,b,c,d)\setminus (i,j+1)|
+\end{equation*}
+
+
+By symmetry these results also hold if $i$ and $j$ are swapped.
+
+\subsubsection{Case 2: $i,j \in [1,b]$ and $i \neq j$}
+
+If $i \neq b$ and $i \neq j-1$,
+\begin{equation*}
+|A(a,b,c,d)\setminus (i,j)| = -|A(a,b,c,d)\setminus (i+1,j)|
+\end{equation*}
+
+If $j \neq b$ and $j \neq i-1$,
+\begin{equation*}
+|A(a,b,c,d)\setminus (i,j)| = -|A(a,b,c,d)\setminus (i,j+1)|
+\end{equation*}
+
+
+\subsubsection{Case 3: $i,j \in [b+1,b+d]$ and $i \neq j$}
+
+If $i \neq b+d$ and $i \neq j-1$,
+\begin{equation*}
+|A(a,b,c,d)\setminus (i,j)| = -|A(a,b,c,d)\setminus (i+1,j)|
+\end{equation*}
+
+If $j \neq b+d$ and $j \neq i-1$,
+\begin{equation*}
+|A(a,b,c,d)\setminus (i,j)| = -|A(a,b,c,d)\setminus (i,j+1)|
+\end{equation*}
+
+
+
+
+
+
+
+% \subsection{Preliminary Results regarding $C(n,c,d)$}
+% \label{sec:prelimResults}
+% 
+% First, the following minor results will also be useful.
+% 
+% \subsubsection{Result 1: for $i \in [2,n]$,}
+% \label{sec:prelimResult1}
+% \begin{align*}
+% & \left | C(n,d,c) \setminus \left \{ (i,i), ((i-1)(d-c)+1,1) \right \} \right | \\
+% &=\left | \begin{array}{cc}
+% dA(n,1,1,n-2) \setminus (.\, , 1) & B_{(d-c)}^T \setminus (i,.) \\
+% B_{(d-c)(1)^*} & \bm{I}_{(d-c)n} \setminus ((i-1)(d-c) + 1,.)
+% \end{array} \right | \\
+% & =  (-1)^{(i-1)(d-c) + n}\left | \begin{array}{cc}
+% d\bm{I}_{n-2} & B_{(d-c)(1)^*}^T  \\
+% B_{(d-c)(1)^*} & \bm{I}_{(d-c)n-1} 
+% \end{array} \right | \\
+% & \quad \quad \text{ (expanding along the } ((i-1)(d-c) + n - 1)^{\text{th}} \text{ column)}
+% \end{align*}
+% 
+% \subsubsection{Result 2: for $i \in [2,n]$, $k \in [1,d-c-1]$,}
+% \label{sec:prelimResult2}
+% \begin{align*}
+% &\left | \begin{array}{cc}
+% dA(n,1,1,n-2) \setminus (.\, , 1) & B_{(d-c)(k)}^T \\
+% B_{(d-c)(k+1)^*} & \bm{I}_{(d-c)n-k} \setminus ((i-1)(d-c) + 1,.)
+% \end{array} \right | \\
+% & \quad \quad =  (-1)^{(i-1)(d-c) + n}\left | \begin{array}{cc}
+% d\bm{I}_{n-2} & B_{(d-c)(k+1)^*}^T  \\
+% B_{(d-c)(k+1)^*} & \bm{I}_{(d-c)n-(k+1)} 
+% \end{array} \right | \\
+% & \quad \quad \quad \quad \text{ (expanding along the } ((i-1)(d-c) + n - 1)^{\text{th}} \text{ column)}
+% \end{align*}
+% Note: This also holds for $k=0$, and this is the 
+% special case considered in Case 1.
+% 
+% \subsubsection{Result 3: for $k = 1,2,...,d-c-1$,}
+% \label{sec:prelimResult3}
+% \begin{align*}
+% |C_{(k)^*}| &= |C_{(k+1)^*}| & \\
+%   					&= |C_{(d-c)^*}| & \text{by recursion} \\
+% 						&= |C(n-1,d,c) \setminus (1,1)|. & \\
+% % 						&= c^{n-2} & \text{from \refsubsec{MCcase1}{Case 1}}
+% \end{align*}
+% 
+% \subsubsection{Result 4: for $k = 1,2,...,d-c-1$,}
+% \label{sec:prelimResult4}
+% \begin{align*}
+% |C_{(k)}| 	&= \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)(k)}^T \\
+% B_{(d-c)(k)} & \bm{I}_{(d-c)n-k}
+% \end{array} \right | \\
+% 						&= (-1)^{(i-1)(d-c)+n+1}\left | \begin{array}{cc}
+% dA(n,1,1,n-2) \setminus (. \, , 1) & B_{(d-c)(k)}^T \\
+% B_{(d-c)(k+1)^*} & \bm{I}_{(d-c)n-k} \setminus ((i-1)(d-c)+1, .)
+% \end{array} \right | + |C_{(k+1)}|\\
+% 				& \quad \quad \quad \quad \text{ (expanding along the } ((i-1)(d-c) + n)^{\text{th}} \text{ row)}\\
+% 						&= - \left | \begin{array}{cc}
+% d\bm{I}_{n-2} & B_{(d-c)(k+1)^*}^T \\
+% B_{(d-c)(k+1)^*} & \bm{I}_{(d-c)n-(k+1)} 
+% \end{array} \right | + |C_{(k+1)}|\\
+% 				&= -|C_{(k+1)^*}| + |C_{(k+1)}| \\
+% % 				&= -c^{n-2} + |C_{(k+1)}|
+% \end{align*}
+% 
+% \subsubsection{Result 5:}
+% \label{sec:prelimResult5}
+% \begin{align*}
+% |C_{(d-c)}| &= \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)(k)}^T \\
+% B_{(d-c)(k)} & \bm{I}_{(d-c)(n-1)}
+% \end{array} \right | \\
+% 						&= \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B(n-1,d-c)^T \\
+% B(n-1,d-c) & \bm{I}_{(d-c)(n-1)}
+% \end{array} \right | \\
+% 						&= |dA(n,1,1,n-2) - B(n-1,d-c)^TB(n-1,d-c)| \\
+%             & \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \quad \text{(\refeqn{SchurDet})} \\
+% 						&= |dA(n,1,1,n-2) - (d-c)A(n-1,1,1,n-2)| \\
+% 						&= \left|cA\left(\frac{d+c(n-1)}{c},1,1,n-2\right)\right| \\
+%   					&= c^{n-1}\left|A\left(\frac{d+c(n-1)}{c},1,1,n-2\right)\right| \\
+% % 						&= c^{n-1}(\frac{d+c(n-1)}{c} - (n-2)) \\
+% % 						&= (d+c)c^{n-2} \\
+% \end{align*}
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Inverse of $A(a,b,c,d)$}
+\label{sec:invAproof}
+
+% Here we will present the first derivation: the inverse 
+% of a matrix of the form $A(a,b,c,d)$ as introduced in 
+% \refsec{ABCnotation}.
+% As mentioned at the beggining of this Appendix, we will
+% approach this derivation by calculating the matrix of 
+% minors -- as such, an important first step will be to 
+% calculate the determinant of a general matrix
+% $A(a,b,c,d)$, which we do in \refsec{detA}. 
+% We will then find the matrix of minors in \refsec{MA}, 
+% and finally formulate the inverse we want in 
+% \refsec{invA}.
+
+Here we present the derivation for the inverse of a 
+matrix of the form $A(a,b,c,d)$ as introduced in 
+\refsec{ABCnotation}.
+This derivation is structured by following these steps:
+\begin{itemize}
+  \item We find the determinant of a general matrix 
+  $A(a,b,c,d)$ in \refsec{detA}
+  \item We find the matrix of minors in \refsec{MA}.
+  This is done by the fact that the $(i,j)$th entry of
+  the matrix of minors is the determinant of the matrix 
+  with the $i$th row and $j$th column removed.
+  \item The cofactor matrix can be found from the 
+  matrix of minors, $M$ as $C_{ij} = (-1)^{i+j}M_{ij}$ 
+  where the subscript $ij$ indicates the $(i,j)^{th}$ 
+  element of the matrix.
+  \item The adjoint is the transpose of the cofactor 
+  matrix $adj(A) = C^T$. 
+  $A(a,b,c,d)$ is symmetric, and as such 
+  $adj(A) = C = C^T$.
+  \item Finally, we combine the previous results to 
+  find the inverse in \refsec{invA}. 
+  This is done because for an invertible matrix $A$ the
+  inverse can be found from the adjoint of $A$, 
+  $adj(A)$, as $A^{-1} = \frac{1}{|A|}adj(A)$. 
+\end{itemize}
+
+
+\subsection{Determinant}
+\label{sec:detA}
+
+Here we derive a closed form for the determinant of 
+a matrix of the form $A(a,b,c,d)$.
+Remember the shorthand 
+$A_n = A(a,b-n,c,d-n)$ for $n \leq min(b,d)$, which 
+means $A(a,b,c,d)=A_0$.
+Expanding the determinant along the first row gives:
+
+{\footnotesize
+\begin{align*}
+  |A_0| 	&= a|A(a,b-1,c,d)| + \sum_{i = b+1}^{b+d}{(-1)^{i + 1}|A_0 \setminus (1,i)|} & \\
+								&= {\color{red}a|A(a,b-1,c,d)| + (-1)^{b}d|A_0 \setminus (1,b+1)|} & \text{(Sec. \ref{sec:prelimTheorem})} \\
+								&= a|A(a,b-1,c,d)| + (-1)^{b}d\sum_{i = 1}^{b}{(-1)^{b+i}|A_0 \setminus \{ (1,b+1), (b+1,i) \}|} & \text{(expand $b$th row)}\\
+								&= a|A(a,b-1,c,d)| + d\sum_{i = 1}^{b}{(-1)^{b}(-1)^{b+i}|A_0 \setminus \{ (b+1,b+1), (1,i) \}|} & \\
+								&= a|A(a,b-1,c,d)| + d\sum_{i = 1}^{b}{(-1)^{i}|A(a,b,c,d-1) \setminus (1,i)|} & \\
+								&= {\color{blue}a|A(a,b-1,c,d)| - d|A_1| + d(b-1)|A(a,b,c,d-1) \setminus (1,2)|} & \text{(Sec. \ref{sec:prelimTheorem})} \\
+								&= a|A(a,b-1,c,d)| - d|A_1|  & \\
+								& \quad \quad + d(b-1)\sum_{i = b+1}^{b+d-1}(-1)^{i}|A(a,b,c,d-1) \setminus \{ (1,2),(2,i) \}| &  \\
+								%&= a|A(a,b-1,c,d)| - d|A_1|  & \\
+								%& \quad \quad \quad \quad \quad + d(b-1)\sum_{i = b+1}^{b+d-1}(-1)^{i}|A(a,b,c,d-1) \setminus \{ (2,2),(1,i) \}| &  \\
+								&= a|A(a,b-1,c,d)| - d|A_1| + d(b-1)\sum_{i = b+1}^{b+d-1}(-1)^{i}|A_1 \setminus (1,i-1)| &  \\								
+								&= {\color{red}a|A(a,b-1,c,d)| - d|A_1| + d(d-1)(b-1)(-1)^{b+1}|A_1 \setminus (1,b)|} & \text{(Sec. \ref{sec:prelimTheorem})} \\								
+								&= a|A(a,b-1,c,d)| - d|A_1| & \\
+								&  \quad \quad + d(d-1)(b-1)(-1)^{b+1}\sum_{i = 1}^{b-1}{(-1)^{i + b - 1}|A_1 \setminus \{ (1,b),(b,i) \}|} & \\								
+								&= a|A(a,b-1,c,d)| - d|A_1| & \\
+								&  \quad \quad + d(d-1)(b-1)\sum_{i = 1}^{b-1}{(-1)^{i}|A(a,b-1,c,d-2) \setminus  (1,i)|} & \\								&= a|A(a,b-1,c,d)| - d|A_1| - d(d-1)(b-1)|A_2|& \\
+								&  \quad \quad + d(d-1)(b-1)\sum_{i = 2}^{b-1}{(-1)^{i}|A(a,b-1,c,d-2) \setminus  (1,i)|} & \\
+								&= {\color{blue} a|A(a,b-1,c,d)| - d|A_1| - d(d-1)(b-1)|A_2|} & \\
+								&  \quad \quad {\color{blue} + d(d-1)(b-1)(b-2)|A(a,b-1,c,d-2) \setminus  (1,2)|} & \text{(Sec. \ref{sec:prelimTheorem})} \\
+\end{align*}
+}
+
+Notice that this derived result is a recursive relation. If we apply this recursion $l$ times, the $l$th {\color{blue}blue} line will be
+
+\begin{align*}
+	|A_0| 	&= {\color{blue} a|A(a,b-1,c,d)| - d\sum_{k = 1}^{l}{\frac{(d-1)!(b-1)!}{(d-k)!(b-k)!}|A_k|}} & \\
+	&\quad \quad {\color{blue}+ \frac{d!(b-1)!}{(d-l)!(b-l-1)!}|A(a,b-l+1,c,d-l) \setminus (1,2)|} & \\
+  & \hdots & \\
+\end{align*}
+
+Consider the application of this recursion $b-1$ times --- i.e. the $(b-1)$th {\color{blue} blue} line would be
+{\footnotesize
+\begin{align*}
+	|A_0| 	&=  a|A(a,b-1,c,d)| - d\sum_{k = 1}^{b-1}{\frac{(d-1)!(b-1)!}{(d-k)!(b-k)!}|A_k|} + \frac{d!(b-1)!}{(d-b+1)!}|A(a,2,c,d-b+1) \setminus (1,2)| & \\
+					&=  a|A(a,b-1,c,d)| - d\sum_{k = 1}^{b-1}{\frac{(d-1)!(b-1)!}{(d-k)!(b-k)!}|A_k|} - \frac{d!(b-1)!}{(d-b)!}c^{d-b}. & \\
+\end{align*}
+}
+
+Notice that a solution to this recursion relation is
+\begin{equation}
+	|A(a,b,c,d)| = a^{b-1}\left (a-\frac{db}{c} \right ) c^d = a^bc^d - bda^{b-1}c^{d-1}.
+\label{eqn:detA}
+\end{equation}
+
+To validate, we substitute:
+{\footnotesize
+\begin{align*}
+	d\sum_{k = 1}^{b-1}{\frac{(d-1)!(b-1)!}{(d-k)!(b-k)!}|A_k|} &= d\sum_{k = 1}^{b-1}{\frac{(d-1)!(b-1)!}{(d-k)!(b-k)!}(a^{b-k}c^{d-k} - (b-k)(d-k)a^{b-k-1}c^{d-k-1})} \\
+	&= d(d-1)!(b-1)!\left [ \sum_{k = 1}^{b-1}{\frac{a^{b-k}c^{d-k}}{(d-k)!(b-k)!}} - \sum_{k = 1}^{b-1}{\frac{a^{b-k-1}c^{d-k-1}}{(d-k-1)!(b-k-1)!}} \right ] \\
+	&= d(d-1)!(b-1)!\left [ \sum_{k = 1}^{b-1}{\frac{a^{b-k}c^{d-k}}{(d-k)!(b-k)!}} - \sum_{k = 2}^{b}{\frac{a^{b-k}c^{d-k}}{(d-k)!(b-k)!}} \right ] \\
+	&= d(d-1)!(b-1)!\left [ \frac{a^{b-1}c^{d-1}}{(d-1)!(b-1)!} - \frac{c^{d-b}}{(d-b)!} \right ] \\
+	&= da^{b-1}c^{d-1} - \frac{d!(b-1)!}{(d-b)!}c^{d-b}. \\
+\end{align*}
+}
+So
+\begin{align*}
+	|A_0| 	&=  a|A(a,b-1,c,d)| - d\sum_{k = 1}^{b-1}{\frac{(d-1)!(b-1)!}{(d-k)!(b-k)!}|A_k|} - \frac{d!(b-1)!}{(d-b)!}c^{d-b} & \\
+					&=  a|A(a,b-1,c,d)| - da^{b-1}c^{d-1} + \frac{d!(b-1)!}{(d-b)!}c^{d-b} - \frac{d!(b-1)!}{(d-b)!}c^{d-b} & \\
+					&=  a\left(a^{b-1}c^d - (b-1)da^{b-2}c^{d-1}\right ) - da^{b-1}c^{d-1} \\
+					&=  a^bc^d - (b-1)da^{b-1}c^{d-1} - da^{b-1}c^{d-1} \\
+					&=  a^bc^d - (b-1 + 1)da^{b-1}c^{d-1} \\
+					&=  a^bc^d - bda^{b-1}c^{d-1} \\
+					&=  |A_0|, \\
+\end{align*}
+thus validating the solution of \refeqn{detA}.
+
+% 
+% \subsection{Alternate proof for Determinant}
+% \label{sec:detAalt}
+% 
+% Here we derive a closed form for the determinant of 
+% a matrix of the form $A(a,b,c,d)$.
+% Remembering that 
+% \begin{equation*}
+% A(a,b,c,d) = \left [ \begin{array}{cc}
+%     a\text{I}_{b\times b} & \bm{1}_{b \times d} \\
+%     \bm{1}_{d \times b} & c\text{I}_{d\times d}
+% 	\end{array} \right ]
+% \end{equation*}
+% we use \refeqn{SchurDet} to see that
+% \begin{align*}
+% |A(a,b,c,d)| &= |a\text{I}_{b\times b}|\left|c\text{I}_{d\times d} - \bm{1}_{d \times b}\left(\frac{1}{a}\text{I}_{b\times b}\right)\bm{1}_{b \times d}\right| \\
+%              &= a^b\left|c\text{I}_{d\times d} - \frac{b}{a} \bm{1}_{d \times d}\right|
+% \end{align*}
+% Let $C_d$ denote 
+% $c\text{I}_{d\times d} - \frac{b}{a} \bm{1}_{d \times d}$.
+% By subtracting the $(n-1)$th row from the $n$th row of 
+% $C_d$ for $n = 2,3,\hdots,d$, we can see that 
+% \begin{equation*}
+% |C_d| = \left| \left[ \begin{array}{cccccccc}
+% c -\frac{b}{a} & -\frac{b}{a} & -\frac{b}{a} & -\frac{b}{a} & & \hdots & & -\frac{b}{a} \\
+% -c & c & 0 & 0 & & \hdots & & 0 \\
+%  0 &-c & c & 0 & & \hdots & & 0 \\
+%  0 & 0 &-c & c & & & & 0 \\
+%  \vdots & \vdots & & \ddots & \ddots & & & \vdots \\
+%  0 & 0 & \hdots & 0 & -c & c & 0 & 0 \\
+%  0 & 0 & \hdots & 0 & 0 & -c & c & 0 \\
+%  0 & 0 & \hdots & 0 & 0 & 0 & -c & c \\
+% \end{array}
+% \right]
+% \right|.
+% \end{equation*}
+% Expanding this deteminant along its last column 
+% produces the recurrence relation
+% \begin{align*}
+% |C_d| &= (-1)^{d+1}\left(\frac{-b}{a}\right)(-c)^{d-1} + (-1)^{2d}c|C_{d-1}| \\
+%       &= \frac{-bc^{d-1}}{a} + c|C_{d-1}| \\
+%       &= \frac{-bc^{d-1}}{a} + c\left( \frac{-bc^{d-2}}{a} + c|C_{d-2}| \right ) \\
+%       &= \frac{-2bc^{d-1}}{a} + c^2|C_{d-2}| \\
+%       &= \frac{-3bc^{d-1}}{a} + c^3|C_{d-3}| \\
+%       & \vdots \\
+%       &= \frac{-(d-2)bc^{d-1}}{a} + c^{d-2}|C_{2}| \\
+%       &= \frac{-(d-2)bc^{d-1}}{a} + c^{d-2}
+%       \left| \left[ \begin{array}{cc}
+%       c-\frac{b}{a} & -\frac{b}{a} \\
+%       -c & c \\
+%       \end{array} \right] \right|| \\
+%       &= \frac{-(d-2)bc^{d-1}}{a} + c^{d-2} \left( c^2 -\frac{2cb}{a} \right) \\
+%       &= \frac{-dbc^{d-1}}{a} + c^d = c^d \left( 1-\frac{db}{ac}\right)
+% \end{align*}
+% and so
+% \begin{equation}
+%   |A(a,b,c,d)| = a^b\left (1-\frac{db}{ca} \right ) c^d = a^bc^d - bda^{b-1}c^{d-1}.
+% \label{eqn:detAalt}
+% \end{equation}
+
+
+
+\subsection{Matrix of Minors}
+\label{sec:MA}
+
+Here we will derive the matrix of minors for a matrix 
+of the form $A(a,b,c,d)$. 
+We separate this problem into cases, and find the 
+minors for each case separately.
+
+\subsubsection{Case 1: $i = j$ (diagonal entries)}
+\label{sec:MAcase1}
+
+This case reduces to the general problem of finding 
+$|A(a,b,c,d)|$, which we have already solved in 
+\refsec{detA} --- $|A(a,b,c,d)|$ is given in 
+\refeqn{detA}. So,
+{\small
+\begin{equation*}
+|A(a,b,c,d) \setminus (i,i)| = \left \{ \begin{array}{ll}
+|A(a,b-1,c,d)| = a^{b-1}c^d - (b-1)da^{b-2}c^{d-1} & \text{if } i \in [1,b] \\
+|A(a,b,c,d-1)| = a^bc^{d-1} - b(d-1)a^{b-1}c^{d-2} & \text{if } i \in [b+1,b+d] \\
+\end{array} \right .
+\end{equation*}
+}
+
+
+\subsubsection{Case 2: $i = 1$ and $j \in [b+1,b+d]$}
+\label{sec:MAcase2}
+
+From \refsubsec{MAcase1}{Case 1} we have:
+
+{\footnotesize
+\begin{align*}
+	\sum_{k = 2}^{b-1}{\frac{(d-1)!(b-2)!}{(d-k)!(b-k)!}|A_k|} &= \sum_{k = 2}^{b-1}{\frac{(d-1)!(b-2)!}{(d-k)!(b-k)!}(a^{b-k}c^{d-k} - (b-k)(d-k)a^{b-k-1}c^{d-k-1})} \\
+	&= (d-1)!(b-2)!\left [ \sum_{k = 2}^{b-1}{\frac{a^{b-k}c^{d-k}}{(d-k)!(b-k)!}} - \sum_{k = 2}^{b-1}{\frac{a^{b-k-1}c^{d-k-1}}{(d-k-1)!(b-k-1)!}} \right ] \\
+	&= (d-1)!(b-2)!\left [ \sum_{k = 2}^{b-1}{\frac{a^{b-k}c^{d-k}}{(d-k)!(b-k)!}} - \sum_{k = 3}^{b}{\frac{a^{b-k}c^{d-k}}{(d-k)!(b-k)!}} \right ] \\
+	&= (d-1)!(b-2)!\left [ \frac{a^{b-2}c^{d-2}}{(d-2)!(b-2)!} - \frac{c^{d-b}}{(d-b)!} \right ] \\
+	&= (d-1)a^{b-2}c^{d-2} - \frac{(d-1)!(b-2)!}{(d-b)!}c^{d-b} \\
+\end{align*}
+}
+
+and thus also
+
+{\scriptsize
+\begin{align*}
+	|A(a,b,c,d-1) \setminus (1,2)| 	&= - \sum_{k = 2}^{l}{\frac{(d-1)!(b-2)!}{(d-k)!(b-k)!}|A_k|} + \frac{(d-1)!(b-2)!}{(d-l)!(b-l-1)!}|A(a,b-l+1,c,d-l) \setminus (1,2)| & \\
+																	&= - \sum_{k = 2}^{b-1}{\frac{(d-1)!(b-2)!}{(d-k)!(b-k)!}|A_k|} + \frac{(d-1)!(b-2)!}{(d-b+1)!}|A(a,2,c,d-b+1) \setminus (1,2)| & \\
+																	&= - \left[ (d-1)a^{b-2}c^{d-2} - \frac{(d-1)!(b-2)!}{(d-b)!}c^{d-b} \right ] - \frac{(d-1)!(b-2)!}{(d-b)!}c^{d-b} & \\
+																	&= - (d-1)a^{b-2}c^{d-2} & \\
+\end{align*}
+}
+
+and so by expanding along the $(j-1)$th row (i.e. the $j$th row of $A_0$), we have our result:
+
+{\scriptsize
+\begin{align*}
+	|A_0 \setminus (1,j)| 	&= \sum_{k=1}^{b}{(-1)^{j+k-1}|A_0 \setminus \{ (1,j),(j,k) \}|} & \\
+			&= \sum_{k=1}^{b}{(-1)^{j+k-1}|A(a,b,c,d-1) \setminus (1,k) |} & \\
+			&= (-1)^{j}|A_1| + \sum_{k=2}^{b}{(-1)^{j+k-1}|A(a,b,c,d-1) \setminus (1,k) |} & \\
+			&= (-1)^{j}|A_1| + (-1)^{j-1}(b-1)|A(a,b,c,d-1) \setminus (1,2)| & \text{(Sec. \ref{sec:prelimTheorem})} \\
+			&= (-1)^{j}\left [ a^{b-1}c^{d-1} - (b-1)(d-1)a^{b-2}c^{d-2} \right ] + (-1)^{j-1}(b-1)\left [ - (d-1)a^{b-2}c^{d-2} \right ] & \text{(Case 1)} \\
+			&= (-1)^{j}\left [ a^{b-1}c^{d-1} - (b-1)(d-1)a^{b-2}c^{d-2} + (b-1)(d-1)a^{b-2}c^{d-2} \right ] & \\
+			&= (-1)^{j} a^{b-1}c^{d-1}& \\
+\end{align*}
+}
+
+
+
+\subsubsection{Case 3: $i \in [2,b]$ and $j \in [b+1,b+d]$}
+\label{sec:MAcase3}
+
+We can extend the result from \refsubsec{MAcase2}{Case 2} for 
+$|A(a,b,c,d-1)\setminus (1,2)|$ to 
+$|A(a,b,c,d-1)\setminus (1,i)|$ by the results in 
+\refsec{prelimTheorem}, or by the same recursive 
+argument as in \refsubsec{MAcase1}{Case 1}, either way 
+we obtain the identity
+\begin{equation*}
+	(-1)^i|A(a,b,c,d-1) \setminus (1,2)| = |A(a,b,c,d-1) \setminus (1,i)| = |A(a,b,c,d-1) \setminus (i,1)|.
+\end{equation*}
+
+So this case reduces to be the same as that of 
+\refsubsec{MAcase2}{Case 2}.
+
+{\scriptsize
+\begin{align*}
+	|A_0 \setminus (i,j)| 	&= \sum_{k=1}^{b}{(-1)^{j+k-1}|A_0 \setminus \{ (i,j),(j,k) \}|} & \\
+			&= \sum_{k=1}^{b}{(-1)^{j+k-1}|A(a,b,c,d-1) \setminus (i,k) |} & \\
+			&= (-1)^{j+i-1}|A_1| + \sum_{k=1, \, k \neq i}^{b}{(-1)^{j+k-1}|A(a,b,c,d-1) \setminus (i,k) |} & \\
+			&= (-1)^{j+i-1}|A_1| + (-1)^{j}(b-1)|A(a,b,c,d-1) \setminus (i,1) | & \\
+			&= (-1)^{j+i-1}|A_1| + (-1)^{j+i}(b-1)|A(a,b,c,d-1) \setminus (1,2) | & \text{(Identity)} \\
+			&= (-1)^{j+i-1}\left [ a^{b-1}c^{d-1} - (b-1)(d-1)a^{b-2}c^{d-2} \right ] + (-1)^{j+i}(b-1)\left [ - (d-1)a^{b-2}c^{d-2} \right ] &  \\
+			&= (-1)^{j+i-1}\left [ a^{b-1}c^{d-1} - (b-1)(d-1)a^{b-2}c^{d-2} + (b-1)(d-1)a^{b-2}c^{d-2} \right ] &  \\
+			&= (-1)^{j+i-1} a^{b-1}c^{d-1} &  \\
+\end{align*}
+}
+
+Note that for $i = 1$ this is the same as 
+\refsubsec{MAcase2}{Case 2}, so this result generalises the result
+of \refsubsec{MAcase2}{Case 2}.
+
+\subsubsection{Case 4: $i < j$ and $i,j \in [1,b]$}
+\label{sec:MAcase4}
+
+From \refsubsec{MAcase1}{Case 1}, using the result from 
+\refsubsec{MAcase3}{Case 3} we have that
+{\footnotesize
+\begin{align*}
+	(-1)^b|A_0\setminus (1,b+1)| &= -|A_1| + (b-1)|A(a,b,c,d-1)\setminus (1,2)| & \\
+					&= -\left [ a^{b-1}c^{d-1} - (b-1)(d-1)a^{b-2}c^{d-2} \right ] + (b-1)\left [ - (d-1)a^{b-2}c^{d-2} \right ] & \\
+					&= -a^{b-1}c^{d-1}. & \\
+\end{align*}
+}
+
+This gives us that
+\begin{equation*}
+		(-1)^{b+1}|A(a,b-1,c,d)\setminus (i,b)| = (-1)^ia^{b-2}c^{d-1}.
+\end{equation*}
+
+So, similarly to before, expanding along the $(j-1)$th 
+row gives us our solution:
+\begin{align*}
+	|A_0 \setminus (i,j)|	&= \sum_{k=b+1}^{b+d}{(-1)^{j+k}|A_0 \setminus \{ (i,j),(j,k) \}|} & \\
+					&= \sum_{k=b+1}^{b+d}{(-1)^{j+k}|A(a,b-1,c,d) \setminus (i,k-1)|} & \\
+					&= (-1)^{j+b+1}d|A(a,b-1,c,d) \setminus (i,b)| & \\
+					&= (-1)^{j+i}da^{b-2}c^{d-1}. & \\
+\end{align*}
+
+\subsubsection{Case 5: $i < j$ and $i,j \in [b+1,b+d]$}
+\label{sec:MAcase5}
+
+In \refsubsec{MAcase4}{Case 4} we noted that 
+\begin{equation*}
+	(-1)^b|A_0\setminus (1,b+1)| = -a^{b-1}c^{d-1}. \\
+\end{equation*}
+
+By the result of \refsec{prelimTheorem} we know that 
+this means that
+\begin{equation*}
+	(-1)^b|A_0\setminus (1,i)| = (-1)^{b+i}a^{b-1}c^{d-1} \\
+\end{equation*}
+for $i \in [b+1,b+d]$.
+
+So, again, we obtain our solution by expanding the 
+$(j-1)$th row,
+\begin{align*}
+	|A_0 \setminus (i,j)|	&= \sum_{k=1}^{b}{(-1)^{j+k-1}|A_0 \setminus \{ (i,j),(j,k) \}|} & \\
+						&= \sum_{k=1}^{b}{(-1)^{j+k-1}|A(a,b,c,d-1) \setminus (i,k)|} & \\
+						&= (-1)^{j+i}ba^{b-1}c^{d-2}. & \\
+\end{align*}
+
+
+
+\subsubsection{Case 6: $i > j$}
+\label{sec:MAcase6}
+
+Trivially all the other cases generalise by 
+symmetry ($|A| = |A^T|$).
+
+
+
+\subsection{Inverse}
+\label{sec:invA}
+
+In \refsec{MA} we derived the matrix of minors for a 
+general matrix $A(a,b,c,d)$,
+{\footnotesize
+\begin{equation*}
+	M_{ij} = \left \{ \begin{array}{lll}
+						a^{b-1}c^{d} - d(b-1)a^{b-2}c^{d-1} & i,j \in [1,b] & i = j \\
+						a^{b}c^{d-1} - b(d-1)a^{b-1}c^{d-2} & i,j \in [b+1,b+d] & i = j  \\
+						(-1)^{j+i}da^{b-2}c^{d-1}				& i,j \in [1,b] & i \neq j \\
+						(-1)^{j+i}ba^{b-1}c^{d-2}				& i,j \in [b+1,b+d] & i \neq j \\
+						(-1)^{j+i-1} a^{b-1}c^{d-1}			& i \in [1,b], \, j \in [b+1,b+d] & \text{or } j \in [1,b], \, i \in [b+1,b+d]
+	\end{array} \right .
+\end{equation*}
+}
+
+The cofactors ($C_{ij} = (-1)^{i+j} M_{ij}$) are thus
+{\footnotesize
+\begin{equation*}
+	C_{ij} = \left \{ \begin{array}{lll}
+						a^{b-1}c^{d} - d(b-1)a^{b-2}c^{d-1} & i,j \in [1,b] & i = j \\
+						a^{b}c^{d-1} - b(d-1)a^{b-1}c^{d-2} & i,j \in [b+1,b+d] & i = j  \\
+						da^{b-2}c^{d-1}				& i,j \in [1,b] & i \neq j \\
+						ba^{b-1}c^{d-2}				& i,j \in [b+1,b+d] & i \neq j \\
+						-a^{b-1}c^{d-1}			& i \in [1,b], \, j \in [b+1,b+d] & \text{or } j \in [1,b], \, i \in [b+1,b+d]
+	\end{array} \right.,
+\end{equation*}
+}
+and as $|A(a,b,c,d)| = a^{b}c^{d} - bda^{b-1}c^{d-1} = a^{b-1}c^{d-1}(ac - bd)$ 
+(\refeqn{detA}), we can conclude that the inverse is
+\begin{equation*}
+	\left [A_0^{-1} \right ]_{ij} = 
+  \left [A(a,b,c,d)^{-1} \right ]_{ij} = 
+  \left \{ \begin{array}{cll}
+						\frac{ac - bd + d}{a(ac-bd)} 	& i,j \in [1,b] & i = j \\ \\
+						\frac{ac - bd + b}{c(ac-bd)} 	& i,j \in [b+1,b+d] & i = j  \\ \\
+						\frac{d}{a(ac-bd)}						& i,j \in [1,b] & i \neq j \\ \\
+						\frac{b}{c(ac-bd)}				& i,j \in [b+1,b+d] & i \neq j \\ \\
+						\frac{-1}{ac-bd}			& \begin{array}{l}
+																						i \in [1,b], \, j \in [b+1,b+d] \\
+																						j \in [1,b], \, i \in [b+1,b+d]
+																				\end{array}  & \text{or}
+	\end{array} \right .
+\end{equation*}
+
+
+% \section{Inverse of $C(n,d,c)$}
+% \label{sec:invCproof}
+% 
+% Here we present the second derivation: the inverse of a 
+% matrix of the form $C(n,d,c)$ as introduced in 
+% \refsec{ABCnotation}. 
+% We approach this derivation much in the same way as 
+% that of \refsec{invAproof} -- first we calculate the 
+% determinant of a general matric $C(n,d,c)$ in 
+% \refsec{detC}. We then find the matrix of minors in 
+% \refsec{MC}, and finally formulate the required inverse
+% in \refsec{invC}.
+% 
+% 
+% \subsection{Determinant}
+% \label{sec:detC}
+% 
+% Here we derive a closed form for the determinant of a 
+% matrix of the form $C(n,d,c)$ as introduced in 
+% \refsec{ABCnotation}.
+% 
+% The widely known equation for the determinant of a 
+% block matrix, \refeqn{SchurDet}, allows us to use the 
+% result we derived in \refsec{detA} for the determinant 
+% of a general matrix $A(a,b,c,d)$ to find an expression 
+% for the determinant of a matrix of the form $C(n,d,c)$ 
+% -- 
+% \begin{align*}
+% |C(n,d,c)| 	&= |dA(n,1,1,n-1) - B_{(d-c)}^T B_{(d-c)}| \\
+% 						&= |dA(n,1,1,n-1) - (d-c)A(n,1,1,n-1)| \\
+% 						&= |cA(n,1,1,n-1)| \\
+% 						&= c^n|A(n,1,1,n-1)| \\
+% 						&= c^n(n-(n-1)) \\
+% 						&= c^n. \\
+% \end{align*}
+% 
+% 
+% 
+% 
+% 
+% \subsection{Matrix of Minors}
+% \label{sec:MC}
+% 
+% Here we will derive the matrix of minors for a matrix
+% of the form $C(n,d,c)$.
+% Similarly to \refsec{MA}, we will split the derivation 
+% into cases, and find the minors for each case 
+% seperately.
+% 
+% \subsubsection{Case 1: $i = j = 1$}
+% \label{sec:MCcase1}
+% 
+% \begin{equation}
+% M_{11} = |C(n,d,c) \setminus (1,1)| = \left | \begin{array}{cc}
+% d\bm{I}_{(n-1)} & B_{(d-c)}^T \setminus (1,.) \\
+% B_{(d-c)} \setminus (.\, ,1) & \bm{I}_{(d-c)n}
+% \end{array} \right |
+% \end{equation}
+% is a simple block matrix, and so we can use 
+% \refeqn{SchurDet} to calculate:
+% \begin{align*}
+% M_{11} 	&= |d\bm{I} - (B_{(d-c)}^T \setminus (1,.))(B_{(d-c)} \setminus (.\, ,1)) | \\
+% 				&= |d\bm{I} - (d-c)\bm{I}| \\
+% 				&= c^{n-1}.
+% \end{align*}
+% 
+% 
+% 
+% 
+% 
+% \subsubsection{Case 2: $i = j$ and $i,j \in [2,n]$}
+% 
+% First, notice that the result of 
+% \refsubsec{MCcase1}{Case 1}
+% in combination with \refsubsec{prelimResult3}{Result 3}
+% gives us that
+% \begin{equation}
+% |C_{(1)^*}| = |C_{(2)^*}| = \hdots = |C_{(d-c)^*}| = c^{n-2}.
+% \label{eqn:result3ext}
+% \end{equation}
+% This allows us to express the recursion of 
+% \refsubsec{prelimResult4}{Result 4} as
+% \begin{equation}
+% C_{(k)} = -c^{n-2} + |C_{(k+1)}|.
+% \label{eqn:result4ext}
+% \end{equation}
+% 
+% Also, now that we have the determinant of $A(a,b,c,d)$
+% from \refeqn{detA}, we can use that to express the 
+% result of \refsubsec{prelimResult5}{Result 5} as
+% \begin{equation}
+% |C_{(d-c)}|= c^{n-1}(\frac{d+c(n-1)}{c} - (n-2)) = (d+c)c^{n-2}.
+% \label{eqn:result5ext}
+% \end{equation}
+% 
+% Now, lets begin.
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,i)| = \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)}^T \setminus (i,.) \\
+% B_{(d-c)} \setminus (.\, ,i) & \bm{I}_{(d-c)n}
+% \end{array} \right |  \\
+% 				&= (-1)^{(i-1)(d-c) + n+1}\left | \begin{array}{cc}
+% dA(n,1,1,n-2) \setminus (.\, , 1) & B_{(d-c)}^T \setminus (i,.) \\
+% B_{(d-c)(1)^*} & \bm{I}_{(d-c)n} \setminus ((i-1)(d-c) + 1,.)
+% \end{array} \right | \\
+% 				& \quad \quad + \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)(1)}^T \\
+% B_{(d-c)(1)} & \bm{I}_{(d-c)n-1} 
+% \end{array} \right | \\
+% 				& \quad \quad \quad \quad \text{ (expanding along the } ((i-1)(d-c) + n)^{\text{th}} \text{ row)}\\
+% 				&= -\left | \begin{array}{cc}
+% d\bm{I}_{n-2} & B_{(d-c)(1)^*}^T  \\
+% B_{(d-c)(1)^*} & \bm{I}_{(d-c)n-1} 
+% \end{array} \right | + \left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)(1)}^T \\
+% B_{(d-c)(1)} & \bm{I}_{(d-c)n-1} 
+% \end{array} \right | \\
+% 				& \quad \quad \quad \quad \text{ (using Result 1 of \refsec{prelimResult1})}\\
+% 				&= -| C_{(1)^*} | + | C_{(1)} | \\
+% 				&= -c^{n-2} + | C_{(1)} | \\
+% 				& \quad \quad \quad \quad \text{ (\refeqn{result3ext})}\\
+% 				&= -(d-c)c^{n-2} + | C_{(d-c)} | \\
+% 				& \quad \quad \quad \quad \text{ (applying the recursion of \refeqn{result4ext} $d-c-1$ times)}\\
+% 				&= -(d-c)c^{n-2} + (c+d)c^{n-2} \\
+% 				& \quad \quad \quad \quad \text{ (\refeqn{result5ext})}\\
+% 				&= 2c^{n-1}. \\
+% \end{align*}
+% 
+% Alternatively,
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,i)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i,i) & B_{(d-c)}^T \setminus (i,.) \\
+% B_{(d-c)} \setminus (.\, ,i) & \bm{I}_{(d-c)n}
+% \end{array} \right |  \\
+% 				&=|(dA(n,1,1,n-1) \setminus (i,i)) - (B_{(d-c)}^T \setminus (i,.))(B_{(d-c)} \setminus (.\, ,i))| \\
+% 				&=|(dA(n,1,1,n-1) \setminus (i,i)) - ((d-c)A(n,1,1,n-1) \setminus (i,i))| \\
+% 				&=|(cA(n,1,1,n-1) \setminus (i,i)| \\
+% 				&=c^{n-1}(n-(n-2)) \quad \text{ (from the minors of $A(a,b,c,d)$)}\\
+% 				&=2c^{n-1}. \\
+% \end{align*}
+% 
+% 
+% 
+% 
+% \subsubsection{Case 3: $i \neq j$ and $i,j \in [2,n]$}
+% 
+% Note that here I will be quite liberal interchanging $i$ and $j$ in the definitions for $B_{(d-c)(k)}$ but there shouldn't be too much ambiguity if you pay attention.
+% 
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i,j) & B_{(d-c)}^T \setminus (i,.) \\
+% B_{(d-c)} \setminus (.\, ,j) & \bm{I}_{(d-c)n}
+% \end{array} \right |  \\
+% 				&=|(dA(n,1,1,n-1) \setminus (i,j)) - (B_{(d-c)}^T \setminus (i,.))(B_{(d-c)} \setminus (.\, ,j))| \\
+% 				&=|(dA(n,1,1,n-1) \setminus (i,j)) - ((d-c)A(n,1,1,n-1) \setminus (i,j))| \\
+% 				&=c^{n-1}|A(n,1,1,n-1) \setminus (i,j)| \\
+% 				&=(-1)^{i+j}c^{n-1} \quad \text{ (from the minors of A(a,b,c,d))}\\
+% \end{align*}
+% 
+% 
+% 
+% 
+% 
+% \subsubsection{Case 4: $i = 1$ and $j \in [2,n]$}
+% 
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (1,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1,j) & B_{(d-c)}^T \setminus (1,.) \\
+% B_{(d-c)} \setminus (.\, ,j) & \bm{I}_{(d-c)n}
+% \end{array} \right |  \\
+% 				&=|(dA(n,1,1,n-1) \setminus (1,j)) - (B_{(d-c)}^T \setminus (1,.))(B_{(d-c)} \setminus (.\, ,j))| \\
+% 				&=|(dA(n,1,1,n-1) \setminus (1,j)) - ((d-c)A(n,1,1,n-1) \setminus (1,j))| \\
+% 				&=c^{n-1}|(A(n,1,1,n-1) \setminus (1,j))| \\
+% 				&=(-1)^{i + j + 1}c^{n-1} \\
+% \end{align*}
+% 
+% 
+% 
+% 
+% 
+% \subsubsection{Case 5a: $i = 1$ and $j \in [n+1,n+d-c]$}
+% 
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (1,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , .) & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} & \bm{I}_{(d-c)n} \setminus (.\, ,j-n)
+% \end{array} \right |  \\
+% 				&= (-1)^{j+1}\left | \begin{array}{cc}
+% d\bm{I}_{n-1} & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n - 1}
+% \end{array} \right | \\
+% 				& \quad \quad \quad \quad \text{ (expanding along the } j^{\text{th}} \text{ row)} \\
+% 				&= (-1)^{j+1} |d\bm{I}_{n-1} - (B_{(d-c)}^T \setminus (1,j-n))(B_{(d-c)} \setminus (j-n,1))| \\
+% 				&= (-1)^{j+1} |d\bm{I}_{n-1} - (d-c)\bm{I}_{n-1}| \\
+% 				&= (-1)^{j+1} c^{n-1} \\
+% \end{align*}
+% 
+% \subsubsection{Case 5b: $i = 1$ and $j \in [n+d-c + 1,(d-c+1)n]$}
+% 
+% I have a few results I will use for this case.
+% 
+% {\bf Result 1}:
+% 
+% \begin{align*}
+% \left | \begin{array}{cc}
+% d\bm{I}_{n-1} & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n - 1}
+% \end{array} \right | &= \left | d\bm{I}_{n-1} - (B_{(d-c)}^T \setminus (1,j-n))(B_{(d-c)} \setminus (j-n,1)) \right | \\
+% 										 &= (c+1)c^{n-2}
+% \end{align*}
+% 
+% 
+% {\bf Result 2} (will be used to derive result 3):
+% 
+% \begin{align*}
+% & \left | \begin{array}{cc}
+% d\bm{I}_{n-1} \setminus \left (. \, , \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )  & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)(2)^*} & \bm{I}_{(d-c)n-1} \setminus \left(\left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + 1 , . \right )
+% \end{array} \right | \\
+% & \quad \quad = (-1)^{\left ( \left \lceil \frac{j-n}{d-c} \right \rceil - 1 \right )(d-c) + n - 1 + \left \lceil \frac{j-n}{d-c} \right \rceil - 1}
+% \left | \begin{array}{cc}
+% d\bm{I}_{n-2}  & B_{(d-c)(2)^*}^T  \\
+% B_{(d-c)(2)^*} & \bm{I}_{(d-c)n-2}
+% \end{array} \right | \\
+% & \quad \quad = (-1)^{n-d+c+\left \lceil \frac{j-n}{d-c} \right \rceil (d-c+1)}
+% \left | \begin{array}{cc}
+% d\bm{I}_{n-2}  & B_{(d-c)(2)^*}^T  \\
+% B_{(d-c)(2)^*} & \bm{I}_{(d-c)n-2}
+% \end{array} \right | \\
+% & \quad \quad \quad \quad \text{ (expanding along the } \left (\left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + n - 1\right )^{\text{th}} \text{ column)} \\
+% \end{align*}
+% 
+% 
+% 
+% {\bf Result 3}:
+% 
+% {\scriptsize
+% \begin{align*}
+% & \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} \setminus (j-n,\left \lceil \frac{j-n}{d-c} \right \rceil)& \bm{I}_{(d-c)n-1}
+% \end{array} \right | \\
+% & \quad \quad = \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)(1)} & \bm{I}_{(d-c)n-1}
+% \end{array} \right | \\
+% & \quad \quad = (-1)^{\left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + n + 1} \left | \begin{array}{cc}
+% d\bm{I}_{n-1} \setminus \left (. \, , \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )  & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)(2)^*} & \bm{I}_{(d-c)n-1} \setminus \left(\left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + 1 , . \right )
+% \end{array} \right | \\
+% & \quad \quad \quad \quad + \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus \left \{ (1,j-n), \left (. \, , \left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + 1 \right ) \right \} \\
+% B_{(d-c)(2)} & \bm{I}_{(d-c)n-2}
+% \end{array} \right | 
+% \\
+% 				& \quad \quad \quad \quad \quad \quad \text{ (expanding along the } \left (\left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + n \right )^{\text{th}} \text{ row)} 
+% 				\\
+% & \quad \quad = (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil + 1}
+% \left | \begin{array}{cc}
+% d\bm{I}_{n-2}  & B_{(d-c)(2)^*}^T  \\
+% B_{(d-c)(2)^*} & \bm{I}_{(d-c)n-2}
+% \end{array} \right | \\
+% & \quad \quad \quad \quad + \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus \left \{ (1,j-n), \left (. \, , \left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + 1 \right ) \right \} \\
+% B_{(d-c)(2)} & \bm{I}_{(d-c)n-2}
+% \end{array} \right | 
+% \\
+% 				& \quad \quad \quad \quad \quad \quad \text{ (result 2)} 
+% 				\\
+% & \quad \quad = (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil + 1}
+% \sum_{k = 2}^{d-c}{\left | \begin{array}{cc}
+% d\bm{I}_{n-2}  & B_{(d-c)(k)^*}^T  \\
+% B_{(d-c)(k)^*} & \bm{I}_{(d-c)n-k}
+% \end{array} \right |} \\
+% & \quad \quad \quad \quad + \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus \left (1, \left ( \left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + 1 \right ) : \left ( \left \lceil \frac{j-n}{d-c} \right \rceil (d-c) \right ) \right ) \\
+% B(n-1,d-c) & \bm{I}_{(d-c)(n-1)}
+% \end{array} \right | 
+% \\
+% 				& \quad \quad \quad \quad \quad \quad \text{ (repeating this recursion $d-c-2$ more times)} 
+% 				\\
+% & \quad \quad = (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil + 1}
+% \sum_{k = 2}^{d-c}{\left | d\bm{I}_{n-2} - B_{(d-c)(k)^*}^TB_{(d-c)(k)^*} \right |} \\
+% & \quad \quad \quad \quad + \left | dA(n,1,1,n-1) \setminus \left (1 , \left \lceil \frac{j-n}{d-c} \right \rceil \right ) \right .  \\
+% & \quad \quad \quad \quad -  \left . \left (B(n-1,d-c)^T \setminus \left (1, \left ( \left ( \left \lceil \frac{j-n}{d-c} \right \rceil -1 \right )(d-c) + 1 \right ) : \left ( \left \lceil \frac{j-n}{d-c} \right \rceil (d-c) \right ) \right ) \right ) B(n-1,d-c) \right | 
+% \\
+% & \quad \quad = (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil + 1}
+% \sum_{k = 2}^{d-c}{\left | c\bm{I}_{n-2} \right |} + (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil} d \left | c \bm{I}_{n-2} \right | 
+% \\
+% 				& \quad \quad \quad \quad \quad \quad \text{ (expanding along the } \left ( \left \lceil \frac{j-n}{d-c} \right \rceil - 1 \right )^{\text{th}} \text{ row of the second term)} 
+% 				\\
+% & \quad \quad = (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil+1}
+% \left ( -(d-c-1)c^{n-2} + dc^{n-2} \right ) \\
+% & \quad \quad = (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil}
+% (c+1)c^{n-2} \\
+% \end{align*}
+% }
+% 
+% 
+% Now this essentially gives us our result:
+% 
+% {\small
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (1,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , .) & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} & \bm{I}_{(d-c)n} \setminus (.\, ,j-n)
+% \end{array} \right |  \\
+% 				&= (-1)^{j+1}\left | \begin{array}{cc}
+% d\bm{I}_{n-1} & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n - 1}
+% \end{array} \right |  \\
+% 				& \quad \quad + (-1)^{j+ \left \lceil \frac{j-n}{d-c} \right \rceil }\left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (1 , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus (1,j-n) \\
+% B_{(d-c)} \setminus (j-n,\left \lceil \frac{j-n}{d-c} \right \rceil)& \bm{I}_{(d-c)n-1}
+% \end{array} \right | \\
+% 				& \quad \quad \quad \quad \text{ (expanding along the } j^{\text{th}} \text{ row)} \\
+% 				&= (-1)^{j+1} (c+1)c^{n-2} + (-1)^{j+ \left \lceil \frac{j-n}{d-c} \right \rceil } (-1)^{\left \lceil \frac{j-n}{d-c} \right \rceil} (c+1)c^{n-2}
+% 				& \quad \quad \quad \quad \text{ (by results $1$ and $3$)} \\
+% 				&= (-1)^{j}\left ((c+1)c^{n-2} - (c+1)c^{n-2} \right ) \\
+% 				&= 0 
+% \end{align*}
+% }
+% 
+% 
+% 
+% \subsubsection{\small Case 6a: $i \in [2,n]$ $j \in [n+(d-c)+1,(d-c+1)n] \setminus \left [ n + (i-1)(d-c)+1, n + i(d-c) \right ]$ (i.e. $\left \lceil \frac{j-n}{d-c} \right \rceil \neq i$)}
+% 
+% {\scriptsize
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , .) & B_{(d-c)}^T \setminus (i,j-n) \\
+% B_{(d-c)} & \bm{I}_{(d-c)n} \setminus (.\, ,j-n)
+% \end{array} \right |  \\
+% 				&= (-1)^{j}\left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , 1) & B_{(d-c)}^T \setminus (i,j-n) \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n-1}
+% \end{array} \right |  \\
+% 				& \quad \quad + (-1)^{j-1+\left \lceil \frac{j-n}{d-c} \right \rceil} \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , \left \lceil \frac{j-n}{d-c} \right \rceil) & B_{(d-c)}^T \setminus (i,j-n) \\
+% B_{(d-c)} \setminus \left (j-n,\left \lceil \frac{j-n}{d-c} \right \rceil \right ) & \bm{I}_{(d-c)n-1}
+% \end{array} \right |  \\
+% 				& \quad \quad \quad \quad \text{(expanding along the $(j-1)^\text{th}$ row)} \\
+% 				&{\color{red}= (-1)^{j}\left | \left ( dA(n,1,1,n-1) \setminus (i , 1) \right )  - \left (B_{(d-c)}^T \setminus (i,j-n) \right )\left ( B_{(d-c)} \setminus (j-n,1) \right ) \right |  }\\
+% 				&{\color{red} \quad \quad + (-1)^{j-1+\left \lceil \frac{j-n}{d-c} \right \rceil} \left | \left (dA(n,1,1,n-1) \setminus \left (i , \left \lceil \frac{j-n}{d-c} \right \rceil \right ) \right ) - \left ( B_{(d-c)}^T \setminus (i,j-n) \right ) \left ( B_{(d-c)} \setminus \left (j-n,\left \lceil \frac{j-n}{d-c} \right \rceil \right ) \right ) \right | } \\
+% \end{align*}
+% }
+% {\color{red} ??? I have a strong suspicion that this determinant is zero, but I can't seem to find a way to prove it. Maybe its not ??? Similar to case 8 ???}
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% \subsubsection{Case 6b: $i \in [2,n]$ $j \in \left [ n + (i-1)(d-c)+1, n + i(d-c) \right ]$ (i.e. $\left \lceil \frac{j-n}{d-c} \right \rceil = i$)}
+% 
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , .) & B_{(d-c)}^T \setminus (i,j-n) \\
+% B_{(d-c)} & \bm{I}_{(d-c)n} \setminus (.\, ,j-n)
+% \end{array} \right |  \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , .) & B_{(d-c)(1)}^T \\
+% B_{(d-c)} & \bm{I}_{(d-c)n} \setminus (.\, ,j-n)
+% \end{array} \right |  \\
+% 				&= (-1)^{j}\left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , 1) & B_{(d-c)(1)}^T \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n -1} 
+% \end{array} \right |  \\
+% 				& \quad \quad +(-1)^{j+i-1}\left | \begin{array}{cc}
+% dA(n,1,1,n-2) & B_{(d-c)(1)}^T \\
+% B_{(d-c)(1)} & \bm{I}_{(d-c)n -1} 
+% \end{array} \right |  \\
+% 				& \quad \quad \quad \quad \text{(expanding along the $(j-1)^\text{th}$ row)} \\
+% 				&= (-1)^{j}\left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , 1) & B_{(d-c)(1)}^T \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n -1} 
+% \end{array} \right |  +(-1)^{j+i-1}\left | C_{(1)} \right |  \\
+% 				&= (-1)^{j+i}(c+1)c^{n-2} +(-1)^{j+i-1}\left | C_{(1)} \right |  \\
+% 				& \quad \quad \quad \quad \text{(applying result 3 of case 5b)} \\
+% 				&= (-1)^{j+i}(c+1)c^{n-2} +(-1)^{j+i-1} \left ( -(d-c-1)c^{n-2} + \left | C_{(d-c)} \right | \right )  \\
+% 				& \quad \quad \quad \quad \text{(applying result 4 of case 2, $d-c-1$ times)} \\
+% 				&= (-1)^{j+i}(c+1)c^{n-2} +(-1)^{j+i-1} \left ( -(d-c-1)c^{n-2} + (d-c)c^{n-2} \right )  \\
+% 				& \quad \quad \quad \quad \text{(applying result 5 of case 2)} \\
+% 				&= (-1)^{j+i}(c+1)c^{n-2} +(-1)^{j+i-1} c^{n-2}  \\
+% 				&= (-1)^{j+i}\left ( (c+1)c^{n-2} - c^{n-2} \right ) \\
+% 				&= (-1)^{j+i}c^{n-1} \\
+% \end{align*}
+% 
+% 
+% \subsubsection{Case 7: $i = j$ and $i,j \in [n+1,(d-c+1)n]$}
+% 
+% \begin{align*}
+% M_{ii} 	&= |C(n,d,c) \setminus (i,i)| \\
+% 				&= \left [ \begin{array}{cc}
+% dA(n,1,1,n-1) & B_{(d-c)}^T \setminus (. \, , i) \\
+% B_{(d-c)} \setminus (i,.) & \bm{I}_{n(d-c)-1}
+% \end{array} \right ] \\
+% 				&= \left | dA(n,1,1,n-1) - \left (B_{(d-c)}^T \setminus (. \, , i) \right ) \left (B_{(d-c)} \setminus (i,.) \right ) \right | \\
+% 				&= (c+1)c^{n-1} \\
+% 				& \quad \quad \text{(applying the $n-1$ row operations } R_1 \rightarrow R_1 - R_2, \, R_1 \rightarrow R_1 - R_3, \, \hdots, \, R_1 \rightarrow R_1 - R_n  \\
+% 				& \quad \quad \quad \quad \quad \quad \quad \quad \text{gives a triangular matrix)}
+% \end{align*}
+% 
+% 
+% \subsubsection{Case 8: $i \in [2,n]$ $j \in \left [ n + 1, \, n + (d-c) \right ]$}
+% 
+% 
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , .) & B_{(d-c)}^T \setminus (i,j-n) \\
+% B_{(d-c)} & \bm{I}_{(d-c)n} \setminus (.\, ,j-n)
+% \end{array} \right |  \\
+% 				&= (-1)^{j}\left | \begin{array}{cc}
+% dA(n,1,1,n-1) \setminus (i , 1) & B_{(d-c)}^T \setminus (i,j-n) \\
+% B_{(d-c)} \setminus (j-n,1) & \bm{I}_{(d-c)n-1}
+% \end{array} \right |  \\
+% 				& \quad \quad \quad \quad \text{(expanding along the $(j-1)^\text{th}$ row)} \\
+% 				&= (-1)^{j}\left | \left ( dA(n,1,1,n-1) \setminus (i , 1) \right )  - \left (B_{(d-c)}^T \setminus (i,j-n) \right )\left ( B_{(d-c)} \setminus (j-n,1) \right ) \right |  \\
+% 				&= (-1)^{j}\left | \left ( dA(n,1,1,n-1) \setminus (i , 1) \right )  - \left (B_{(d-c)}^T \setminus (i, .) \right )\left ( B_{(d-c)} \setminus (. \, ,1) \right ) \right |  \\
+% 				&= (-1)^{j}\left | \left ( dA(n,1,1,n-1) \setminus (i , 1) \right )  - \left ((d-c)A(n,1,1,n-1) \setminus (i ,1) \right ) \right |  \\
+% 				&= (-1)^{j}\left | cA(n,1,1,n-1) \setminus (i , 1) \right |  \\
+% 				&= (-1)^{j+i}c\left | c\bm{I}_{n-2} \right |  \\
+% 				&= (-1)^{j+i}c^{n-1} \\
+% \end{align*}
+% 
+% 
+% \subsubsection{Case 9a: $i \neq j$ and  $i \in [n+1,(d-c+1)n]$,  $j \in \left \{ j\in [n+1,(d-c+1)n]  \text{ s.t. } \left \lceil \frac{j-n}{d-c} \right \rceil =  \left \lceil \frac{i-n}{d-c} \right \rceil \right \}$}
+% 
+% \begin{align*}
+% M_{ij} 	&= |C(n,d,c) \setminus (i,j)| \\
+% 				&= \left | \begin{array}{cc}
+% dA(n,1,1,n-1) & B_{(d-c)}^T \setminus (. \, ,j-n) \\
+% B_{(d-c)} \setminus (i-n, .) & \bm{I}_{(d-c)n} \setminus (i-n ,j-n)
+% \end{array} \right |  \\
+% 				&= d^n \left | \left (\bm{I}_{(d-c)n} \setminus (i-n ,j-n)  \right ) -  \left ( B_{(d-c)} \setminus (i-n, .) \right  ) \left ( dA(n,1,1,n-1) \right )^{-1} \left (B_{(d-c)}^T \setminus (. \, ,j-n) \right )  \right |  \\
+% \end{align*}
+% 
+% Now, note how $\left ( B_{(d-c)} \setminus (i-n, .) \right  ) \left ( dA(n,1,1,n-1) \right )^{-1} \left (B_{(d-c)}^T \setminus (. \, ,j-n) \right )$ is a block-diagonal matrix, with $n$ blocks, one $(d-c-1) \times (d-c-1)$ and the remainder $(d-c)\times (d-c)$, all filled with the value $\frac{1}{d}$. If we consider one of the $(d-c)\times (d-c)$ blocks, and subtracting it from $\bm{I}$, we get a matrix of the form
+% 
+% \begin{equation*}
+% \left [ \begin{array}{ccccc}
+% \frac{d-1}{d} & \frac{-1}{d}  & \frac{-1}{d}  & \hdots & \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{d-1}{d} & \frac{-1}{d}  & \hdots & \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \frac{d-1}{d} & \hdots & \frac{-1}{d} \\
+% \vdots & & \vdots & \ddots & \vdots \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \frac{-1}{d} & \hdots & \frac{d-1}{d} \\
+% \end{array} \right ]
+% \end{equation*}
+% 
+% If for each $k = 2, \, 3, \, \hdots (d-c)$, we do the row operation $R_l \rightarrow R_l + \frac{1}{d-(k-1)}R_{k-1}$ for each $l = k, \, (k+1), \, \hdots (d-c)$, then none of these row operations affect the determinant of the matrix, and the resulting matrix is upper triangular, of the form
+% 
+% \begin{equation*}
+% \left [ \begin{array}{ccccc}
+% \frac{d-1}{d} & * & *  & \hdots & * \\
+% 0  & \frac{d-2}{d-1} & *  & \hdots & * \\
+% 0  & 0  & \frac{d-3}{d-2} & \hdots & * \\
+% \vdots & & \vdots & \ddots & \vdots \\
+% 0  & 0  & 0 & \hdots & \frac{d-(d-c)}{d-(d-c-1)} \\
+% \end{array} \right ]
+% \end{equation*}
+% 
+% for unimportant values of $*$. Importantly, this matrix has determinant $\frac{c}{d}$. Now for the $(d-c-1)\times (d-c-1)$ block we assume $i < j$ without loss of generality (if $j < i$ we first take the transpose, and then proceed as normal as this will not affect the determinant). In this case, the $(d-c-1)\times (d-c-1)$ block is of the form:
+% 
+% \begin{figure}[ht]
+% \begin{center}
+% \begin{tikzpicture}
+% \draw (0,0) node {
+% $
+% \left [ \begin{array}{ccccccccccccc}
+% \frac{d-1}{d} & \frac{-1}{d}  & \hdots 				& \frac{-1}{d}	& \frac{-1}{d} 
+% 							& \frac{-1}{d} 	& \hdots 				& \hdots 				& \hdots 
+% 							& \hdots 				& \hdots 				& \hdots 				& \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{d-1}{d} & \hdots 				& \frac{-1}{d} 	& \frac{-1}{d} 
+% 							& \frac{-1}{d} 	& \hdots 				& \hdots 				& \hdots 
+% 							& \hdots 				& \hdots 				& \hdots 				& \frac{-1}{d} \\
+% \vdots 				& \vdots 				& \ddots 				& \vdots 				& \vdots 
+% 							& \vdots 				& 							& 							& 
+% 							& 							& 							& 							& \vdots \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \frac{d-1}{d}	& \frac{-1}{d} 
+% 							& \frac{-1}{d}  & \hdots 				& \hdots 				& \hdots 
+% 							& \hdots 				& \hdots 				& \hdots 				& \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \frac{-1}{d} 
+% 							& \frac{d-1}{d} & \frac{-1}{d} 	& \hdots 				& \frac{-1}{d} 
+% 							& \frac{-1}{d} 	& \frac{-1}{d} 	& \hdots 				& \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \frac{-1}{d} 
+% 							& \frac{-1}{d} 	& \frac{d-1}{d} & \hdots 				& \frac{-1}{d} 
+% 							& \frac{-1}{d} 	& \frac{-1}{d} 	& \hdots 				& \frac{-1}{d} \\
+% \vdots 				& \vdots 				& 			 				& 			 				& \vdots 
+% 							& \vdots 				& \vdots				& \ddots				& \vdots
+% 							& \vdots				& \vdots				& 							& \vdots \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \frac{-1}{d} 
+% 							& \frac{-1}{d}  & \frac{-1}{d} 	& \hdots 				& \frac{d-1}{d} 
+% 							& \frac{-1}{d} 	& \frac{-1}{d} 	& \hdots 				& \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& \hdots 
+% 							& \hdots			 	& \hdots			 	& \hdots 				& \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& \frac{-1}{d} 
+% 							& \frac{d-1}{d}	& \frac{-1}{d}	& \hdots 				& \frac{-1}{d} \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& \frac{-1}{d} 
+% 							& \frac{-1}{d}	& \frac{d-1}{d}	& \hdots 				& \frac{-1}{d} \\
+% \vdots 				& \vdots 				& 			 				& 			 				&  
+% 							& 			 				& 							& 							& \vdots
+% 							& \vdots				& \vdots				& \ddots				& \vdots \\
+% \frac{-1}{d}  & \frac{-1}{d}  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& \frac{-1}{d} 
+% 							& \frac{-1}{d}	& \frac{-1}{d}	& \hdots 				& \frac{d-1}{d} \\
+% \end{array} \right ]
+% $
+% };
+% % 	\draw (-4.8,3.4) 	node {$1$};
+% % 	\draw (-4,3.4) 		node {$2$};
+% % 	\draw (-3.2,3.4) 	node {$\hdots$};
+% % 	\draw (-2.4,3.4) 	node {$\hdots$};
+% % 	\draw (-1.6,3.4) 	node {$i^*$};
+% % 	\draw (-0.8,3.4) 	node {$\hdots$};
+% % 	\draw (0,3.4) 		node {$\hdots$};
+% % 	\draw (0.8,3.4) 	node {$\hdots$};
+% % 	\draw (1.6,3.4) 	node {$\hdots$};
+% % 	\draw (2.45,3.4) 	node {$\hdots$};
+% % 	\draw (3.25,3.4) 	node {$\hdots$};
+% % 	%\draw (4,3.4) 		node {$\hdots$};
+% % 	\draw (4.8,3.4) 	node {$d-c-1$};
+% % 	\draw (5.8,2.9) 	node {$1$};
+% % 	\draw (5.8,2.45) 	node {$2$};
+% % 	\draw (5.8,2) 	node {$\vdots$};
+% % 	%\draw (5.8,1.5) 	node {$\vdots$};
+% % 	\draw (5.8,1.0) 	node {$\vdots$};
+% % 	%\draw (5.8,0.55) 	node {$\vdots$};
+% % 	\draw (5.8,0.05) 	node {$\vdots$};
+% % 	%\draw (5.8,-0.45) 	node {$\vdots$};
+% % 	\draw (6,-0.95) 	node {$j^*-1$};
+% % 	%\draw (5.8,-1.3) 	node {$\vdots$};
+% % 	\draw (5.8,-1.75) 	node {$\vdots$};
+% % 	%\draw (5.8,-2.3) 	node {$\vdots$};
+% % 	\draw (6.3,-2.8) 	node {$d-c-1$};
+% \end{tikzpicture}
+% \end{center}
+% \end{figure}
+% 
+% Where $i^*$ and $j^*$ are defined as $i^* = (i-n) \mod (d-c)$ and $j^* = (j-n) \mod (d-c)$ respectively.
+% 
+% If for each $k = 2, \, 3, \, \hdots i$, we do the row operation $R_l \rightarrow R_l + \frac{1}{d-(k-1)}R_{k-1}$ for each $l = k, \, (k+1), \, \hdots (d-c-1)$, and then for each $k = (i+1), \, (i+2), \, \hdots, \, j$, we do the row operation $R_l \rightarrow R_l - R_{k-1}$ for each $l = k, \, (k+1), \, \hdots (d-c-1)$ then none of these row operations affect the determinant of the matrix, and the resulting matrix is upper triangular, of the form
+% 
+% \begin{figure}[ht]
+% \begin{center}
+% \begin{tikzpicture}
+% \draw (0,0) node {
+% $
+% \left [ \begin{array}{ccccccccccccc}
+% \frac{d-1}{d} & *  						& \hdots 				& *							& * 
+% 							& *						 	& \hdots 				& \hdots 				& \hdots 
+% 							& \hdots 				& \hdots 				& \hdots 				& * \\
+% 0						  & \frac{d-2}{d-1} & \hdots 			& *						 	& * 
+% 							& *						 	& \hdots 				& \hdots 				& \hdots 
+% 							& \hdots 				& \hdots 				& \hdots 				& * \\
+% \vdots 				& \vdots 				& \ddots 				& \vdots 				& \vdots 
+% 							& \vdots 				& 							& 							& 
+% 							& 							& 							& 							& \vdots \\
+% 0						  & 0 					  & \hdots 				& \frac{d-(i-1)}{d-(i-2)}	& * 
+% 							& *						  & \hdots 				& \hdots 				& \hdots 
+% 							& \hdots 				& \hdots 				& \hdots 				& * \\
+% 0 					  & 0  						& \hdots 				& 0						 	& \frac{-1}{d-(i-1)} 
+% 							& * 						&	*						 	& \hdots 				& \hdots 
+% 							& \hdots			 	& \hdots			 	& \hdots 				& * \\
+% 0  						& 0						  & \hdots 				& \hdots			 	& 0 
+% 							& -1 						& *							& * 						& \hdots 
+% 							& \hdots			 	& \hdots			 	& \hdots 				& * \\
+% 0  						& 0						  & \hdots 				& \hdots			 	& \hdots 
+% 							& 0 						& -1						& * 						& * 
+% 							& \hdots			 	& \hdots			 	& \hdots 				& * \\
+% \vdots 				& \vdots 				& 			 				& 			 				&  
+% 							&  							& 							& \ddots				&
+% 							& 							& 							& 							& \vdots \\
+% 0  						& 0						  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& 0			 				& -1 
+% 							& *						 	& *						 	& \hdots 				& * \\
+% 0  						& 0						  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& 0
+% 							& 1							& *							& \hdots 				& * \\
+% 0  						& 0						  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& \hdots 
+% 							& 0							& 1							&	\hdots 				& * \\
+% \vdots 				& \vdots 				& 			 				& 			 				&  
+% 							& 			 				& 							& 							& 
+% 							& 							& 							& \ddots				& \vdots \\
+% 0  						& 0						  & \hdots 				& \hdots			 	& \hdots 
+% 							& \hdots			  & \hdots			 	& \hdots 				& \hdots 
+% 							& \hdots				& \hdots				& 0			 				& 1 \\
+% \end{array} \right ]
+% $
+% };
+% % 	\draw (-4.85,3.4) 	node {$1$};
+% % 	\draw (-4.05,3.4) 		node {$2$};
+% % 	\draw (-3.25,3.4) 	node {$\hdots$};
+% % 	\draw (-2.25,3.4) 	node {$\hdots$};
+% % 	\draw (-1.0,3.4) 	node {$i^*$};
+% % 	\draw (-0.03,3.4) 		node {$\hdots$};
+% % 	\draw (0.73,3.4) 	node {$\hdots$};
+% % 	\draw (1.46,3.4) 	node {$\hdots$};
+% % 	\draw (2.22,3.4) 	node {$\hdots$};
+% % 	\draw (2.96,3.4) 	node {$\hdots$};
+% % 	\draw (3.68,3.4) 	node {$\hdots$};
+% % 	\draw (5,3.4) 	node {$d-c-1$};
+% % 	\draw (5.8,2.9) 	node {$1$};
+% % 	\draw (5.8,2.45) 	node {$2$};
+% % 	\draw (5.8,2) 	node {$\vdots$};
+% % 	\draw (5.8,1.05) 	node {$\vdots$};
+% % 	\draw (5.8,0.1) 	node {$\vdots$};
+% % 	\draw (6,-0.95) 	node {$j^*-1$};
+% % 	\draw (5.8,-1.75) 	node {$\vdots$};
+% % 	\draw (6.3,-2.8) 	node {$d-c-1$};
+% \end{tikzpicture}
+% \end{center}
+% \end{figure}
+% 
+% for unimportant values of $*$. Importantly, this matrix has determinant $\frac{(-1)^{j-i}}{d} = \frac{(-1)^{j+i}}{d}$. Thus,
+% 
+% \begin{align*}
+% M_{ij} 	&= (-1)^{j+i} d^n \left ( \frac{c}{d} \right )^{n-1} \frac{1}{d} \\  
+% 				&= (-1)^{j+i} c^{n-1} \\  
+% \end{align*}
+% 
+% 
+% \subsubsection{Case 9b: $i \neq j$ and  $i \in [n+1,(d-c+1)n]$,  $j \in \left \{ j\in [n+1,(d-c+1)n]  \text{ s.t. } \left \lceil \frac{j-n}{d-c} \right \rceil \neq \left \lceil \frac{i-n}{d-c} \right \rceil \right \}$}
+% 
+% 
+% {\color{red} ??? I have a strong suspicion that this determinant is zero, but I haven't been able to show it yet, maybe a similar approach to case 9a will work??? Hoping there is an easier way though.}
+% 
+% 
+% 
+% 
+% \subsection{Inverse}
+% 
+% In \refsec{MC} we derived the matrix of minors for a 
+% general matrix $C(n,d,c)$,
+% \begin{equation*}
+% \hdots
+% \end{equation*}
+% 
+% The cofactors ($C_{ij} = (-1)^{i+j} M_{ij}$) are thus
+% \begin{equation*}
+% \hdots
+% \end{equation*}
+% 
+% and as $|C(n,d,c)| = c^n$ 
+% (\refsec{detC}), we can conclude that the inverse is
+% {\footnotesize
+% \begin{equation*}
+% 	\left [C(n,d,c)^{-1} \right ]_{ij} = \left \{ \begin{array}{cll}
+% 						\frac{1}{c} 									& i=j=1 								& \\ \\ 					% case 1
+% 						\frac{2}{c} 									& i,j \in [2,n] 				& i = j  \\ \\  	% case 2
+% 						\frac{1}{c}										& i,j \in [2,n] 				& i \neq j \\ \\ 	% case 3
+% 						\frac{-1}{c}									& \begin{array}{l}
+% 																						i = 1, \, j \in [2,n] \\
+% 																						j = 1, \, i \in [2,n]
+% 																					\end{array}  & \text{or} \\ \\        % case 4 			
+% 						\frac{-1}{c}									& \begin{array}{l}
+% 																						i = 1, \, j \in [n+1,n+d-c] \\
+% 																						j = 1, \, i \in [n+1,n+d-c]
+% 																					\end{array}  & \text{or} \\ 	\\			 % case 5a
+% 						0															& \begin{array}{l}
+% 																						i = 1, \, j \in [n+d-c+1,n(d-c+1)] \\
+% 																						j = 1, \, i \in [n+d-c+1,n(d-c+1)]
+% 																					\end{array}  & \text{or} \\ 		\\		 % case 5b
+% 						0?														& \begin{array}{l}
+% 																						i \in [2,n], \, j \in \left \{ j \in [n+d-c+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{j-n}{d-c} \right \rceil \neq i \right \} \\
+% 																						j \in [2,n], \, i \in \left \{ i \in [n+d-c+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{i-n}{d-c} \right \rceil \neq j \right \}
+% 																					\end{array}  & \text{or} \\ 		\\		 % case 6a
+% 						\frac{1}{c}										& \begin{array}{l}
+% 																						i \in [2,n], \, j \in \left \{ j \in [n+d-c+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{j-n}{d-c} \right \rceil = i \right \} \\
+% 																						j \in [2,n], \, i \in \left \{ i \in [n+d-c+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{i-n}{d-c} \right \rceil = j \right \}
+% 																					\end{array}  & \text{or} \\ 		\\		 % case 6b
+% 						\frac{c+1}{c} 									& i,j \in [n+1,n(d-c+1)] 		& i = j  \\ \\  	% case 7
+% 						\frac{1}{c}										& \begin{array}{l}
+% 																						i \in [2,n], \, j \in [n+1,n+d-c] \\
+% 																						j \in [2,n], \, i \in [n+1,n+d-c]
+% 																					\end{array}  & \text{or} \\ 	\\			 % case 8
+% 						\frac{1}{c}										& \begin{array}{l}
+% 																						i \in [n+1,n(d-c+1)], \, j \in \left \{ j \in [n+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{j-n}{d-c} \right \rceil = \left \lceil \frac{i-n}{d-c} \right \rceil \right \} \\
+% 																						j \in [n+1,n(d-c+1)], \, i \in \left \{ i \in [n+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{i-n}{d-c} \right \rceil = \left \lceil \frac{j-n}{d-c} \right \rceil \right \}
+% 																					\end{array}  & \text{or} \\ 	\\			 % case 9a
+% 						0?														& \begin{array}{l}
+% 																						i \in [n+1,n(d-c+1)], \, j \in \left \{ j \in [n+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{j-n}{d-c} \right \rceil \neq \left \lceil \frac{i-n}{d-c} \right \rceil \right \} \\
+% 																						j \in [n+1,n(d-c+1)], \, i \in \left \{ i \in [n+1,n(d-c+1)] \text{ s.t. } \left \lceil \frac{i-n}{d-c} \right \rceil \neq \left \lceil \frac{j-n}{d-c} \right \rceil \right \}
+% 																					\end{array}  & \text{or} \\ 		\\		 % case 9a
+% 	\end{array} \right ..
+% \end{equation*}
+% }
+
+
+
+
+
