@@ -47,7 +47,7 @@ proteomics \gls{ms} data.
 Proteins are biological molecules involved in most 
 cellular processes and consisting of a sequence of 
 amino acids that are chemically connected by 
-`peptide bonds'.
+peptide bonds.
 When connected in this fashion, each amino acid in a 
 protein is referred to as a residue.
 There exist $22$ naturally occurring proteinogenic amino 
@@ -62,11 +62,11 @@ a protein's amino acid sequence.
 Living organisms transcribe a gene and synthesise the 
 corresponding protein as a linear amino acid sequence 
 which then undergoes post-translational modification 
-and folds into a complex three dimensional structure w
-hich usually determines the protein's function and 
+and folds into a complex three dimensional structure 
+which usually determines the protein's function and 
 intra-cellular location.
-The compounding diversity of: linear amino acid 
-sequence post-translational modification, and three 
+The compounding diversity of linear amino acid 
+sequence, post-translational modification, and three 
 dimensional folding is what allows proteins to fill 
 such a wide variety of functions.
 The complete set of proteins which exist in a given 
@@ -231,7 +231,7 @@ discuss in more depth in \refsec{fractionation}.
 
 Allowing analyte ions to travel through a field-free
 drift region separates analyte ions by \gls{mz}, and 
-this type of mass analyser is coined \acrfull{tof} as 
+this type of mass analyser is termed \acrfull{tof} as 
 analytes are separated based on the time they spend in 
 the field-free drift region --- see 
 \reffig{msSchematic}.
@@ -503,7 +503,8 @@ There are different methods for preserving or `fixing'
 the spatial information in the tissue for analysis.
 In the field of \gls{maldi}-\gls{ims}, fresh frozen 
 tissue samples have historically been used, but recent 
-advances have allowed for the use of \gls{ffpe} tissue.
+advances have allowed for the use of \gls{ffpe} tissue 
+to acheive comparable results \citep{Groseclose2008}.
 This has had widespread impact on the field as 
 \gls{ffpe} tissue samples can be stored long term 
 relatively cheaply, and so large archives of \gls{ffpe}
@@ -1086,7 +1087,7 @@ We consider datasets from three applications of
   The endometrial cancer data relate to 
   \glspl{tma} of endometrial cancer, 
   providing access to data from a relatively large 
-  number of patients (more than $40$), as discussed in 
+  number of patients ($43$), as discussed in 
   \refsec{TMAs}. 
   The objective is to demonstrate that these data can 
   be used to predict clinically relevant diagnostic 
@@ -1100,7 +1101,7 @@ We consider datasets from three applications of
   The secondary vulvar cancer data relate to a similar
   diagnostic variable of interest relating to 
   metastasis, but provide access to data from a 
-  smaller number of patients (still more than $20$).
+  smaller number of patients ($28$).
   We will use the vulvar cancer data to investigate 
   whether the conclusions we reach through 
   investigation of the endometrial cancer data can be 
@@ -1535,18 +1536,18 @@ The problem we will consider is that of diagnosing
 ``Endometrial cancer is the most common gynaecological 
 malignancy in Australia with $2256$ diagnosed cases in
 $2010$ and $381$ associated deaths in $2011$ 
-\cite{AIHW2012}. 
+\citep{AIHW2012}. 
 The presence or absence of \acrfull{lnm} 
 is the most important prognostic factor in endometrial 
 cancer as patients with localised disease have a $5$ 
 year survival rate of $96\%$, which drops to just 
 $17\%$ for patients with metastatic disease 
-\cite{Rungruang2012}. 
+\citep{Rungruang2012}. 
 Accurately staging endometrial cancer is difficult and 
 a large percentage of patients are misclassified prior 
-to treatment \cite{Jacques1998}. 
+to treatment \citep{Jacques1998}. 
 Although the presence of \gls{lnm} is confirmed in only 
-around $15\%$ of cases \cite{Morrow1991,Creasman2006}, 
+around $15\%$ of cases \citep{Morrow1991,Creasman2006}, 
 the majority of endometrial cancer patients undergo 
 radical treatment including the removal of pelvic lymph 
 nodes as a precautionary measure to compensate for our 
@@ -1554,7 +1555,7 @@ current inability to accurately stage the disease.
 Lymph node removal is associated with significant 
 complications including lower extremity lymphoedema, 
 which has been described in up to $38\%$ of patients 
-\cite{Todo2010}. 
+\citep{Todo2010}. 
 A classification system based around predictive tissue 
 markers of metastasis would greatly benefit stage I 
 endometrial cancer patients by helping determine 
@@ -2200,8 +2201,9 @@ the term `semi-supervised'.
 We will not consider results from such semi-supervised
 methods, or any hierarchical clustering methods at all, 
 instead favouring the $k$-means approach described 
-below, which compared to hierarchical methods is more 
-computationally efficient.
+below, which can is more computationally efficient 
+compared to hierarchical methods that compute full 
+dendrograms.
 
 $k$-means is an alternative approach to that of 
 hierarchical clustering that attempts to find an optimum 
@@ -2227,9 +2229,9 @@ and $k$-means clustering are used in the analysis of
 discuss.
 We favour the $k$-means approach, as its unsupervised 
 nature allows us to repeat many computations in 
-parallel, and it is more computationally efficient than
-hierarchical methods as it does not need to generate 
-full dendrograms.
+parallel, and compared to hierachical methods that 
+generate full dendrograms and are difficult to 
+parallelise it can be more computationally efficient.
 However it should be noted that hierarchical approaches 
 have their uses as well, as discussed at length by 
 \citet{Alexandrov2012} and references therein.
@@ -2239,6 +2241,7 @@ have their uses as well, as discussed at length by
 \label{sec:statsBackgroundClas}
 
 Classification, sometimes called discriminant analysis, 
+and included in the more broad term supervised learning, 
 is a field that concerns the differentiation of data 
 belonging to several classes 
 \citep[Chapter 4]{Koch2013}.

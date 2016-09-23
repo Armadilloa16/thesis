@@ -39,7 +39,8 @@ urlcolor=black,
 
 \usepackage{tikz}
 \usetikzlibrary{decorations.pathreplacing}
-\usetikzlibrary{positioning}\usepackage{etoolbox}
+\usetikzlibrary{positioning}
+\usetikzlibrary{calc}
 
 \usepackage{datetime}
 \newdateformat{monthyeardate}{%
@@ -48,6 +49,7 @@ urlcolor=black,
 \usepackage{color}
 \usepackage{ifthen}
 
+\usepackage{etoolbox}
 \usepackage{booktabs}
 \usepackage{caption}
 \usepackage{multicol}
@@ -267,6 +269,31 @@ palette <- hcl(h = c(15, 105, 195, 285), c = 100, l = 75)
 \newcommand{\NcolboxPurple}{Purple}
 \newcommand{\Ncolboxgreen}{green}
 \newcommand{\NcolboxGreen}{Green}
+
+
+
+
+
+
+
+
+\newcommand*{\intentionallyblankpage}{%
+  \vspace*{\fill}
+  {\centering \textit{This page intentionally left blank.} \par}
+  \vspace{\fill}}
+\makeatletter
+\renewcommand*{\cleardoublepage}{\clearpage\if@twoside \ifodd\c@page\else
+  \intentionallyblankpage
+  % \thispagestyle{empty}
+  \newpage
+  \if@twocolumn\hbox{}\newpage\fi\fi\fi}
+\makeatother
+
+
+
+
+
+
 
 
 

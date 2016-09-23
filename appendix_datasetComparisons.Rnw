@@ -535,7 +535,7 @@ for all three patients:
     very well, the only notable deviation being the 
     \Ncolboxpurple{} clusters of datasets A1 and A2 
     included some of the thin connective \Ncolboxstroma{} 
-    tissue inbetween \Ncolboxadipose{} regions, which in 
+    tissue between \Ncolboxadipose{} regions, which in 
     datasets A3 and A4 are largely grouped into their
     \Ncolboxadipose{} clusters.
 		It was also noted that the \Ncolboxadipose{} and 

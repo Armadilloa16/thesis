@@ -2,7 +2,6 @@
 set_parent('whole_thesis.Rnw')
 @
 
-
 %-----beginning of title page -----------------------------
 \begin{titlepage}
 \begin{flushleft}
@@ -62,21 +61,23 @@ Imaging Mass Spectrometry Data}}
 % \setcounter{page}{0}
 \end{titlepage}
 %---------- end of title page -------------------------------
-\title{\null}
-\date{\null}
-\maketitle
-% \begin{titlepage}
-% \null
-% \thispagestyle{empty}
+
+
+% \title{\null}
+% \date{\null}
+% \maketitle
+\begin{titlepage}
+\intentionallyblankpage
+\thispagestyle{empty}
 % \setcounter{page}{0}
-% \end{titlepage}
+\end{titlepage}
 
 
 \pagenumbering{roman}
 
 
 %---------------- table of contents -------------------------
-\null
+\intentionallyblankpage
 \pagestyle{empty}
 \cleardoublepage
 \setcounter{page}{1}
@@ -86,13 +87,13 @@ Imaging Mass Spectrometry Data}}
 %---------------- Glossary ----------------------------------
 % \setglossarystyle{mcolindex}
 \glsaddall
+\newpage
+\intentionallyblankpage
 \printglossaries
 %---------------- end of Glossary ---------------------------
 
 % --------------- Abstract ----------------------------------
 \glsresetall
-\cleardoublepage
-\null
 \cleardoublepage
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
@@ -350,7 +351,7 @@ primarily based in the discipline of statistics, or
 perhaps more accurately bioinformatics, a large 
 component of the work is cross-disciplinary with 
 proteomics, and as such I aspire to represent 
-both points of view to some degree.
+both aspects to some degree.
 Proteomics is a rapidly growing area which deals with 
 the identification and characterisation of proteins, 
 most commonly by a so-called `bottom-up' approach that
@@ -465,7 +466,7 @@ I have also presented the work, now published as
 specifically giving a talk at the Statistical Society 
 of Australia Inc. Young Statisticians Conference in 
 $2013$, a talk as an invited speaker to the Statistical 
-Society of Australia Inc. Austrian Statistical 
+Society of Australia Inc. Australian Statistical 
 Conference in $2014$, and presenting a poster at the 
 Australasian Proteomics Society Annual Lorne 
 Proteomics Symposium in $2015$.
@@ -559,6 +560,7 @@ For any such background knowledge without a specific
 reference included, please see \citet{Lovric2011} for 
 proteomics and mass spectrometry background, 
 \citet{Koch2013} for multivariate statistics, or 
+\citet{Casella2002} for statistics more generally.
 
 It should also be noted that a significant 
 proportion of the work that went into this project 

@@ -2,7 +2,7 @@
 set_parent('whole_thesis.Rnw')
 @
 
-\gls{maldi}-\gls{ims} has two strengths that we have 
+\gls{maldi}-\gls{ims} has two aspects that we have 
 focussed on: preserving spatial information, and 
 facilitating the classification of clinically 
 relevant diagnostic and prognostic factors through the 
@@ -81,7 +81,7 @@ statistical results, namely:
   analysis, but to binary data in general.
   \item The analytic form for the matrix inverse 
   derived in \refapp{normalisation}, which is of 
-  interest not only in linear regression, but is infact 
+  interest not only in linear regression, but is in fact 
   a result for a more general family of matrices.
 \end{itemize}
 

@@ -342,7 +342,7 @@ number of variables selected, as discussed in
 
 Note that \gls{lda} results exist for only $k \leq 40$, 
 this is not only the maximum $k$ such that $\hat{W}$ is 
-invertible in practice, but infact the theoretical 
+invertible in practice, but in fact the theoretical 
 maximum for performing \gls{loo} \gls{cv}.
 In general, $\hat{W}$ is singular for $n - \kappa < d$,
 but when using \gls{loo} \gls{cv} $n$ is replaced with 
@@ -672,7 +672,7 @@ and blue lines).
 Overall there seems to be no conclusive trend in the 
 effect restricting to cancer annotated spectra only has
 on classification performance.
-However although not showing an overall effect this 
+However, although not showing an overall effect this 
 variation does show interesting interactions with 
 choice of dimension reduction approach, classification 
 method, and data type.
@@ -1531,7 +1531,7 @@ Some notes on \reffig{stab_da}:
   modes. 
   The \gls{dwd} cases tend to have modes below 
   $\frac{\pi}{64}$ radians, while the \gls{nb} cases
-  have modes above $\frac{\pi}{64}$ radians and infact 
+  have modes above $\frac{\pi}{64}$ radians and in fact 
   do not have any heuristic values below 
   $\frac{\pi}{128}$ radians at all.
 \end{itemize}
@@ -1809,7 +1809,7 @@ accurate classification.
 However, the results do not support this --- \gls{loo} 
 misclassification shows no obvious trend related to the
 use of normalisation prior to classification.
-Infact, overall, classification performance tends to be 
+In fact, overall, classification performance tends to be 
 worse when normalisation is used.
 This worsening of the classification performance when 
 normalisation is used can, for example, be seen in the 

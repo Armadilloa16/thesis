@@ -12,6 +12,10 @@ the the ovarian cancer dataset A3 --- in that
 application the subset of interest corresponded to 
 cancer tissue in dataset A3, as obtained by $k$-means
 clustering.
+In \refsec{datasetComparisons} and then later also in 
+\refapp{datasetComparisons} we apply this approach to 
+the remaining ovarian cancer datasets, and the workflow
+for doing so is summarised in \reffig{dippsWorkflow}.
 The \gls{dipps}-based feature extraction approach is a 
 general method however, requiring only binary data and
 a subset of interest. 
@@ -46,9 +50,9 @@ ovarian cancer datasets discussed in
 datasets from the same patient and datasets from 
 different patients.
 Ultimately we compare the sets of \gls{dipps}-features
-extracted and thereby investigate within and between 
-patient variability in order to demonstrate that within 
-patient variability is less than between patient 
+extracted and thereby investigate within-patient and 
+between-patient variability in order to demonstrate 
+that within-patient variability is less than between-patient 
 differences --- meaning it is feasible to detect real 
 between patient differences in these data. 
 We have published this work \citep{Winderbaum2015}.
@@ -76,9 +80,9 @@ clustering to find the subsets of interest.
 \label{sec:datasetComparisons}
 
 This section is organised in the following way.
-Initially I briefly describe the Jaccard distance and 
-how it can be used to compare two sets of 
-\gls{dipps}-features.
+Initially in \refsec{JaccardDistance} I briefly 
+describe the Jaccard distance and how it can be used to 
+compare two sets of \gls{dipps}-features.
 I suggest that this will provide a useful method for 
 making the many comparisons we are interested in making 
 between tissue types, datasets, and patients. 
@@ -104,6 +108,20 @@ Sections~\ref{sec:withinPatient_B}~-~\ref{sec:betweenPatients}
 I focus on the most important and interesting results.
 A more detailed discussion of these results is included 
 in \refapp{datasetComparisons}.
+
+\begin{figure}[p]
+	\begin{center}
+		\input{./figure_dippsWorkflow}
+    \vspace{0.6cm}
+	  \caption{Workflow describing the process of 
+	  obtaining \gls{dipps} feature sets characterising 
+	  the tumour cluster in each of the ovarian cancer 
+	  datasets, which are then compared using the Jaccard 
+	  distance (\refsec{JaccardDistance}) in 
+	  \refsec{datasetComparisons}.
+    \label{fig:dippsWorkflow}}
+  \end{center}
+\end{figure}
 
 
 \subsection{Jaccard Distance for Comparing Datasets}
@@ -190,7 +208,7 @@ As such any reliable analysis method should produce
 similar results on these sections.
 For example, clustering to separate tissue types should 
 show visually similar patterns. 
-How similar/ different results are between
+How similar or different results are between
 these datasets can give an impression of the 
 within-patient variability as well as the 
 reproducibility of both the technology, and the method
@@ -1550,7 +1568,7 @@ Figures~\ref{fig:figure_binary_cosClus_A},
 \gls{dipps}-features from each of the four sections 
 from each of the three patients.
 Black lines seperate patients, similarly to 
-\reffig{figure_Jaccard_all} --- infact the results 
+\reffig{figure_Jaccard_all} --- in fact, the results 
 shown here are a subset of those in 
 \reffig{figure_Jaccard_all}, corresponding to every
 fourth pixel, i.e. those corresponding to cancer 
@@ -1618,12 +1636,9 @@ This indicates that a more likely explanation for
 patients B's \Ncolboxcancer{} cluster demonstrating 
 dissimilarity to the \Ncolboxcancer{} clusters of patients 
 A and C is actually that there is a difference between 
-these patients cancers at a molecular level.
-We discussed this result that the cancer of patient B 
-seems to differ from the cancer of patients A and C 
-with our biochemist collaborators at the \gls{apc}, and 
-after acquiring more detailed descriptions of the 
-histopathology of the tissues from these patients came 
+these patients' cancers at a molecular level.
+After acquiring more detailed descriptions of the 
+histopathology of the tissues from these patients we came 
 to understand that the cancer tissue of patient B is 
 largely necrotic, and it could be that we are detecting 
 blood-specific masses that characterise this necrosis. 
@@ -1674,7 +1689,7 @@ immunohistochemistry for identification and validation
 at the protein level. 
 We also demonstrated that meaningful conclusions could
 be drawn despite the variations and artefacts of the
-clusterings --- infact, the variation in clustering
+clusterings --- in fact, the variation in clustering
 results enriched the conclusions drawn from the Jaccard 
 distance comparisons, despite making them more 
 complicated.
@@ -1740,7 +1755,7 @@ from the Jaccard distance comparisons follow:
   doing so. 
   This is most likely due to how the \Ncolboxcancer{} grew 
   out of the \Ncolboxstroma{} tissue and so is still 
-  molecularly quite similar to it. 
+  quite similar to it at the molecular level. 
   The 
   $\Sexpr{nrow(subset(dipps_comparisons_df,(p2s2c4+p2s3c4+p2s4c4+p2s1c4==4)&p2s1c2==0))}$
   variables that characterise the \Ncolboxcancer{} but not 
@@ -2451,7 +2466,7 @@ kidney (\reffig{figure_Nglycans_high_dipps_bins}(a),
 (i), (j), and (l)), cortex-specific 
 (\reffig{figure_Nglycans_high_dipps_bins}(e-h,k), 
 \reffig{figure_Nglycans_high_dipps_bins_cont}(a)), or 
-somewhere inbetween 
+somewhere between the two 
 (\reffig{figure_Nglycans_high_dipps_bins}(b-d)). 
 This is not representative of glycan distributions in 
 this tissue, as the cortex makes up a disproportionate 
@@ -2863,9 +2878,9 @@ Figure & calculated    & (ppm) & composition & structure  & {\tiny \cite{Xu2012}
   \end{center}
 \captionsetup{singlelinecheck=off}
 \caption[foo bar]{Spatial plots with log-intensity of 
-peaks shown using colour, bright 
-colours corresponding to high log-intensities dark to 
-low log-intensities and grey indicating the absence of 
+peaks shown using colour --- bright colours 
+corresponding to high log-intensities, dark to 
+low log-intensities, and grey indicating the absence of 
 peaks. Each subplot shows a peakgroup, and the 
 peakgroups shown are those ranked $1-12$ in decreasing 
 order of \gls{dipps}. 
@@ -3013,9 +3028,9 @@ Shown are the peakgroups with \gls{snr}-weighted mean
   \end{center}
 \captionsetup{singlelinecheck=off}
 \caption[foo bar]{Spatial plots with log-intensity of 
-peaks shown using colour, bright 
-colours corresponding to high log-intensities dark to 
-low log-intensities and grey indicating the absence of 
+peaks shown using colour --- bright colours 
+corresponding to high log-intensities, dark to 
+low log-intensities, and grey indicating the absence of 
 peaks. Each subplot shows a peakgroup, and the 
 peakgroups shown are those ranked $13-24$ in decreasing 
 order of \gls{dipps}. 
@@ -3165,9 +3180,9 @@ Shown are the peakgroups with \gls{snr}-weighted mean
   \end{center}
 \captionsetup{singlelinecheck=off}
 \caption[foo bar]{Spatial plots with log-intensity of 
-peaks shown using colour, bright 
-colours corresponding to high log-intensities dark to 
-low log-intensities and grey indicating the absence of 
+peaks shown using colour --- bright colours 
+corresponding to high log-intensities, dark to 
+low log-intensities, and grey indicating the absence of 
 peaks. Each subplot shows a peakgroup, and the 
 peakgroups shown are those ranked $25-36$ in decreasing 
 order of \gls{dipps}. 

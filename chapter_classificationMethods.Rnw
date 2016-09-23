@@ -185,7 +185,8 @@ non-linear alternatives exist.
 In general, linear methods are easier to interpret,
 particularly in the context of high-dimensional data.
 Therefore the simpler linear methods are often favoured 
-over non-linear alternatives in \gls{hdlss} contexts.
+over non-linear alternatives in \gls{hdlss}, or 
+``large $p$ small $n$'' contexts.
 We will also be restricting attention to two-class 
 classification, as in the endometrial data the interest 
 is to discriminate between patients with positive and 
@@ -348,7 +349,7 @@ In practice, data collection can often be prohibitively
 expensive and access to large sample sizes is often 
 not possible, particularly for rare diseases.
 Due to these limitations, we are motivated to find
-a compromise somewhere inbetween using separate 
+a compromise somewhere between using separate 
 `training' and `testing' datasets and using 
 misclassification rate. 
 Such a compromise would `make the most' of a small 
@@ -579,7 +580,7 @@ the matrix
   (\diag{\hat{W}})^{-1}\hat{B}.
 	\label{eqn:dNB}
 \end{equation}
-In the case that the variables are infact independent, 
+In the case that the variables are in fact independent, 
 \gls{lda} reduces to \gls{nb}.
 
 Similarly to \gls{lda} we choose the sign of 
@@ -2520,7 +2521,7 @@ the calibrant we left out of the model-fit step.
 We can then consider the intensities of the internal 
 calibrants before and after normalisation and thereby 
 estimate the effectiveness of the normalisation.
-This estimation should infact be conservative, as in 
+This estimation should in fact be conservative, as in 
 each case the model-fit is done on the basis of three
 calibrants.
 When the normalisation is done for the whole data, the 
@@ -2680,9 +2681,8 @@ For the binary data type, we will also consider the
 spatial smoothing introduced earlier in 
 \refsec{spatialSmooth}, to similar effect.
 
-Finally, and perhaps most crucially, 
 \gls{maldi}-\gls{ims} data are high-dimensional, and 
-this poses a challenge for classification.
+this can pose a challenge for classification.
 In \refsec{VR} we introduced two approaches to 
 dimension reduction: a \gls{pca} based projection 
 approach, and a \gls{cca}-based variable ranking 
@@ -2691,7 +2691,8 @@ We will explore the results of applying these
 approaches in \refchap{classificationApplication}.
 So, in summary, in \refchap{classificationApplication} 
 we will consider each combination of the following 
-options: 
+options, applied as described in 
+\reffig{classificationWorkflow}: 
 \begin{itemize}
   \item \textbf{Dimension reduction approach} (\gls{pca}, 
   \gls{cca}, or no dimension reduction) as introduced 
@@ -2701,7 +2702,7 @@ options:
   \gls{lda}, or \gls{dwd}),  
   \emph{note: \gls{lda} cannot be used if no dimension 
   reduction is performed, as discussed in 
-  \refsec{DAmethods}}.
+  \refsec{DAmethods}},
 
   \item \textbf{Spectra included in patient-averages} 
   (all, or only annotated tumour spectra) as discussed
@@ -2724,10 +2725,27 @@ options:
     \item When binary data is used, 
     \textbf{Spatial smoothing} ($\tau = 0$, $\tau = 0.15$, 
   or $\tau = 0.25$) as described in 
-  \refsec{spatialSmooth},
+  \refsec{spatialSmooth}.
 
   \end{itemize}
 \end{itemize}
 
+\begin{figure}[p]
+	\begin{center}
+		\input{./figure_classificationWorkflow}
+    \vspace{0.6cm}
+	  \caption{Workflow showing how the various options 
+	  introduced in this chapter fit together in a 
+	  sequence of decisions culminating in classification 
+	  of the \gls{maldi}-\gls{ims} data. 
+	  We will consider every possible path through this 
+	  workflow in \refchap{classificationApplication}, 
+	  discussing the various options introduced in this 
+	  chapter and how they perform when applied to the 
+	  endometrial cancer \gls{tma} data of 
+	  \refsec{endometrialDatasets}.
+    \label{fig:classificationWorkflow}}
+  \end{center}
+\end{figure}
 
 

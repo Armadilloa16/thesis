@@ -8,9 +8,7 @@ set_parent('whole_thesis.Rnw')
 data \citep{Bonnel2011}.
 It also has a uniquely complicated structure.
 The development of novel statistical tools is required 
-in order to analyse and interpret \gls{maldi}-\gls{ims} 
-results as many standard methods are 
-inappropriate.
+in order to analyse and interpret \gls{maldi}-\gls{ims}.
 \citet{Deininger2008}, \citet{Bonnel2011}, 
 \citet{Alexandrov2013}, and references therein have 
 suggested a number of approaches to the exploratory 
@@ -53,7 +51,7 @@ investigate structure in these data.
 The $k$-means clustering approach we discuss can be 
 seen as an alternative to the so-called 
 `semi-supervised' methods of 
-\cite{Deininger2008,Alexandrov2010} and 
+\cite{Deininger2008}, \cite{Alexandrov2010} and 
 \cite{Bonnel2011} who cluster \gls{maldi}-\gls{ims} 
 data using principal component analysis, hierarchical 
 clustering, and Gaussian mixture models.
@@ -82,8 +80,9 @@ simple interpretation.
 
 The methods in this chapter do not only apply to 
 \gls{maldi}-\gls{ims} data but can be used more 
-generally on any binary presence/ absence data as 
-introduced in \refdef{presAbsData}.
+generally on any binary presence/ absence data of the 
+form we will introduce in \refsec{dippsSS} as 
+\refdef{presAbsData}.
 In order to clarify the generality of these methods, I 
 introduce methods in a general sense and then motivate
 them with examples from the \gls{maldi}-\gls{ims} 
@@ -622,8 +621,9 @@ are quite robust to changing the choice of bin size
 within the range $0.05-3$. 
 
 It is interesting to note how this heuristic approach 
-relates to the discussion of 
-\refsec{binarysummedbinaryequivalence}:
+relates to the discussion we include in 
+\refsec{binarysummedbinaryequivalence} of \refapp{binning}, 
+specifically:
 \begin{itemize}
   \item \refdef{binarysummedbinaryequivalence} 
   corresponds to no two peaks from the same spectrum 
@@ -703,7 +703,7 @@ $\Sexpr{nrow(peaklist_all)}$ peaks detected over
 $\Sexpr{nrow(spec_info)}$ spectra, as noted in 
 \reftab{imgBasicStats}, and 
 $d_{\infty} = \Sexpr{nrow(peaklist_all)} - \Sexpr{nrow(spec_info)}$.
-In actual fact, spectra were collected from 
+In fact, spectra were collected from 
 $\Sexpr{nrow(LXY)}$ locations, but no peaks were 
 detected in $\Sexpr{nrow(LXY) - nrow(spec_info)}$ of 
 these spectra, also noted in \reftab{imgBasicStats}. 
@@ -723,7 +723,7 @@ spectra in which no peaks were detected.
 
 % [1:25,195:dim(fExists)[2]]
 \begin{figure}
-  \vspace{-2.4cm}
+  \vspace{-3cm}
   \begin{center}
     \begin{tikzpicture}
       \draw (10,0) node {
@@ -766,6 +766,7 @@ spectra in which no peaks were detected.
 	\end{center}
   \vspace{-2.4cm}
 	\caption{Spatial distribution of spectra in dataset A3. Coloured pixels indicate X-Y coordinates from which spectra were collected. The zoom-in highlights that the coloured region consists of square pixels arranged in a regular grid, each pixel at X-Y coordinates where a spectrum was collected. \label{fig:figure_A3_spatialDistribution}}
+	% \vspace{-0.9cm}
 \end{figure}
 
 
@@ -890,7 +891,18 @@ setnames(clus_A3,'V3','Binary.Hamming')
 setnames(clus_A3,'V4','Binary.Euclidean')
 @
 
-<<figure_A3_binary_clusterings, dependson=c("clus_A3_binary","A3_load"), fig.show='hold', results='hide', out.width="0.9\\linewidth", fig.width=6, fig.height=4, fig.cap= "The results of $4$-means clustering (\\refalg{kmeans}) on the dataset A3. Analysis was done using the cosine (left), Euclidean (centre) and Hamming (right) distances on the binned (bin size $0.25$) binary data. Apart from minor speckling effects, spatially localised clusters that well separate the main tissue types are apparent in all three clustering results.", fig.align='center'>>=
+
+
+
+\begin{figure}[h]
+\vspace{-2cm}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {
+\includegraphics[height=6.05cm,trim= 15cm 0cm 14.5cm 0cm,clip=true]{./miscImages/HEstains_contrast/Slide_4_p44.pdf}
+};
+\draw (7.3,-0.4) node {
+<<figure_A3_binary_clusterings, dependson=c("clus_A3_binary","A3_load"), fig.show='hold', results='hide', out.width="0.67\\linewidth", fig.width=6>>=
 mI.m <- spatialPlot(clus_A3,fExists,
                     plot_var = 'Binary.Cosine',
                     plot_var_type = 'categorical',
@@ -931,6 +943,34 @@ p = (ggplot(mI.m,aes(X,Y))
 )
 print(p)
 @
+};
+\draw (-1.3,2.4) node {(a)};
+\draw (2.7,2.4) node {(b)};
+\draw (1,-2.85) node {5mm};
+\draw[line width = 6pt] (0.276,-3.2) -- (1.670,-3.2);
+% \draw[line width = 6pt] (3.439,-3.2) -- (4.833,-3.2);
+\draw[->,very thick] (0.8,0.4) -- (0.4,0);
+\draw[->,very thick] (0.85,1) -- (0.45,0.6);
+\draw[->,very thick] (0.6,-0.3) -- (0.2,-0.7);
+\draw[->,very thick] (1.45,2.15) -- (1.05,1.75);
+\end{tikzpicture}
+\end{center}
+\vspace{-3cm}
+\caption{ (a) \gls{he} stained tissue section with 
+arrows indicating the four visible tumours and 
+(b) The results of $4$-means clustering 
+(\refalg{kmeans}) on the dataset A3. 
+Analysis was done using the cosine (left), Euclidean 
+(centre) and Hamming (right) distances on the binned 
+(bin size $0.25$) binary data. 
+Apart from minor speckling effects, spatially localised 
+clusters that well separate the main tissue types are 
+apparent in all three clustering results.
+\label{fig:figure_A3_binary_clusterings}}
+\end{figure}
+
+
+
 
 We expect cluster memberships to be spatially localised 
 due to the nature by which the data was collected --- 
@@ -992,8 +1032,15 @@ clus_A3$SN.Euclidean <- factor(clus_temp$V4)
 @
 
 
-
-<<figure_A3_non_binary_euc_clusterings, dependson=c("clus_A3_non_binary_euc","A3_load"), fig.show='hold', results='hide', out.width="0.9\\linewidth", fig.width=6, fig.height=4, fig.cap= "The results of $4$-means clustering (\\refalg{kmeans}) on the dataset A3. Analysis was done using the Euclidean distance on binned (bin size $0.25$); intensity (left), area (centre) and \\gls{snr} (right) data. All three clustering results show spatially de-localised clusters. Although the clustering results show various degrees of success at separating certain features of the tissue, all fail to separate the main tissue types present in the tissue section.", fig.align='center'>>=
+\begin{figure}[h]
+\vspace{-2cm}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {
+\includegraphics[height=6.05cm,trim= 15cm 0cm 14.5cm 0cm,clip=true]{./miscImages/HEstains_contrast/Slide_4_p44.pdf}
+};
+\draw (7.3,-0.4) node {
+<<figure_A3_non_binary_euc_clusterings, dependson=c("clus_A3_non_binary_euc","A3_load"), fig.show='hold', results='hide', out.width="0.67\\linewidth", fig.width=6>>=
 mI.m <- spatialPlot(clus_A3,fExists,
                     plot_var = 'Intensity.Euclidean',
                     plot_var_type = 'categorical',
@@ -1034,6 +1081,34 @@ p = (ggplot(mI.m,aes(X,Y))
 )
 print(p)
 @
+};
+\draw (-1.3,2.4) node {(a)};
+\draw (2.7,2.4) node {(b)};
+\draw (1,-2.85) node {5mm};
+\draw[line width = 6pt] (0.276,-3.2) -- (1.670,-3.2);
+% \draw[line width = 6pt] (3.439,-3.2) -- (4.833,-3.2);
+\draw[->,very thick] (0.8,0.4) -- (0.4,0);
+\draw[->,very thick] (0.85,1) -- (0.45,0.6);
+\draw[->,very thick] (0.6,-0.3) -- (0.2,-0.7);
+\draw[->,very thick] (1.45,2.15) -- (1.05,1.75);
+\end{tikzpicture}
+\end{center}
+\vspace{-3cm}
+\caption{ (a) \gls{he} stained tissue section with 
+arrows indicating the four visible tumours and 
+(b) The results of $4$-means clustering 
+(\refalg{kmeans}) on the dataset A3. Analysis was done 
+using the Euclidean distance on binned 
+(bin size $0.25$); intensity (left), area (centre) and 
+\gls{snr} (right) data. 
+All three clustering results show spatially 
+de-localised clusters. 
+Although the clustering results show various degrees of 
+success at separating certain features of the tissue, 
+all fail to separate the main tissue types present in 
+the tissue section.
+\label{fig:figure_A3_non_binary_euc_clusterings}}
+\end{figure}
 
 
 
@@ -1058,8 +1133,15 @@ clus_A3$SN.Cosine <- factor(clus_temp$V4)
 
 
 
-
-<<figure_A3_non_binary_cos_clusterings, dependson=c("clus_A3_non_binary_cos","A3_load"), fig.show='hold', results='hide', out.width="0.9\\linewidth", fig.width=6, fig.height=4, fig.cap= "The results of $4$-means clustering (\\refalg{kmeans}) on the dataset A3. Analysis was done using the cosine distance on binned (bin size $0.25$); intensity (left), area (centre) and \\gls{snr} (right) data.", fig.align='center'>>=
+\begin{figure}[h!]
+\vspace{-2cm}
+\begin{center}
+\begin{tikzpicture}
+\draw (0,0) node {
+\includegraphics[height=6.05cm,trim= 15cm 0cm 14.5cm 0cm,clip=true]{./miscImages/HEstains_contrast/Slide_4_p44.pdf}
+};
+\draw (7.3,-0.4) node {
+<<figure_A3_non_binary_cos_clusterings, dependson=c("clus_A3_non_binary_cos","A3_load"), fig.show='hold', results='hide', out.width="0.67\\linewidth", fig.width=6>>=
 mI.m <- spatialPlot(clus_A3,fExists,
                     plot_var = 'Intensity.Cosine',
                     plot_var_type = 'categorical',
@@ -1100,6 +1182,29 @@ p = (ggplot(mI.m,aes(X,Y))
 )
 print(p)
 @
+};
+\draw (-1.3,2.4) node {(a)};
+\draw (2.7,2.4) node {(b)};
+\draw (1,-2.85) node {5mm};
+\draw[line width = 6pt] (0.276,-3.2) -- (1.670,-3.2);
+% \draw[line width = 6pt] (3.439,-3.2) -- (4.833,-3.2);
+\draw[->,very thick] (0.8,0.4) -- (0.4,0);
+\draw[->,very thick] (0.85,1) -- (0.45,0.6);
+\draw[->,very thick] (0.6,-0.3) -- (0.2,-0.7);
+\draw[->,very thick] (1.45,2.15) -- (1.05,1.75);
+\end{tikzpicture}
+\end{center}
+\vspace{-3cm}
+\caption{ (a) \gls{he} stained tissue section with 
+arrows indicating the four visible tumours and (b) The 
+results of $4$-means clustering (\refalg{kmeans}) on 
+the dataset A3. 
+Analysis was done using the cosine distance on binned 
+(bin size $0.25$); intensity (left), area (centre) and 
+\gls{snr} (right) data.
+\label{fig:figure_A3_non_binary_cos_clusterings}}
+\end{figure}
+
 
 
 
@@ -1862,15 +1967,15 @@ clus_A3$Smoothed.Cosine <- factor(clus_A3_smoothed[match(clus_A3$Acquisition,clu
 @
 
 
-\begin{figure}[hb]
-\vspace{-4cm}
+\begin{figure}[h]
+\vspace{-3cm}
 \begin{center}
 \begin{tikzpicture}
 \draw (0,0) node {
 \includegraphics[height=6.05cm,trim= 15cm 0cm 14.5cm 0cm,clip=true]{./miscImages/HEstains_contrast/Slide_4_p44.pdf}
 };
-\draw (5.8,-0.15) node {
-<<figure_A3_binary_cos_clustering, dependson=c("clus_A3_smoothed_cos","A3_load"), message=FALSE, fig.width=3.6, out.width="0.518\\linewidth">>=
+\draw (5.8,-0.4) node {
+<<figure_A3_binary_cos_clustering, dependson=c("clus_A3_smoothed_cos","A3_load"), message=FALSE, fig.width=3.6, out.width="0.483\\linewidth">>=
 mI.m <- spatialPlot(clus_A3,fExists,
                     plot_var = 'Binary.Cosine',
                     plot_var_type = 'categorical',
@@ -1908,6 +2013,7 @@ print(p)
 \draw (2.7,2.4) node {(b)};
 \draw (1,-2.85) node {5mm};
 \draw[line width = 6pt] (0.276,-3.2) -- (1.670,-3.2);
+% \draw[line width = 6pt] (3.516,-3.2) -- (4.910,-3.2);
 \draw[->,very thick] (0.8,0.4) -- (0.4,0);
 \draw[->,very thick] (0.85,1) -- (0.45,0.6);
 \draw[->,very thick] (0.6,-0.3) -- (0.2,-0.7);
@@ -2268,7 +2374,7 @@ negative indicators, for two reasons:
 So although these three negative indicators for the 
 \Ncolboxcancer{} are interesting, and could be pursued by
 matching to \gls{lc} data for identification and 
-follow-up studies, we prioritise our efforts on 
+follow-up studies, we prioritised our efforts on 
 pursuing positive indicators.
 
 
@@ -2667,7 +2773,7 @@ analyses:
   multiple binnings in parallel in order to ensure 
   important variables are not missed. 
   In the interests of illustrating methods and ideas
-  simply I will continue consider only one binning for 
+  simply I will consider only one binning for 
   the remainder of the discussion of the ovarian cancer 
   data in this chapter and the analyses that follow in 
   \refsec{datasetComparisons}.
@@ -2874,7 +2980,7 @@ peaklist_subset = peaklist_merged[!is.na(match(peaklist_merged$Bin,dipps_heatmap
 
 
 
-\begin{figure}
+\begin{figure}[h]
 \vspace{-4cm}
 \begin{center}
 \begin{tikzpicture}
