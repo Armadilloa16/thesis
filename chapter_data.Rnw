@@ -77,7 +77,7 @@ proteomes change.
 Proteomes vary considerably between different cellular 
 states and understanding these variations can provide 
 remarkable insights.
-A cell in the lining of your stomache would have a 
+A cell in the lining of your stomach would have a 
 virtually identical genome to a neuron in your brain, 
 but they would contain dramatically different 
 proteomes, and the differences between their proteomes 
@@ -1012,7 +1012,7 @@ individual samples \citep{Casadonte2011}.
 	\end{center}
 	\caption{A \gls{he} stained section of a typical 
   \gls{tma}, annotated by a pathologist in black to 
-  highlight tumour regions.
+  highlight tumour regions, see \cite{Mittal2016}.
   This corresponds to a section of the \gls{tma} 
   labelled `EB' of the endometrial data we introduce 
   in \refsec{endometrialDatasets} and 
@@ -1029,84 +1029,20 @@ individual samples \citep{Casadonte2011}.
 We consider datasets from three applications of 
 \gls{maldi}-\gls{ims}:
 \begin{itemize}
-  \item Ovarian Cancer --- These whole-section data 
-  relate to ovarian tumours embedded in peritoneal
-  tissue (elements of the internal abdominal wall) from 
-  three patients.
-  Further details can be found in the work of 
-  \citet{Gustafsson2012thesis}. 
-  These data contain spectra from both tumour tissue 
-  and surrounding non-tumour tissues excised as a 
-  `margin of error' around the tumours during surgery.
-  These are peptide data and the main interest is to 
-  find peptide signals that differentiate between 
-  different tissue types, particularly peptides that 
-  are present more in tumour than the 
-  surrounding non-tumour tissues.
-  We approach this in a two-step process, first using
-  clustering to separate the tissue types in an 
-  automated manner, second using a \gls{dipps}-based
-  feature extraction step to find a short-list of 
-  potential peptides of interest.
-  We introduce and discuss this two step process in 
-  \refchap{dipps}.
-  In \refsec{datasetComparisons} we then 
-  compare these short-lists of tumour-identifying 
-  peptides between patients, to separate the 
-  within-patient variability from the between-patient 
-  variability and detect peptides specific to the 
-  short-lists from certain patients --- i.e. peptides 
-  that are over-expressed by tumour cells in particular
-  patients but not others. 
-  In the future, such peptides could form a starting 
-  point for experiments investigating individualised 
-  treatments, but at this initial stage the ability to 
-  detect such peptides acts primarily as a 
-  proof-of-principle that can then be followed up.
+  \item Ovarian Cancer --- Peptide data from full 
+  sections of ovarian tumours embedded in surrounding
+  peritoneal tissue.
   
-  \item Murine Glycans --- These data relate to sections 
-  of murine kidney treated with PNGase F to release 
-  asparagine (N)-linked glycans.
-  The object of these data is to serve as a 
-  proof-of-principle that glycans can effectively be 
-  released \emph{in situ} and measured by 
-  \gls{maldi}-\gls{ims}.
-  In \refsec{dataDependant} we demonstrate how the 
-  second (\gls{dipps}-based feature extraction) step 
-  of the approach introduced in \refchap{dipps} can be
-  applied in this context to produce a short-list of 
-  potential glycan masses.
+  \item Murine Glycans --- N-linked glycan data from 
+  sections of murine kidney, part treated with PNGase F,
+  part untreated.
   
-  \item \glspl{tma} --- We consider two \gls{tma} 
-  applications of \gls{maldi}-\gls{ims}, one primary
-  application (to endometrial cancer) that we will 
-  focus on and a secondary, smaller, application (to 
-  vulvar cancer) that we will use primarily to validate
-  and replicate results obtained from the endometrial 
-  cancer application.
-  The endometrial cancer data relate to 
-  \glspl{tma} of endometrial cancer, 
-  providing access to data from a relatively large 
-  number of patients ($43$), as discussed in 
-  \refsec{TMAs}. 
-  The objective is to demonstrate that these data can 
-  be used to predict clinically relevant diagnostic 
-  information, justifying further research into the use 
-  of \gls{maldi}-\gls{ims} of \glspl{tma} for clinical 
-  screening and diagnostics.
-  The diagnostic variable of interest is 
-  lymph node metastasis status, which we attempt to 
-  classify on the basis of the \gls{maldi}-\gls{ims}
-  data in \refchap{classificationApplication}.
-  The secondary vulvar cancer data relate to a similar
-  diagnostic variable of interest relating to 
-  metastasis, but provide access to data from a 
-  smaller number of patients ($28$).
-  We will use the vulvar cancer data to investigate 
-  whether the conclusions we reach through 
-  investigation of the endometrial cancer data can be 
-  replicated in an unrelated dataset.
-
+  \item \glspl{tma} --- Peptide data from \glspl{tma}. 
+  We consider two sub-applications. Endometrial cancer
+  forms our main interest, and vulvar cancer forms a 
+  secondary interest which we mainly use for 
+  replicating results.
+  
 \end{itemize}
 
 
@@ -1187,8 +1123,14 @@ mentioned here in \refsec{data}.
 \subsection{Ovarian Cancer Application}
 \label{sec:ovarianDatasets}
 
-\citet{Winderbaum2015} motivate the study of ovarian cancer
-by proteomics:
+The ovarian cancer data we will consider relate to 
+tumours embedded in peritoneal tissue (elements of the 
+internal abdominal wall) from three ovarian cancer 
+patients.
+Further details can be found in the work of 
+\citet{Gustafsson2012thesis}, and for some motivation 
+on why the study of ovarian cancer is of importance, 
+we quote \citet{Winderbaum2015}:
 \begin{quote}
 ``Ovarian cancers are virtually asymptomatic and as a 
 result the vast majority of cases are detected when the 
@@ -1212,6 +1154,41 @@ tissues, determining protein distributions in cancer
 tissue represents a crucial step in addressing these 
 key aims.''
 \end{quote}
+
+The ovarian cancer datasets originate from patients who
+were diagnosed with serous ovarian cancer and went 
+through surgery to have tumours removed. 
+We consider $12$ datasets collected from sections of 
+surgically excised ovarian cancer tumours --- $4$ 
+from each of $3$ patients, where the $4$ datasets from 
+each patient are from multiple tissue sections of 
+the same tumour or tissue block.
+We will refer to the patients as A, B, and C, and will 
+refer to the four datasets from patient A as; A1, A2, 
+A3, and A4, and similarly for patients B and C. 
+\reftab{imgBasicStats} provides some details for each 
+of these datasets, indicating the scale of these data.
+The number of empty spectra, that is spectra with no 
+peaks, can be used as a heuristic for quality control 
+as every spectra, even off-tissue spectra, should 
+contain at least the internal calibrants and so a 
+spectrum being empty most likely indicates acquisition 
+conditions that require examination or improvement --- 
+inconsistent matrix crystallisation, for example.
+The number of empty spectra shown in 
+\reftab{imgBasicStats} are generally very small 
+relative to the total number of spectra, indicating no 
+obvious problem with the data acquisition, although 
+amongst all $12$ datasets C2 and C4 seem to have 
+notably more empty spectra than others.
+There is no immediately obvious reason why these two 
+datasets should be any different to the others, but we 
+will notice these empty spectra in further analyses in 
+\refchap{dipps}.
+% As alluded to in \refsec{statsBackground}, we 
+% discretise the \gls{mz} domain and the method we use for 
+% doing this in the ovarian cancer datasets is binning, 
+% which we explicitly define in \refapp{binning}.
 
 <<data_imaging_names>>=
 dataset_table <- data.frame(Dataset = c("A1","A2","A3","A4",
@@ -1292,11 +1269,14 @@ mass $[$M$+$H$]^+$ & Database Entry Name          & Name    \\ \hline
 \end{tikzpicture}
 \end{center}
 \caption{\gls{ihc} stains used for validation of the 
-proteins in \reftab{massIDs} on two of the ovarian 
-cancer patients.
+proteins in \reftab{massIDs} on the ovarian cancer
+patients A and B as introduced in 
+\reftab{imgBasicStats}.
 Columns correspond to protein antibody stains, rows to 
 patients. \label{fig:IHCvalidation}}
 \end{figure}
+
+
 
 Ovarian cancers are known to be quite heterogeneous 
 tissues \citep{Deininger2008}, and this motivates the 
@@ -1304,75 +1284,42 @@ use of \gls{maldi}-\gls{ims} in acquiring spatial
 information that can de-convolute the inherent 
 heterogeneity of the tissue \citep{Gorzolka2014}. 
 \citet{Gustafsson2012thesis} describes the acquisition 
-of the data we have from a number of embedded ovarian 
-tumours --- containing not only tumour tissue, but also
-a margin of surrounding non-tumour tissues.
-One of our primary aims in considering these data is to
-separate the different tissue types, which we do by 
-means of the $k$-means clustering.
-Further to separating spectra from different tissue 
-types, we are interested in the extraction of features 
-or variables specific to the tumour tissue and less 
-prevalent in the non-tumour tissues.
-We present a method for this feature extraction based
-on ranking the variables by a statistic which we call
-\gls{dipps}, and then selecting the highly-ranked 
-variables.
-The process we propose for these clustering and feature 
-selection steps is described in detail in 
+of these data and, amongst other things, that these 
+data contain spectra from both tumour tissue and 
+surrounding non-tumour tissues excised as a 
+`margin of error' around the tumours during surgery.
+These are peptide data and the main interest is to 
+find peptide signals that differentiate between 
+different tissue types, particularly peptides that 
+are present more in tumour while being less prevalent 
+in the surrounding non-tumour tissues.
+We approach this in a two-step process, first using
+$k$-means clustering to separate the tissue types in 
+an automated manner, second using a \gls{dipps}-based
+feature extraction step to find a short-list of 
+potential peptides of interest.
+We introduce and discuss this two step process in 
 \refchap{dipps}.
-Another aim when considering these ovarian cancer data 
-is to compare these highly ranked variables across 
-multiple datasets from both the same and different 
-patients, in an attempt to provide a  
-proof-of-principle that differences between patients 
-can be found using \gls{maldi}-\gls{ims} in this way, 
-potentially providing reasons to pursue future cohort 
-studies making use of \glspl{tma} to predict treatment 
-response.
-We consider the results of our combined clustering and
-feature selection method on several datasets from the 
-same and different patients in detail in 
-\refsec{datasetComparisons}.
+In \refsec{datasetComparisons} we then 
+compare these short-lists of tumour-identifying 
+peptides between patients, to separate the 
+within-patient variability from the between-patient 
+variability and detect peptides specific to the 
+short-lists from certain patients --- i.e. peptides 
+that may be over-expressed by tumour cells in 
+particular patients but not others. 
 \refchap{dipps} and \refsec{datasetComparisons} 
 represent a more comprehensive view of the results 
 published by \citet{Winderbaum2015}, and provide us the 
 opportunity to discuss these results in more detail.
+In the future, such peptides could form a starting 
+point for experiments investigating individualised 
+treatments, but at this initial stage the ability to 
+detect such peptides acts primarily as a 
+proof-of-principle that can then be followed up.
 
-The ovarian cancer datasets originate from patients who
-were diagnosed with serous ovarian cancer and went 
-through surgery to have tumours removed. 
-We consider $12$ datasets collected from sections of 
-surgically excised ovarian cancer tumours --- $4$ 
-from each of $3$ patients, where the $4$ datasets from 
-each patient are from multiple tissue sections of 
-the same tumour or tissue block.
-We will refer to the patients as A, B, and C, and will 
-refer to the four datasets from patient A as; A1, A2, 
-A3, and A4, and similarly for patients B and C. 
-\reftab{imgBasicStats} provides some details for each 
-of these datasets, indicating the scale of these data.
-The number of empty spectra, that is spectra with no 
-peaks, can be used as a heuristic for quality control 
-as every spectra, even off-tissue spectra, should 
-contain at least the internal calibrants and so a 
-spectrum being empty most likely indicates acquisition 
-conditions that require examination or improvement --- 
-inconsistent matrix crystallisation, for example.
-The number of empty spectra shown in 
-\reftab{imgBasicStats} are generally very small 
-relative to the total number of spectra, indicating no 
-obvious problem with the data acquisition, although 
-amongst all $12$ datasets C2 and C4 seem to have 
-notably more empty spectra than others.
-There is no immediately obvious reason why these two 
-datasets should be any different to the others, but we 
-will notice these empty spectra in further analyses in 
-\refchap{dipps}.
-% As alluded to in \refsec{statsBackground}, we 
-% discretise the \gls{mz} domain and the method we use for 
-% doing this in the ovarian cancer datasets is binning, 
-% which we explicitly define in \refapp{binning}.
+
+
 
 Similar to the methodology of \citet{Meding2012}, 
 \gls{lc}-\gls{ms} data was collected in parallel for 
@@ -1399,7 +1346,16 @@ are shown in \reffig{IHCvalidation}.
 \subsection{N-Glycan Application (in Murine Kidney)}
 \label{sec:NglycansDatasets}
 
-\citet{Gustafsson2015} motivate the study of glycans:
+These glycan data relate to sections 
+of murine kidney treated with PNGase F to release 
+asparagine (N)-linked glycans.
+The object of these data is to serve as a 
+proof-of-principle that glycans can effectively be 
+released \emph{in situ} and measured by 
+\gls{maldi}-\gls{ims}.
+Further details are provided by \citet{Gustafsson2015},
+who also provide some motivation for why the study of 
+glycans is of interest:
 \begin{quote}
 ``The majority of mammalian secretary and membrane 
 proteins are modified through glycosylation: the 
@@ -1501,6 +1457,24 @@ in \reftab{glycan_matches}.
 \subsection{TMA Applications}
 \label{sec:endometrialDatasets}
 
+As mentioned in \refsec{TMAs}, an exciting application 
+of \gls{maldi}-\gls{ims} is to \glspl{tma} --- as this
+allows data from large cohorts of patients to be
+collected rapidly, potentially allowing difficult
+diagnostic and prognostic problems to be addressed.
+We consider two \gls{tma} 
+applications of \gls{maldi}-\gls{ims}, one primary
+application (to endometrial cancer) that we will 
+focus on and a secondary, smaller, application (to 
+vulvar cancer) that we will use primarily to validate
+and replicate results obtained from the endometrial 
+cancer application.
+The objective is to demonstrate that these data can 
+be used to predict clinically relevant diagnostic 
+information, justifying further research into the use 
+of \gls{maldi}-\gls{ims} of \glspl{tma} for clinical 
+screening and diagnostics.
+  
 \subsubsection{Endometrial Cancer TMAs}
 % {\highlightTextAs{incomplete}
 % The endometrial data of \cite{Mittal2016} was 
@@ -1520,18 +1494,20 @@ in \reftab{glycan_matches}.
 % \gls{snr} threshold of two.
 % }
 
-
-As mentioned in \refsec{TMAs}, an exciting application 
-of \gls{maldi}-\gls{ims} is to \glspl{tma} --- as this
-allows data from large cohorts of patients to be
-collected rapidly, potentially allowing difficult
-diagnostic and prognostic problems to be addressed.
-The problem we will consider is that of diagnosing 
-\gls{lnm} in patients with endometrial cancer.
-
-
-\citet{Winderbaum2016} motivate the classification of 
-\gls{lnm} in endometrial cancer:
+The endometrial cancer data relate to 
+\glspl{tma} of endometrial cancer, 
+providing access to data from a relatively large 
+number of patients ($43$), as discussed in 
+\refsec{TMAs}. 
+The diagnostic variable of interest for prediction is 
+\gls{lnm} status, which we attempt to 
+classify on the basis of the \gls{maldi}-\gls{ims}
+data in \refchap{classificationApplication}.
+Further details on the acquisition of these data can 
+be found in the work of \citet{Mittal2016}, and 
+\citet{Winderbaum2016} provide some motivatation on 
+why the the classification of \gls{lnm} in 
+endometrial cancer is of interest:
 \begin{quote}
 ``Endometrial cancer is the most common gynaecological 
 malignancy in Australia with $2256$ diagnosed cases in
@@ -1648,7 +1624,8 @@ dimensional nature of the cores and the heterogeneity
 of the tumours. 
 In order to address this potential tissue heterogeneity
 each section was also \gls{he} stained and the tumour 
-tissue was manually annotated by a pathologist.
+tissue was manually annotated by a pathologist --- see
+\cite{Mittal2016}.
 Similarly to \reftab{imgBasicStats},  
 \reftab{tmaBasicStats} provides some details for these 
 datasets.
@@ -1855,11 +1832,15 @@ print(xtable(temp,
 
 \subsubsection{Vulvar Cancer TMAs}
 
+The vulvar cancer data relate to another 
+gynaecological cancer for which, similar to 
+endometrial cancer, \gls{lnm} is highly predictive of 
+prognosis and important to the choice of treatment.
+While providing access to a smaller cohort (28) than
+the endometrial cancer data, the vulvar cancer data 
+represents an independant dataset on a different 
+(although related) type of cancer.
 
-Vulvar cancer is another gynaecological cancer for 
-which, similar to endometrial cancer, \gls{lnm} is 
-highly predictive of prognosis and important to the 
-choice of treatment.
 
 % {\highlightTextAs{incomplete}
 % The following is a quote from Chao's `failed' manuscript, 

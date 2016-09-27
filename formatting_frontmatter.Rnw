@@ -428,7 +428,7 @@ this thesis into two parts:
   
 \end{itemize}
 In each of these two parts, we first introduce and 
-discuss the methods we propose to use (in 
+discuss methods (in 
 Chapters~\ref{chap:dipps} and 
 \ref{chap:classificationMethods} respectively), and 
 then demonstrate

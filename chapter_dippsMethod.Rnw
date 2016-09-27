@@ -2315,7 +2315,16 @@ calibrants.
 (c) and probably (g) are similarly trypsin autolysis 
 products resulting from the trypsin sprayed evenly onto 
 the tissue during sample preparation.
-Notice how the last of these calibrants,
+Note that the most common trypsin autoloysis product, 
+at an $m/z$ of $842$, is not observed here. This is 
+because the low end of the mass range used for the 
+acquisition of these data was $1000$, meaning any 
+signals at an $m/z$ less than $1000$ where not measured. 
+The decision to restrict the mass range in this way was
+largely motivated through iterative optimisation of the 
+method as often chemical noise in the low mass region 
+can lead to poor spectrum quality.
+Notice how the last of the calibrants,
 \reffig{figure_high_proportions_of_occurrence_bins} 
 (i), exhibits a systematic \Ncolboxabsence{} for high 
 Y-coordinate values (that is in the lower part of the 

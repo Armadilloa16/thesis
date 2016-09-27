@@ -262,8 +262,8 @@ When applied to these data, the training step of
 $\beta = \beta_{\LDA}$, 
 which are visually represented in \reffig{iris_example}
 with solid and dashed black lines respectively.
-$\bm{d}_{\LDA}$ can be thought of as a direction or 
-line which `best separates' the two classes, as 
+$\bm{d}_{\LDA}$ is a vector representing the direction 
+or line which `best separates' the two classes, as 
 determined by \gls{lda}.
 $\beta_{\LDA}$ can then be though of as the point 
 (or perpendicular hyperplane --- in this case a line) 
@@ -271,7 +271,7 @@ along the line/ direction defined by $\bm{d}_{\LDA}$
 that best separates the two classes --- again, with 
 `best' being determined by \gls{lda}.
 The differences between linear classification methods
-can be thought of as different approaches to 
+essentially boil down to different approaches to 
 determining the meaning of the word `best' in this
 context.
 As we can see from \reffig{iris_example}, if we were 
