@@ -1268,16 +1268,18 @@ centred --- each row has mean zero.
 Then the sample covariance matrix of 
 \begin{equation}
 \left [ \begin{array}{c} \mData_1 \\ \mData_2 \end{array} \right ]
-\quad \text{ is } \quad
+\quad \text{is} \quad
 \frac{1}{n-1} 
 \left [ \begin{array}{c} \mData_1 \\ \mData_2 \end{array} \right ]
 \left [ \begin{array}{c} \mData_1 \\ \mData_2 \end{array} \right ]^T
 = 
 \frac{1}{n-1} 
-\left [ \begin{array}{cc} \mData_1 \mData_1^T & \mData_1 \mData_2^T \\ \mData_2 \mData_1^T & \mData_2 \mData_2^T  \end{array} \right ]
-= 
-\left [ \begin{array}{cc} S_1 & S_{12} \\ S_{12}^T & S_2 \end{array} \right ].
+\left [ \begin{array}{cc} \mData_1 \mData_1^T & \mData_1 \mData_2^T \\ \mData_2 \mData_1^T & \mData_2 \mData_2^T  \end{array} \right ],
 \label{eqn:SblockNotation}
+\end{equation}
+which we will denote as
+\begin{equation}
+\left [ \begin{array}{cc} S_1 & S_{12} \\ S_{12}^T & S_2 \end{array} \right ].
 \end{equation}
 As mentioned in \refsec{pca}, we will often be dealing 
 with singular covariance matrices in the classification 

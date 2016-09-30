@@ -7,6 +7,7 @@ set_parent('whole_thesis.Rnw')
 
 
 
+\usepackage[nottoc]{tocbibind}
 % \usepackage[top=1.8cm,bottom=1.8cm,outer=3cm,inner=3cm]{geometry}
 \usepackage[top=1.8cm,bottom=1.8cm,outer=1.8cm,inner=4.2cm]{geometry}
 % \usepackage[top=1.8cm,bottom=1.8cm,outer=1.8cm,inner=1.8cm]{geometry}

@@ -23,9 +23,8 @@ these short-lists in gaining information about the
 within-patient and between-patient variability in 
 \gls{maldi}-\gls{ims} data, conluding that although 
 this variability was significant, considering 
-technical replicates can allow for biologically 
-significant differences between patients to be detected 
-reproducibly.
+technical replicates can allow for differences between 
+patients to be detected.
 In \refsec{dataDependant} we demonstrated that our 
 \gls{dipps}-feature selection approach can be applied
 in another way --- to find glycan signals 
@@ -34,19 +33,19 @@ We published this \gls{dipps}-feature selection
 approach as \citet{Winderbaum2015}.
 
 In Chapters~\ref{chap:classificationMethods} and 
-\ref{chap:classificationApplication} we consider the 
+\ref{chap:classificationApplication} we considered the 
 classification of \gls{maldi}-\gls{ims} \gls{tma} data.
 In \refchap{classificationMethods} we introduced and 
 disucssed methods for the classification of such 
-\gls{maldi}-\gls{ims} \gls{tma} data.
-In \refchap{classificationApplication} we applied these
+\gls{maldi}-\gls{ims} \gls{tma} data, while
+in \refchap{classificationApplication} we applied these
 methods to classify \gls{lnm} in the endometrial data 
-of \citet{Mittal2016}, and considered various options 
-for pre-processing, dimension-reduction, and 
-classification of these data --- comparing the 
-classification performance for each option.
-Ultimately we concluded that the most important factor 
-to classification performance overall was the approach
+of \citet{Mittal2016} --- comparing the 
+classification performance of various options for 
+pre-processing, dimension-reduction, and 
+classification.
+We concluded that the option with the largest impact on 
+classification performance was the approach
 taken to dimension reduction --- with \gls{cca}-based
 variable selection performing very well.
 Some options also seemed to have very strong 
@@ -55,19 +54,17 @@ particular combinations of choices having much
 improved classification performance despite each of 
 the individual options not having big effects 
 in general.
-These interaction effects ultimately led to the 
-overall conclusion that the most consistent set of 
-options was using \gls{cca}-\gls{lda} on the 
-log-intensity data.
-In addition to these results from the endometrial data 
-we also replicated our analysis on a second dataset
-relating to vulvar cancer, as shown in \refapp{vulvar}.
-Many of the more minor results from the endometrial 
+Overall, \gls{cca}-\gls{lda} on the log-intensity data
+consistently performed best.
+In addition we also replicated our analysis on a second 
+datasetrelating to vulvar cancer, as in \refapp{vulvar}.
+Many of the minor results from the endometrial 
 data were not reproduced in the vulvar data.
 However the most obvious trends, including the 
 consistently good classification performance of 
-\gls{cca}-\gls{lda} on the log-intensity data, were the 
-same in the vulvar data, strengthening these results.
+\gls{cca}-\gls{lda} on the log-intensity data, were 
+reproduced in the vulvar data, strengthening these 
+results.
 We published our \gls{cca}-based variable selection 
 approach with these results as \citet{Winderbaum2016}.
 

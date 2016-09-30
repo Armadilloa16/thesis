@@ -1811,7 +1811,7 @@ process in \refsec{opt_opt}.
 temp <- subset(clin_df,Suitable & !is.na(match(clin_df$Patient,p)))[,c("Patient","LNM","Grade","Size","Invasion.Myometrium","Spectra","CancerSpectra","EmptySpectra")]
 print(xtable(temp, 
              digits=0, 
-             caption="Basic statistics on endometrial TMA data, per patient. Grade, Size, and Myometrium Invasion are clinical variables known to be correlated to \\gls{lnm}. These clinical variables are sometimes known before surgery, and have been considered for use in prediction of \\gls{lnm} status but, as reflected in these data, do not allow for very accurate prediction. Note the presence of some missing values, these correspond to patients whose stored clinical data are incomplete.", label="tab:tmaPatientBasicStats"),
+             caption="Basic statistics on endometrial \\gls{tma} data, per patient. Grade, Size, and Myometrium Invasion are clinical variables known to be correlated to \\gls{lnm}. These clinical variables are sometimes known before surgery, and have been considered for use in prediction of \\gls{lnm} status but, as reflected in these data, do not allow for very accurate prediction. Note the presence of some missing values, these correspond to patients whose stored clinical data are incomplete.", label="tab:tmaPatientBasicStats"),
       size="footnotesize",
       include.rownames=FALSE,
       include.colnames=FALSE,
@@ -1821,7 +1821,7 @@ print(xtable(temp,
       add.to.row = list(pos=list(-1,
                                  nrow(temp)),
                         command = c(paste("\\toprule \n",
-                                          "\\multirow{2}{*}{Patient \\#} & \\multirow{2}{*}{LNM} & \\multirow{2}{*}{Grade} & \\multirow{2}{*}{Size} & Myometrium & \\multirow{2}{*}{\\# Spectra} & \\# Cancer & \\# Empty \\\\ \n & & & & Invasion & & Spectra & Spectra \\\\ \n",
+                                          "\\multirow{2}{*}{Patient \\#} & \\multirow{2}{*}{\\gls{lnm}} & \\multirow{2}{*}{Grade} & \\multirow{2}{*}{Size} & Myometrium & \\multirow{2}{*}{\\# Spectra} & \\# Cancer & \\# Empty \\\\ \n & & & & Invasion & & Spectra & Spectra \\\\ \n",
                                           "\\midrule \n"),
                                     "\\bottomrule \n")
       )

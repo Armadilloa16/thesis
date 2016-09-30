@@ -137,8 +137,8 @@ library(xtable)
 % POSTAMBLE
 \cleardoublepage
 \bibliographystyle{plainnat}
+% \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{references}
-\addcontentsline{toc}{chapter}{Bibliography}
 
 % \chapter*{Document Compilation Details}
 % \addcontentsline{toc}{chapter}{Document Compilation Details}
