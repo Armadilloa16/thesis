@@ -6,7 +6,7 @@ chunk caches. They are large. If you'd like
 a copy that compiles just shoot me an email
 at:
 
-lyron.winderbaum@student.adelaide.edu.au
+armadilloa16@gmail.com
 
 and I'll be happy to send you all the 
 data, figures, etc.
